@@ -1,0 +1,37 @@
+pre {
+  padding: 15px 0;
+  min-height: 12px;
+  line-height: 18px;
+  color: #fff;
+  font-family: monospace;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  background-color: #333;
+  border: 1px solid #ddd;
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+  border-radius: 4px;
+  overflow-x: scroll;
+}
+pre a {
+  margin-right: 10px;
+  color: #666;
+  cursor: pointer;
+}
+p {
+  margin: 0;
+  padding: 0 15px 0 25px;
+  min-height: 16px;
+}
+a {
+  padding-right: 15px;
+}
+.green {
+  color: lime;
+}
+.red {
+  color: red;
+}
+.yellow {
+  color: yellow;
+}
