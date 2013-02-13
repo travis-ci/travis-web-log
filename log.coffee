@@ -85,7 +85,7 @@ $.extend Log.Context.prototype,
     nodes = @lines.map (line) =>
       string = line.string
       string = @deansi(string)
-      style  = if string == '' then 'style="display: none;"' else ''
+      style  = if string == '' then ' style="display: none;"' else ''
       "<p id=\"#{line.id}\"#{style}><a id=\"\"></a>#{string.replace(/\n/gm, '')}</p>"
     nodes.join("\n")
   join: (all) ->

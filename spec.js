@@ -33,6 +33,9 @@
     },
     insert: function(after, html) {
       var node;
+      if (!html) {
+        return;
+      }
       if (after && (node = this.find(after))) {
         return Array.prototype.splice.apply(this.lines, [this.lines.indexOf(node) + 1, 0].concat(html.split("\n")));
       } else {
@@ -78,12 +81,43 @@
         this.log.set(1, "bar\nbaz\n");
         return expect(this.renderer.lines.join("\n")).toBe('<p id="0-0"><a id=""></a>foo</p>\n<p id="0-1"><a id=""></a></p>\n<p id="1-0"><a id=""></a>bar</p>\n<p id="1-1"><a id=""></a>baz</p>\n<p id="2-0"><a id=""></a>buz</p>');
       });
-      return it('joins chunks that belong to the same line', function() {
+      it('joins chunks that belong to the same line', function() {
         this.log.set(3, '...\nbar\n...');
         this.log.set(2, '...');
         this.log.set(0, "foo\n");
         this.log.set(1, '...');
         return expect(this.renderer.lines.join("\n")).toBe('<p id="0-0"><a id=""></a>foo</p>\n<p id="3-0"><a id=""></a>.........</p>\n<p id="3-1"><a id=""></a>bar</p>\n<p id="3-2"><a id=""></a>...</p>');
+      });
+      it('joins chunks (2)', function() {
+        this.log.set(0, "a\n...");
+        this.log.set(1, "...\nb");
+        return expect(this.renderer.lines.join("\n")).toBe('<p id="0-0"><a id=""></a>a</p>\n<p id="1-0"><a id=""></a>......</p>\n<p id="1-1"><a id=""></a>b</p>');
+      });
+      it('works when tail starts with an \n-terminated line', function() {
+        this.log.set(2, "...\n");
+        this.log.set(1, '...');
+        this.log.set(3, "b\n");
+        return expect(this.renderer.lines.join("\n")).toBe('<p id="2-0"><a id=""></a>......</p>\n<p id="3-0"><a id=""></a>b</p>');
+      });
+      it('works when clearing a line followed by an \n-terminated line', function() {
+        this.log.set(4, "b\n");
+        this.log.set(1, "...");
+        this.log.set(2, "\x1B[K\n");
+        this.log.set(3, "a\n");
+        return expect(this.renderer.lines.join("\n")).toBe('<p id="2-0" style="display: none;"><a id=""></a></p>\n<p id="3-0"><a id=""></a>a</p>\n<p id="4-0"><a id=""></a>b</p>');
+      });
+      it('works when concating lines followed by an \n-terminated line', function() {
+        this.log.set(4, "b\n");
+        this.log.set(1, "...");
+        this.log.set(2, "...\n");
+        this.log.set(3, "a\n");
+        return expect(this.renderer.lines.join("\n")).toBe('<p id="2-0"><a id=""></a>......</p>\n<p id="3-0"><a id=""></a>a</p>\n<p id="4-0"><a id=""></a>b</p>');
+      });
+      return it('works with an intermediary empty string', function() {
+        this.log.set(2, "b\n");
+        this.log.set(0, "a\n");
+        this.log.set(1, '');
+        return expect(this.renderer.lines.join("\n")).toBe('<p id="0-0"><a id=""></a>a</p>\n<p id="2-0"><a id=""></a>b</p>');
       });
     });
   });

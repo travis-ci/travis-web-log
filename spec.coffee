@@ -22,6 +22,7 @@ $.extend TestRenderer.prototype,
     # console.log @lines.join("\n"), "\n---------------"
 
   insert: (after, html) ->
+    return unless html
     if after and node = @find(after)
       Array::splice.apply(@lines, [@lines.indexOf(node) + 1, 0].concat(html.split("\n")))
     else
@@ -65,6 +66,55 @@ describe 'Log', ->
         <p id="3-0"><a id=""></a>.........</p>
         <p id="3-1"><a id=""></a>bar</p>
         <p id="3-2"><a id=""></a>...</p>
+      '''
+
+    it 'joins chunks (2)', ->
+      @log.set 0, "a\n..."
+      @log.set 1, "...\nb"
+      expect(@renderer.lines.join("\n")).toBe '''
+        <p id="0-0"><a id=""></a>a</p>
+        <p id="1-0"><a id=""></a>......</p>
+        <p id="1-1"><a id=""></a>b</p>
+      '''
+
+    it 'works when tail starts with an \n-terminated line', ->
+      @log.set 2, "...\n"
+      @log.set 1, '...'
+      @log.set 3, "b\n"
+      expect(@renderer.lines.join("\n")).toBe '''
+        <p id="2-0"><a id=""></a>......</p>
+        <p id="3-0"><a id=""></a>b</p>
+      '''
+
+    it 'works when clearing a line followed by an \n-terminated line', ->
+      @log.set 4, "b\n"
+      @log.set 1, "..."
+      @log.set 2, "\x1B[K\n"
+      @log.set 3, "a\n"
+      expect(@renderer.lines.join("\n")).toBe '''
+        <p id="2-0" style="display: none;"><a id=""></a></p>
+        <p id="3-0"><a id=""></a>a</p>
+        <p id="4-0"><a id=""></a>b</p>
+      '''
+
+    it 'works when concating lines followed by an \n-terminated line', ->
+      @log.set 4, "b\n"
+      @log.set 1, "..."
+      @log.set 2, "...\n"
+      @log.set 3, "a\n"
+      expect(@renderer.lines.join("\n")).toBe '''
+        <p id="2-0"><a id=""></a>......</p>
+        <p id="3-0"><a id=""></a>a</p>
+        <p id="4-0"><a id=""></a>b</p>
+      '''
+
+    it 'works with an intermediary empty string', ->
+      @log.set 2, "b\n"
+      @log.set 0, "a\n"
+      @log.set 1, ''
+      expect(@renderer.lines.join("\n")).toBe '''
+        <p id="0-0"><a id=""></a>a</p>
+        <p id="2-0"><a id=""></a>b</p>
       '''
 
 describe 'Log.Context', ->

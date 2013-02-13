@@ -152,7 +152,7 @@
         var string, style;
         string = line.string;
         string = _this.deansi(string);
-        style = string === '' ? 'style="display: none;"' : '';
+        style = string === '' ? ' style="display: none;"' : '';
         return "<p id=\"" + line.id + "\"" + style + "><a id=\"\"></a>" + (string.replace(/\n/gm, '')) + "</p>";
       });
       return nodes.join("\n");
