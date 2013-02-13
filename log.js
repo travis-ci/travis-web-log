@@ -223,16 +223,16 @@
 
   $.extend(Log.Renderer.prototype, {
     notify: function(event, num) {
-      console.log(Array.prototype.slice.call(arguments));
       return this[event].apply(this, Array.prototype.slice.call(arguments, 1));
     },
     insert: function(after, html) {
       html = html.replace(/\n/gm, '');
       if (after) {
-        return $(html).insertAfter("#log #" + after).renumber();
+        $(html).insertAfter($("#log #" + after));
       } else {
-        return $('#log').prepend(html).find('p').renumber();
+        $('#log').prepend(html).find('p');
       }
+      return $('#log').renumber();
     },
     remove: function(ids) {
       var id, _i, _len, _results;
@@ -246,10 +246,12 @@
   });
 
   $.fn.renumber = function() {
-    var num, prev;
-    prev = this.prev();
-    num = prev.length > 0 ? parseInt(prev.find('a')[0].id.replace('L', '')) || 0 : 0;
-    return this.find('a').attr('id', "L" + (num + 1)).html(num + 1);
+    var num;
+    num = 1;
+    return this.find('p a').each(function(ix, el) {
+      $(el).attr('id', "L" + num).html(num);
+      return num += 1;
+    });
   };
 
   exports.Log = Log;

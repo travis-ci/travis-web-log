@@ -13,18 +13,19 @@ pre {
   border-radius: 4px;
   overflow-x: scroll;
 }
-pre a {
-  margin-right: 10px;
-  color: #666;
-  cursor: pointer;
-}
 p {
   margin: 0;
   padding: 0 15px 0 25px;
   min-height: 16px;
 }
 a {
-  padding-right: 15px;
+  display: inline-block;
+  width: 20px;
+  margin-left: -10px;
+  padding-right: 20px;
+  text-align: right;
+  color: #666;
+  cursor: pointer;
 }
 .green {
   color: lime;

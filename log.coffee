@@ -129,23 +129,24 @@ Log.Deansi =
 Log.Renderer = ->
 $.extend Log.Renderer.prototype,
   notify: (event, num) ->
-    console.log Array::slice.call(arguments)
+    # console.log Array::slice.call(arguments)
     @[event].apply(@, Array::slice.call(arguments, 1))
 
   insert: (after, html) ->
     html = html.replace(/\n/gm, '')
     if after
-      $(html).insertAfter("#log ##{after}").renumber()
+      $(html).insertAfter($("#log ##{after}"))
     else
-      $('#log').prepend(html).find('p').renumber()
+      $('#log').prepend(html).find('p')
+    $('#log').renumber()
 
   remove: (ids) ->
     $("#log ##{id}").remove() for id in ids
 
 $.fn.renumber = ->
-  prev = @prev()
-  num = if prev.length > 0 then parseInt(prev.find('a')[0].id.replace('L', '')) || 0 else 0
-  @find('a').attr('id', "L#{num + 1}").html(num + 1)
-  # @next('p').renumber()
+  num = 1
+  @find('p a').each (ix, el) ->
+    $(el).attr('id', "L#{num}").html(num)
+    num += 1
 
 exports.Log = Log
