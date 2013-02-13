@@ -9,17 +9,19 @@
     log = new Log;
     log.listeners.push(new Log.Renderer);
     return $.get(urls[1], function(lines) {
-      var ix, line, set, _i, _len, _results;
+      var ix, line, set, wait, _i, _len, _results;
       lines = lines.replace(/\r\n/gm, "\n");
       lines = lines.replace(/\r/gm, "\n");
       lines = lines.split(/^/m);
       set = function(ix, line) {
         return log.set(ix, line);
       };
+      wait = 0;
       _results = [];
       for (ix = _i = 0, _len = lines.length; _i < _len; ix = ++_i) {
         line = lines[ix];
-        _results.push(setTimeout(set, 10, ix, line));
+        setTimeout(set, wait, ix, line);
+        _results.push(wait += 50);
       }
       return _results;
     });

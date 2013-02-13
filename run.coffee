@@ -14,9 +14,11 @@ $ ->
     lines = lines.split(/^/m)
 
     set = (ix, line) -> log.set(ix, line)
+    wait = 0
 
     for line, ix in lines
-      setTimeout set, 10, ix, line
+      setTimeout set, wait, ix, line
+      wait += 50
 
 
   # log.set 2, "$ bundle install\n"
