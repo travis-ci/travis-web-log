@@ -16,3 +16,5 @@ end
 #     end
 #   end
 # end
+
+run Sinatra::Application
