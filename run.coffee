@@ -3,21 +3,34 @@ urls = [
   'https://api.travis-ci.org/jobs/4754461/log.txt'
 ]
 
+# shuffle = (array) ->
+#   for element, i in array
+#     j = Math.floor(Math.random() * (i + 1))
+#     tmp = array[i]
+#     array[i] = array[j]
+#     array[j] = tmp
+#     array
+#
+# randomize = (lines) ->
+#   shuffle lines
+#   lines
+
+console.log('foo')
 $ ->
   log = new Log
   log.listeners.push(new Log.Renderer)
 
-  $.get urls[1], (lines) ->
-    # lines = lines.slice(0, 50000)
-    lines = lines.replace(/\r\n/gm, "\n")
-    lines = lines.replace(/\r/gm, "\n")
-    lines = lines.split(/^/m)
+  console.log(urls[1])
+  $.get urls[1], (string) ->
+    lines = string.split(/^/m)
+    # lines = shuffle(lines)
+    parts = lines
 
     set = (ix, line) -> log.set(ix, line)
     wait = 0
 
-    for line, ix in lines
-      setTimeout set, wait, ix, line
+    for part, ix in parts
+      setTimeout set, wait, ix, part
       wait += 50
 
 

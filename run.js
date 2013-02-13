@@ -4,23 +4,25 @@
 
   urls = ['https://s3.amazonaws.com/archive.travis-ci.org/jobs/4693454/log.txt', 'https://api.travis-ci.org/jobs/4754461/log.txt'];
 
+  console.log('foo');
+
   $(function() {
     var log;
     log = new Log;
     log.listeners.push(new Log.Renderer);
-    return $.get(urls[1], function(lines) {
-      var ix, line, set, wait, _i, _len, _results;
-      lines = lines.replace(/\r\n/gm, "\n");
-      lines = lines.replace(/\r/gm, "\n");
-      lines = lines.split(/^/m);
+    console.log(urls[1]);
+    return $.get(urls[1], function(string) {
+      var ix, lines, part, parts, set, wait, _i, _len, _results;
+      lines = string.split(/^/m);
+      parts = lines;
       set = function(ix, line) {
         return log.set(ix, line);
       };
       wait = 0;
       _results = [];
-      for (ix = _i = 0, _len = lines.length; _i < _len; ix = ++_i) {
-        line = lines[ix];
-        setTimeout(set, wait, ix, line);
+      for (ix = _i = 0, _len = parts.length; _i < _len; ix = ++_i) {
+        part = parts[ix];
+        setTimeout(set, wait, ix, part);
         _results.push(wait += 50);
       }
       return _results;

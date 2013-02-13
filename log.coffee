@@ -105,7 +105,8 @@ $.extend Log.Context.prototype,
 
 Log.Deansi =
   apply: (string) ->
-    string = string.replace(/.*\033\[K\n/gm, '').replace(/\033\(B/g, '').replace(/\033\[\d+G/g, '').replace(/\[2K/g, '')
+    string = string.replace(/.*(\033\[K\n?|\r(?:[^\n]))/gm, '')
+    string = string.replace(/\033\(B/g, '').replace(/\033\[\d+G/g, '').replace(/\[2K/g, '')
     result = ''
     ansiparse(string).forEach (part) =>
       result += @span(part.text, @classes(part))

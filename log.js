@@ -186,7 +186,8 @@
     apply: function(string) {
       var result,
         _this = this;
-      string = string.replace(/.*\033\[K\n/gm, '').replace(/\033\(B/g, '').replace(/\033\[\d+G/g, '').replace(/\[2K/g, '');
+      string = string.replace(/.*(\033\[K\n?|\r(?:[^\n]))/gm, '');
+      string = string.replace(/\033\(B/g, '').replace(/\033\[\d+G/g, '').replace(/\[2K/g, '');
       result = '';
       ansiparse(string).forEach(function(part) {
         return result += _this.span(part.text, _this.classes(part));
