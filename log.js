@@ -247,6 +247,7 @@
 
   $.fn.renumber = function() {
     var num;
+    return;
     num = 1;
     return this.find('p a').each(function(ix, el) {
       $(el).attr('id', "L" + num).html(num);

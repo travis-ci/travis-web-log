@@ -144,6 +144,7 @@ $.extend Log.Renderer.prototype,
     $("#log ##{id}").remove() for id in ids
 
 $.fn.renumber = ->
+  return
   num = 1
   @find('p a').each (ix, el) ->
     $(el).attr('id', "L#{num}").html(num)
