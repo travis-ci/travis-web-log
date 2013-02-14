@@ -97,8 +97,8 @@ $.extend Log.Context.prototype,
   nodes: ->
     @lines.map (line) =>
       string = line.string
-      string = @deansi(string)
-      { id: line.id, text: string.replace(/\n/gm, ''), hidden: string == '' }
+      nodes = @deansi(string)
+      { id: line.id, nodes: nodes, hidden: string == '' }
   join: (all) ->
     lines = []
     while line = all.pop()
@@ -118,9 +118,9 @@ Log.Deansi =
   apply: (string) ->
     string = string.replace(/.*(\033\[K\n|\r(?!\n))/gm, '')
     # string = string.replace(/\033\(B/g, '').replace(/\033\[\d+G/g, '').replace(/\[2K/g, '')
-    result = ''
+    result = []
     ansiparse(string).forEach (part) =>
-      result += @span(part.text, @classes(part))
+      result.push(@node(part))
     # result.replace(/\033/g, '')
     result
 
@@ -131,13 +131,13 @@ Log.Deansi =
     result.push("bg-#{part.background}") if part.background
     result.push('bold')                  if part.bold
     result.push('italic')                if part.italic
-    result
+    result if result.length > 0
 
-  span: (string, classes) ->
-    if classes?.length
-      "<span class='#{classes.join(' ')}'>#{string}</span>"
+  node: (part) ->
+    if classes = @classes(part)
+      { type: 'span', class: classes, text: part.text }
     else
-      string
+      { type: 'text', text: part.text }
 
 Log.Renderer = ->
 $.extend Log.Renderer.prototype,
@@ -152,19 +152,25 @@ Log.JqueryRenderer.prototype = $.extend new Log.Renderer,
     $("#log ##{id}").remove() for id in ids
 
   insert: (after, data) ->
-    html = (data.map (data) => @render(data)).join("\n")
+    html = (data.map (data) => @render(data))
     after && $("#log ##{after}").after(html) || $('#log').prepend(html).find('p')
     # $('#log').renumber()
 
-  render: (node) ->
-    "<p id=\"#{node.id}\"#{@style(node)}><a id=\"\"></a>#{node.text}</p>"
+  render: (data) ->
+    nodes = for node in data.nodes
+      text = node.text.replace(/\n/gm, '')
+      text = "<span class=\"#{node.class}\">#{text}</span>" if node.type == 'span'
+      "<p id=\"#{data.id}\"#{@style(data)}><a id=\"\"></a>#{text}</p>"
+    nodes.join("\n")
 
-  style: (node) ->
-    node.hidden && 'display: none;' || ''
+  style: (data) ->
+    data.hidden && 'display: none;' || ''
 
 Log.FragmentRenderer = ->
-  @node = @createNode()
-  @fragment = document.createDocumentFragment()
+  @frag = document.createDocumentFragment()
+  @para = @createParagraph()
+  @span = @createSpan()
+  @text = document.createTextNode('')
   @
 
 Log.FragmentRenderer.prototype = $.extend new Log.Renderer,
@@ -183,34 +189,45 @@ Log.FragmentRenderer.prototype = $.extend new Log.Renderer,
       log.appendChild(node)
 
   render: (data) ->
-    fragment = @cloneFragment()
-    fragment.appendChild(@renderNode(data)) for data in data
-    fragment
+    frag = @frag.cloneNode(true)
+    frag.appendChild(@renderParagraph(data)) for data in data
+    frag
 
-  renderNode: (data) ->
-    node = @cloneNode()
-    node.setAttribute('id', data.id)
-    node.setAttribute('style', 'display: none;') if data.hidden
-    node.lastChild.nodeValue = data.text
-    node
+  renderParagraph: (data) ->
+    para = @para.cloneNode(true)
+    para.setAttribute('id', data.id)
+    para.setAttribute('style', 'display: none;') if data.hidden
+    for node in data.nodes
+      node = (node.type == 'span') && @renderSpan(node) || @renderText(node)
+      para.appendChild(node)
+    para
 
-  createNode: ->
-    node = document.createElement('div')
-    node.appendChild(document.createElement('a'))
-    node.appendChild(document.createTextNode(''))
-    node
+  renderSpan: (data) ->
+    span = @span.cloneNode(true)
+    span.setAttribute('class', data.class)
+    span.lastChild.nodeValue = data.text.replace(/\n/gm, '')
+    span
+
+  renderText: (data) ->
+    text = @text.cloneNode(true)
+    text.nodeValue = data.text.replace(/\n/gm, '')
+    text
+
+  createParagraph: ->
+    para = document.createElement('div')
+    para.appendChild(document.createElement('a'))
+    para
+
+  createSpan: ->
+    span = document.createElement('span')
+    span.appendChild(document.createTextNode(''))
+    span
 
   insertAfter: (node, after) ->
     if after.nextSibling
       after.parentNode.insertBefore(node, after.nextSibling)
     else
       after.parentNode.appendChild(node)
-
-  cloneNode: ->
-    @node.cloneNode(true)
-
-  cloneFragment: ->
-    @fragment.cloneNode(true)
 
 $.fn.renumber = ->
   num = 1
