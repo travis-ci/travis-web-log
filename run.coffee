@@ -30,7 +30,7 @@ $ ->
 
   $.get urls[2], (string) ->
     parts = partition(string)
-    parts = parts.slice(0, 30)
+    # parts = parts.slice(0, 30)
     wait  = 0
     set   = (ix, line) -> log.set(ix, line)
     setTimeout set, wait += 10, part[0], part[1] for part in parts
