@@ -39,10 +39,6 @@ App.Runner = Em.Object.extend
   handle: (string) ->
     if @options.partition || @options.randomize
       parts = @split(string)
-      parts = @slice(parts)
-      # randomly split some of the parts into multiple small parts
-      # randomly join some of the parts into multi-line ones
-      parts = @randomize(parts)
       if @options.stream
         @stream(parts)
       else
@@ -68,19 +64,57 @@ App.Runner = Em.Object.extend
   split: (string) ->
     lines = string.split(/^/m)
     parts = ([i, line] for line, i in lines)
+    parts = @slice(parts)     if @options.slice
+    parts = @randomize(parts) if @options.randomize
+    parts = @partition(parts) if false && @options.partition
     parts
 
   slice: (array) ->
-    array = array.slice(0, @options.slice) if @options.slice
-    array
+    array.slice(0, @options.slice)
+
+  partition: (parts) ->
+    step = @rand(10)
+
+    # randomly split some of the parts into more parts
+    for _, i in Array::slice.apply(parts) by step
+      if @rand(10) > 7.5
+        split = @splitRand(parts[i][1], 5).map((chunk) -> [0, chunk])
+        parts.splice.apply(parts, [i, 1].concat(split))
+
+    # randomly join some of the parts into multi-line ones
+    for _, i in Array::slice.apply(parts) by step
+      if @rand(10) > 7.5
+        count  = @rand(10)
+        joined = ''
+        joined += part[1] for part in parts.slice(i, count)
+        parts.splice(i, count, joined)
+
+    @renumber(parts)
+
+  renumber: (parts) ->
+    num = 0
+    parts[i][0] = num += 1 for _, i in parts
+    parts
 
   randomize: (array, step) ->
-    @shuffle(array, i, step) for _, i in array by step if @options.randomize
+    @shuffle(array, i, step) for _, i in array by step
     array
+
+  splitRand: (string, count) ->
+    size  = (string.length / count) * 1.5
+    split = []
+    while string.length > 0
+      count = @rand(size) + 1
+      split.push(string.slice(0, count))
+      string = string.slice(count)
+    split
+
+  rand: (num) ->
+    Math.floor(Math.random() * num)
 
   shuffle: (array, start, count) ->
     for _, i in array.slice(start, start + count)
-      j = start + Math.floor(Math.random() * (i + 1))
+      j = start + @rand(i + 1)
       i = start + i
       tmp = array[i]
       array[i] = array[j]
