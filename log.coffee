@@ -12,22 +12,13 @@ Log = (string) ->
   @listeners = []
   @set(0, string) if string
   @
-$.extend Log,
-  values: {}
-  meter: (name, block) ->
-    start = (new Date).getTime()
-    result = block.call()
-    @values[name] ||= []
-    @values[name].push((new Date).getTime() - start)
-    result
-  metrics: ->
-    metrics = {}
-    for name, values of @values
-      metrics[name] = values.reduce((a, b) -> a + b) / values.length
-    metrics
 $.extend Log.prototype,
   trigger: () ->
-    listener.notify.apply(listener, arguments) for listener in @listeners
+    args = Array::slice.apply(arguments)
+    event = args[0]
+    @trigger('start', event) unless event == 'start' || event == 'stop'
+    listener.notify.apply(listener, [@].concat(args)) for listener in @listeners
+    @trigger('stop', event) unless event == 'start' || event == 'stop'
   set: (num, string) ->
     return if @parts[num]
     @parts[num] = new Log.Part(@, num, string)
@@ -139,19 +130,41 @@ Log.Deansi =
     else
       { type: 'text', text: part.text }
 
-Log.Renderer = ->
-$.extend Log.Renderer.prototype,
-  notify: (event, num) ->
+Log.Metrics = ->
+  @values = {}
+  @
+$.extend Log.Metrics.prototype,
+  start: (name) ->
+    @started = (new Date).getTime()
+  stop: (name) ->
+    @values[name] ||= []
+    @values[name].push((new Date).getTime() - @started)
+  summary: ->
+    metrics = {}
+    for name, values of @values
+      metrics[name] = (values.reduce((a, b) -> a + b) / values.length)
+    metrics
+
+Log.Listener = ->
+$.extend Log.Listener.prototype,
+  notify: (log, event, num) ->
     # console.log Array::slice.call(arguments)
-    args = Array::slice.call(arguments, 1)
-    Log.meter(event, => @[event].apply(@, args)) if @[event]
+    @[event].apply(@, [log].concat(Array::slice.call(arguments, 2))) if @[event]
+
+Log.Instrumenter = ->
+Log.Instrumenter.prototype = $.extend new Log.Listener,
+  start: (log, event) ->
+    log.metrics ||= new Log.Metrics
+    log.metrics.start(event)
+  stop: (log, event) ->
+    log.metrics.stop(event)
 
 Log.JqueryRenderer = ->
-Log.JqueryRenderer.prototype = $.extend new Log.Renderer,
-  remove: (ids) ->
+Log.JqueryRenderer.prototype = $.extend new Log.Listener,
+  remove: (log, ids) ->
     $("#log ##{id}").remove() for id in ids
 
-  insert: (after, data) ->
+  insert: (log, after, data) ->
     html = (data.map (data) => @render(data))
     after && $("#log ##{after}").after(html) || $('#log').prepend(html).find('p')
     # $('#log').renumber()
@@ -173,13 +186,13 @@ Log.FragmentRenderer = ->
   @text = document.createTextNode('')
   @
 
-Log.FragmentRenderer.prototype = $.extend new Log.Renderer,
-  remove: (ids) ->
+Log.FragmentRenderer.prototype = $.extend new Log.Listener,
+  remove: (log, ids) ->
     for id in ids
       node = document.getElementById(id)
       node.parentNode.removeChild(node) if node
 
-  insert: (after, data) ->
+  insert: (log, after, data) ->
     node = @render(data)
     if after
       after = document.getElementById(after)

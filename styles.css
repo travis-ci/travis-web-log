@@ -1,3 +1,8 @@
+#metrics {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+}
 pre {
   padding: 15px 0;
   min-height: 12px;

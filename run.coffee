@@ -1,10 +1,20 @@
 window.App = Ember.Application.create
   rootElement: '#application'
 
+App.MetricsRenderer = (controller) ->
+  @controller = controller
+  @
+App.MetricsRenderer.prototype = $.extend new Log.Listener,
+  stop: (log) ->
+    metrics = log.metrics.summary()
+    metrics = for key, value of metrics
+      { key: key, value: parseFloat(Math.round(value * 100) / 100).toFixed(4) }
+    @controller.set('metrics', metrics)
+
 App.Runner = Em.Object.extend
   running: false
 
-  start: (options) ->
+  start: (controller, options) ->
     @set 'running', true
 
     console.log 'Start, options: ', options
@@ -12,6 +22,8 @@ App.Runner = Em.Object.extend
     $('#log').empty()
 
     log = new Log
+    log.listeners.push(new Log.Instrumenter)
+    log.listeners.push(new App.MetricsRenderer(controller))
     log.listeners.push(new Log[options.renderer])
 
     console.log "Using #{options.renderer}"
@@ -75,7 +87,7 @@ App.ApplicationController = Em.Controller.extend
     # @start()
 
   start: ->
-    @get('runner').start
+    @get('runner').start @,
       randomize: @get('randomize')
       stream: @get('stream')
       partition: @get('partition')
