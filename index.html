@@ -4,11 +4,30 @@
     <meta charset="UTF-8">
     <script src="/vendor/jquery.min.js"></script>
     <script src="/vendor/ansiparse.js" /></script>
+    <script src="/vendor/handlebars.js" /></script>
+    <script src="/vendor/ember.js" /></script>
     <script src="/log.js" /></script>
     <script src="/run.js" /></script>
     <link rel="stylesheet" href="/styles.css">
   </head>
   <body>
+    <script type="text/x-handlebars" data-template-name="application">
+      <p>Job id: {{view Em.TextField valueBinding="jobId"}}</p>
+      <p>Slice: {{view Em.TextField valueBinding="slice"}}</p>
+      <p>Interval: {{view Em.TextField valueBinding="interval"}}</p>
+      <p>Partition: {{view Em.Checkbox checkedBinding="partition"}}</p>
+      <p>Randomize: {{view Em.Checkbox checkedBinding="randomize"}}</p>
+      <p>Stream: {{view Em.Checkbox checkedBinding="stream"}}</p>
+      <p>
+        {{view Ember.Select contentBinding="App.renderers"
+                            valueBinding="renderer"
+                            optionValuePath="value"
+                            optionLabelPath="value"}}
+      </p>
+      <p><a href="#" {{action toggle}}>{{toggleText}}</a></p>
+    </script>
+
+    <div id="application"></div>
     <pre id="log"></pre>
   </body>
 </html>
