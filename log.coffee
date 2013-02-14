@@ -12,6 +12,19 @@ Log = (string) ->
   @listeners = []
   @set(0, string) if string
   @
+$.extend Log,
+  values: {}
+  meter: (name, block) ->
+    start = (new Date).getTime()
+    result = block.call()
+    @values[name] ||= []
+    @values[name].push((new Date).getTime() - start)
+    result
+  metrics: ->
+    metrics = {}
+    for name, values of @values
+      metrics[name] = values.reduce((a, b) -> a + b) / values.length
+    metrics
 $.extend Log.prototype,
   trigger: () ->
     listener.notify.apply(listener, arguments) for listener in @listeners
@@ -130,7 +143,8 @@ Log.Renderer = ->
 $.extend Log.Renderer.prototype,
   notify: (event, num) ->
     # console.log Array::slice.call(arguments)
-    @[event].apply(@, Array::slice.call(arguments, 1))
+    args = Array::slice.call(arguments, 1)
+    Log.meter(event, => @[event].apply(@, args)) if @[event]
 
 Log.JqueryRenderer = ->
 Log.JqueryRenderer.prototype = $.extend new Log.Renderer,
