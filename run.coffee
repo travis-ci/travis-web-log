@@ -12,43 +12,71 @@ App.MetricsRenderer.prototype = $.extend new Log.Listener,
     @controller.set('metrics', metrics)
 
 App.Runner = Em.Object.extend
-  running: false
+  logs: {}
 
   start: (controller, options) ->
-    @set 'running', true
-
     console.log 'Start, options: ', options
-
-    $('#log').empty()
-
-    log = new Log
-    log.listeners.push(new Log.Instrumenter)
-    log.listeners.push(new App.MetricsRenderer(controller))
-    log.listeners.push(new Log[options.renderer])
-
-    console.log "Using #{options.renderer}"
-
-    $.get "https://api.travis-ci.org/jobs/#{options.jobId}/log.txt", (string) =>
-      if options.partition
-        parts = @partition(string)
-        parts = parts.slice(0, options.slice) if options.slice
-        # randomly split some of the parts into multiple small parts
-        # randomly join some of the parts into multi-line ones
-        parts = @randomize(parts) if options.randomize
-
-        set = (ix, line) =>
-          log.set(ix, line) if @running
-
-        if options.stream
-          wait = 0
-          setTimeout set, wait += options.interval, part[0], part[1] for part in parts
-        else
-          set(part[0], part[1]) for part in parts
-      else
-        log.set 1, string
+    @set('running', true)
+    @controller = controller
+    @options = options
+    @reset()
+    @fetch(@handle)
 
   stop: ->
-    @set 'running', false
+    @set('running', false)
+
+  fetch: (handler) ->
+    url = "https://api.travis-ci.org/jobs/#{@options.jobId}/log.txt"
+    if @logs[url]
+      handler.call(@, @logs[url])
+    else
+      @set('loading', true)
+      $.get url, (log) =>
+        @set('loading', false)
+        @logs[url] = log
+        handler.call(@, log)
+
+  handle: (string) ->
+    if @options.partition || @options.randomize
+      parts = @split(string)
+      parts = @slice(parts)
+      # randomly split some of the parts into multiple small parts
+      # randomly join some of the parts into multi-line ones
+      parts = @randomize(parts)
+      if @options.stream
+        @stream(parts)
+      else
+        @receive(part[0], part[1]) for part in parts
+    else
+      @receive 1, string
+
+  receive: (ix, line) ->
+    @log.set(ix, line) if @get('running')
+
+  stream: (parts) ->
+    wait = 0
+    receive = => @receive.apply(@, arguments)
+    setTimeout receive, wait += @options.interval, part[0], part[1] for part in parts
+
+  reset: ->
+    $('#log').empty()
+    @log = new Log
+    @log.listeners.push(new Log.Instrumenter)
+    @log.listeners.push(new App.MetricsRenderer(@controller))
+    @log.listeners.push(new Log[@options.renderer])
+
+  split: (string) ->
+    lines = string.split(/^/m)
+    parts = ([i, line] for line, i in lines)
+    parts
+
+  slice: (array) ->
+    array = array.slice(0, @options.slice) if @options.slice
+    array
+
+  randomize: (array, step) ->
+    @shuffle(array, i, step) for _, i in array by step if @options.randomize
+    array
 
   shuffle: (array, start, count) ->
     for _, i in array.slice(start, start + count)
@@ -58,23 +86,15 @@ App.Runner = Em.Object.extend
       array[i] = array[j]
       array[j] = tmp
 
-  randomize: (array, step) ->
-    @shuffle(array, i, step) for _, i in array by step
-    array
-
-  partition: (string) ->
-    lines = string.split(/^/m)
-    parts = ([i, line] for line, i in lines)
-    parts
-
 App.ApplicationController = Em.Controller.extend
   jobId: 4754461
   randomize: true
-  slice: 1000
+  slice: 100
   stream: false
   partition: true
   interval: 10
   runningBinding: 'runner.running'
+  loadingBinding: 'runner.loading'
 
   renderers: [
     Em.Object.create(name: 'FragmentRenderer')

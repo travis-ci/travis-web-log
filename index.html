@@ -24,7 +24,12 @@
                             optionValuePath="content.name"
                             optionLabelPath="content.name"}}
       </p>
-      <p><a href="#" {{action toggle}}>{{toggleText}}</a></p>
+      <p>
+        <a href="#" {{action toggle}}>{{toggleText}}</a>
+        {{#if loading}}
+          Loading ...
+        {{/if}}
+      </p>
       <div id="metrics">
         {{#each pair in metrics}}
           <p>{{pair.key}}: {{pair.value}}</p>
