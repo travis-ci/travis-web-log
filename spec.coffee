@@ -15,7 +15,7 @@ TestRenderer = ->
   @lines = []
   @
 
-TestRenderer.prototype = $.extend new Log.Renderer,
+TestRenderer.prototype = $.extend new Log.Listener,
   insert: (after, html) ->
     return unless html
     if after and node = @find(after)
@@ -114,7 +114,8 @@ describe 'Log', ->
 
 describe 'Log.Context', ->
   beforeEach ->
-    @log = new Log("foo\n...")
+    @log = new Log
+    @log.set 0, "foo\n..."
     @log.set 2, "...\nbuz"
     @listener = new TestListener
 
@@ -134,7 +135,8 @@ describe 'Log.Context', ->
 
 describe 'Log.Part', ->
   beforeEach ->
-    @log = new Log("foo\nbar\n")
+    @log = new Log
+    @log.set 0, "foo\nbar\n"
 
   it 'splits the given lines', ->
     expect(@log.parts[0].lines.length).toBe(2)

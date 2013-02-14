@@ -7,8 +7,9 @@ App.MetricsRenderer = (controller) ->
 App.MetricsRenderer.prototype = $.extend new Log.Listener,
   stop: (log) ->
     metrics = log.metrics.summary()
-    metrics = for key, value of metrics
-      { key: key, value: parseFloat(Math.round(value * 100) / 100).toFixed(4) }
+    metrics = for key, metric of metrics
+      avg = parseFloat(Math.round(metric.avg * 100) / 100).toFixed(4)
+      "#{key}: count: #{metric.count} avg: #{avg}"
     @controller.set('metrics', metrics)
 
 App.Runner = Em.Object.extend
@@ -43,23 +44,29 @@ App.Runner = Em.Object.extend
         @stream(parts)
       else
         @receive(part[0], part[1]) for part in parts
+        @stop()
     else
-      @receive 1, string
+      @receive 0, string
+      @stop()
 
   receive: (ix, line) ->
     @log.set(ix, line) if @get('running')
 
   stream: (parts) ->
     wait = 0
-    receive = => @receive.apply(@, arguments)
-    setTimeout receive, wait += @options.interval, part[0], part[1] for part in parts
+    setTimeout((=> @receive.apply(@, arguments)), wait += @options.interval, part[0], part[1]) for part in parts
+    setTimeout((=> @stop()), wait)
 
   reset: ->
+    @clear()
+    log = new Log
+    log.listeners.push(new Log.Instrumenter)
+    log.listeners.push(new App.MetricsRenderer(@controller))
+    log.listeners.push(new Log[@options.renderer])
+    @log = @options.buffer && new Log.Buffer(log) || log
+
+  clear: ->
     $('#log').empty()
-    @log = new Log
-    @log.listeners.push(new Log.Instrumenter)
-    @log.listeners.push(new App.MetricsRenderer(@controller))
-    @log.listeners.push(new Log[@options.renderer])
 
   split: (string) ->
     lines = string.split(/^/m)
@@ -123,9 +130,10 @@ App.Runner = Em.Object.extend
 App.ApplicationController = Em.Controller.extend
   jobId: 4754461
   randomize: true
-  slice: 100
-  stream: false
   partition: true
+  slice: 500
+  stream: false
+  buffer: false
   interval: 10
   runningBinding: 'runner.running'
   loadingBinding: 'runner.loading'
@@ -142,13 +150,14 @@ App.ApplicationController = Em.Controller.extend
 
   start: ->
     @get('runner').start @,
-      randomize: @get('randomize')
-      stream: @get('stream')
-      partition: @get('partition')
       jobId: @get('jobId')
       slice: parseInt(@get('slice'))
-      renderer: @get('renderer')
       interval: parseInt(@get('interval'))
+      stream: @get('stream')
+      buffer: @get('buffer')
+      randomize: @get('randomize')
+      partition: @get('partition')
+      renderer: @get('renderer')
 
   stop: ->
     @get('runner').stop()
@@ -159,3 +168,6 @@ App.ApplicationController = Em.Controller.extend
 
   toggle: ->
     @get('running') && @stop() || @start()
+
+  clear: ->
+    @get('runner').clear()

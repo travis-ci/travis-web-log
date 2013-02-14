@@ -18,6 +18,7 @@
       <p>Partition: {{view Em.Checkbox checkedBinding="partition"}}</p>
       <p>Randomize: {{view Em.Checkbox checkedBinding="randomize"}}</p>
       <p>Stream: {{view Em.Checkbox checkedBinding="stream"}}</p>
+      <p>Buffer: {{view Em.Checkbox checkedBinding="buffer"}}</p>
       <p>
         {{view Ember.Select contentBinding="renderers"
                             valueBinding="renderer"
@@ -26,13 +27,14 @@
       </p>
       <p>
         <a href="#" {{action toggle}}>{{toggleText}}</a>
+        <a href="#" {{action clear}}>Clear</a>
         {{#if loading}}
           Loading ...
         {{/if}}
       </p>
       <div id="metrics">
-        {{#each pair in metrics}}
-          <p>{{pair.key}}: {{pair.value}}</p>
+        {{#each metric in metrics}}
+          <p>{{metric}}</p>
         {{/each}}
       </div>
     </script>

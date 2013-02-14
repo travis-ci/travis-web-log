@@ -2,6 +2,7 @@
   position: absolute;
   top: 15px;
   right: 15px;
+  text-align: right;
 }
 pre {
   padding: 15px 0;

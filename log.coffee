@@ -8,9 +8,8 @@
 }`
 
 Log = (string) ->
-  @parts = []
   @listeners = []
-  @set(0, string) if string
+  @parts = []
   @
 $.extend Log.prototype,
   trigger: () ->
@@ -23,6 +22,26 @@ $.extend Log.prototype,
     return if @parts[num]
     @parts[num] = new Log.Part(@, num, string)
     @parts[num].insert()
+
+Log.Buffer = (log, options) ->
+  @num = -1
+  @log = log
+  @parts = []
+  @options = $.extend({ interval: 100, timeout: 500 }, options || {})
+  @schedule()
+  @
+$.extend Log.Buffer.prototype,
+  set: (num, string) ->
+    @parts.push({ num: num, string: string, time: (new Date).getTime() })
+  flush: ->
+    part = @parts[0]
+    while part && part.num == @num + 1
+      @log.set(part.num, part.string)
+      @num += 1
+      @parts.shift()
+    @schedule()
+  schedule: ->
+    setTimeout((=> @flush()), @options.interval)
 
 Log.Part = (log, num, string) ->
   @log = log
@@ -142,7 +161,9 @@ $.extend Log.Metrics.prototype,
   summary: ->
     metrics = {}
     for name, values of @values
-      metrics[name] = (values.reduce((a, b) -> a + b) / values.length)
+      metrics[name] =
+        avg: (values.reduce((a, b) -> a + b) / values.length)
+        count: values.length
     metrics
 
 Log.Listener = ->
@@ -201,9 +222,9 @@ Log.FragmentRenderer.prototype = $.extend new Log.Listener,
       log = document.getElementById('log')
       log.appendChild(node)
 
-  render: (data) ->
+  render: (datas) ->
     frag = @frag.cloneNode(true)
-    frag.appendChild(@renderParagraph(data)) for data in data
+    frag.appendChild(@renderParagraph(data)) for data in datas
     frag
 
   renderParagraph: (data) ->
