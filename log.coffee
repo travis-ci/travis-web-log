@@ -24,7 +24,7 @@ $.extend Log.prototype,
     @parts[num].insert()
 
 Log.Buffer = (log, options) ->
-  @num = -1
+  @start = 0
   @log = log
   @parts = []
   @options = $.extend({ interval: 100, timeout: 500 }, options || {})
@@ -35,6 +35,7 @@ $.extend Log.Buffer.prototype,
     @parts[num] = { string: string, time: (new Date).getTime() }
   flush: ->
     for part, num in @parts
+      continue unless @parts.hasOwnProperty(num)
       break unless part
       delete @parts[num]
       @log.set(num, part.string)

@@ -132,8 +132,8 @@ App.ApplicationController = Em.Controller.extend
   randomize: true
   partition: true
   slice: 500
-  stream: false
-  buffer: false
+  stream: true
+  buffer: true
   interval: 10
   runningBinding: 'runner.running'
   loadingBinding: 'runner.loading'
