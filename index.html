@@ -19,10 +19,10 @@
       <p>Randomize: {{view Em.Checkbox checkedBinding="randomize"}}</p>
       <p>Stream: {{view Em.Checkbox checkedBinding="stream"}}</p>
       <p>
-        {{view Ember.Select contentBinding="App.renderers"
+        {{view Ember.Select contentBinding="renderers"
                             valueBinding="renderer"
-                            optionValuePath="value"
-                            optionLabelPath="value"}}
+                            optionValuePath="content.name"
+                            optionLabelPath="content.name"}}
       </p>
       <p><a href="#" {{action toggle}}>{{toggleText}}</a></p>
     </script>

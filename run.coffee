@@ -1,11 +1,6 @@
 window.App = Ember.Application.create
   rootElement: '#application'
 
-  renderers: [
-    { value: 'FragmentRenderer' },
-    { value: 'JqueryRenderer' }
-  ]
-
 App.Runner = Em.Object.extend
   running: false
 
@@ -18,6 +13,8 @@ App.Runner = Em.Object.extend
 
     log = new Log
     log.listeners.push(new Log[options.renderer])
+
+    console.log "Using #{options.renderer}"
 
     self = this
     $.get "https://api.travis-ci.org/jobs/#{options.jobId}/log.txt", (string) ->
@@ -65,6 +62,11 @@ App.ApplicationController = Em.Controller.extend
   partition: true
   interval: 10
   runningBinding: 'runner.running'
+
+  renderers: [
+    Em.Object.create(name: 'FragmentRenderer')
+    Em.Object.create(name: 'JqueryRenderer'  )
+  ]
 
   init: ->
     @_super.apply this, arguments
