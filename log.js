@@ -143,19 +143,20 @@
       if (ids.length !== 0) {
         this.log.trigger('remove', ids);
       }
-      return this.log.trigger('insert', this.after(), this.html());
+      return this.log.trigger('insert', this.after(), this.nodes());
     },
-    html: function() {
-      var nodes,
-        _this = this;
-      nodes = this.lines.map(function(line) {
-        var string, style;
+    nodes: function() {
+      var _this = this;
+      return this.lines.map(function(line) {
+        var string;
         string = line.string;
         string = _this.deansi(string);
-        style = string === '' ? ' style="display: none;"' : '';
-        return "<p id=\"" + line.id + "\"" + style + "><a id=\"\"></a>" + (string.replace(/\n/gm, '')) + "</p>";
+        return {
+          id: line.id,
+          text: string.replace(/\n/gm, ''),
+          hidden: string === ''
+        };
       });
-      return nodes.join("\n");
     },
     join: function(all) {
       var line, lines;
@@ -186,9 +187,6 @@
     apply: function(string) {
       var result,
         _this = this;
-      if (string.indexOf('etching') > -1) {
-        console.log(string);
-      }
       string = string.replace(/.*(\033\[K\n|\r(?!\n))/gm, '');
       result = '';
       ansiparse(string).forEach(function(part) {
@@ -227,16 +225,12 @@
   $.extend(Log.Renderer.prototype, {
     notify: function(event, num) {
       return this[event].apply(this, Array.prototype.slice.call(arguments, 1));
-    },
-    insert: function(after, html) {
-      html = html.replace(/\n/gm, '');
-      if (after) {
-        $(html).insertAfter($("#log #" + after));
-      } else {
-        $('#log').prepend(html).find('p');
-      }
-      return $('#log').renumber();
-    },
+    }
+  });
+
+  Log.JqueryRenderer = function() {};
+
+  Log.JqueryRenderer.prototype = $.extend(new Log.Renderer, {
     remove: function(ids) {
       var id, _i, _len, _results;
       _results = [];
@@ -245,12 +239,24 @@
         _results.push($("#log #" + id).remove());
       }
       return _results;
+    },
+    insert: function(after, nodes) {
+      var html,
+        _this = this;
+      html = (nodes.map(function(node) {
+        return _this.render(node);
+      })).join("\n");
+      return after && $("#log #" + after).after(html) || $('#log').prepend(html).find('p');
+    },
+    render: function(node) {
+      var style;
+      style = node.hidden && 'display: none;' || '';
+      return "<p id=\"" + node.id + "\"" + style + "><a id=\"\"></a>" + node.text + "</p>";
     }
   });
 
   $.fn.renumber = function() {
     var num;
-    return;
     num = 1;
     return this.find('p a').each(function(ix, el) {
       $(el).attr('id', "L" + num).html(num);

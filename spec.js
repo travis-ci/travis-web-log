@@ -27,10 +27,7 @@
     return this;
   };
 
-  $.extend(TestRenderer.prototype, {
-    notify: function(event) {
-      return this[event].apply(this, Array.prototype.slice.call(arguments, 1));
-    },
+  TestRenderer.prototype = $.extend(new Log.Renderer, {
     insert: function(after, html) {
       var node;
       if (!html) {

@@ -47,10 +47,11 @@
   $(function() {
     var log;
     log = new Log;
-    log.listeners.push(new Log.Renderer);
+    log.listeners.push(new Log.JqueryRenderer);
     return $.get(urls[2], function(string) {
       var part, parts, set, wait, _i, _len, _results;
       parts = partition(string);
+      parts = parts.slice(0, 30);
       wait = 0;
       set = function(ix, line) {
         return log.set(ix, line);

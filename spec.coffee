@@ -15,12 +15,7 @@ TestRenderer = ->
   @lines = []
   @
 
-$.extend TestRenderer.prototype,
-  notify: (event) ->
-    # console.log Array::slice.call(arguments)
-    @[event].apply(@, Array.prototype.slice.call(arguments, 1))
-    # console.log @lines.join("\n"), "\n---------------"
-
+TestRenderer.prototype = $.extend new Log.Renderer,
   insert: (after, html) ->
     return unless html
     if after and node = @find(after)

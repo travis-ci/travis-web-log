@@ -80,14 +80,12 @@ $.extend Log.Context.prototype,
   insert: ->
     ids = @head.concat(@tail).map (line) -> line.id
     @log.trigger('remove', ids) unless ids.length == 0
-    @log.trigger('insert', @after(), @html())
-  html: ->
-    nodes = @lines.map (line) =>
+    @log.trigger('insert', @after(), @nodes())
+  nodes: ->
+    @lines.map (line) =>
       string = line.string
       string = @deansi(string)
-      style  = if string == '' then ' style="display: none;"' else ''
-      "<p id=\"#{line.id}\"#{style}><a id=\"\"></a>#{string.replace(/\n/gm, '')}</p>"
-    nodes.join("\n")
+      { id: line.id, text: string.replace(/\n/gm, ''), hidden: string == '' }
   join: (all) ->
     lines = []
     while line = all.pop()
@@ -105,7 +103,6 @@ $.extend Log.Context.prototype,
 
 Log.Deansi =
   apply: (string) ->
-    console.log(string) if string.indexOf('etching') > -1
     string = string.replace(/.*(\033\[K\n|\r(?!\n))/gm, '')
     # string = string.replace(/\033\(B/g, '').replace(/\033\[\d+G/g, '').replace(/\[2K/g, '')
     result = ''
@@ -135,19 +132,21 @@ $.extend Log.Renderer.prototype,
     # console.log Array::slice.call(arguments)
     @[event].apply(@, Array::slice.call(arguments, 1))
 
-  insert: (after, html) ->
-    html = html.replace(/\n/gm, '')
-    if after
-      $(html).insertAfter($("#log ##{after}"))
-    else
-      $('#log').prepend(html).find('p')
-    $('#log').renumber()
-
+Log.JqueryRenderer = ->
+Log.JqueryRenderer.prototype = $.extend new Log.Renderer,
   remove: (ids) ->
     $("#log ##{id}").remove() for id in ids
 
+  insert: (after, nodes) ->
+    html = (nodes.map (node) => @render(node)).join("\n")
+    after && $("#log ##{after}").after(html) || $('#log').prepend(html).find('p')
+    # $('#log').renumber()
+
+  render: (node) ->
+    style = node.hidden && 'display: none;' || ''
+    "<p id=\"#{node.id}\"#{style}><a id=\"\"></a>#{node.text}</p>"
+
 $.fn.renumber = ->
-  return
   num = 1
   @find('p a').each (ix, el) ->
     $(el).attr('id', "L#{num}").html(num)
