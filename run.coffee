@@ -12,20 +12,24 @@ shuffle = (array, start, count) ->
     array[i] = array[j]
     array[j] = tmp
 
-randomize = (array) ->
-  for _, i in array by 10
-    shuffle(array, i, 10)
+randomize = (array, step) ->
+  shuffle(array, i, step) for _, i in array by step
   array
+
+partition = (string) ->
+  lines = string.split(/^/m)
+  parts = ([i, line] for line, i in lines)
+  parts = randomize(parts)
+  # randomly split some of the parts into multiple small parts
+  # randomly join some of the parts into multi-line ones
+  parts
 
 $ ->
   log = new Log
   log.listeners.push(new Log.Renderer)
 
   $.get urls[2], (string) ->
-    lines = string.split(/^/m)
-    # lines = lines.slice(0, 50)
-    parts = ([i, line] for line, i in lines)
-    parts = randomize(parts)
+    parts = partition(string)
     wait  = 0
     set   = (ix, line) -> log.set(ix, line)
     setTimeout set, wait += 10, part[0], part[1] for part in parts
