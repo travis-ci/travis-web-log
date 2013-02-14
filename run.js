@@ -51,6 +51,7 @@
     return $.get(urls[2], function(string) {
       var part, parts, set, wait, _i, _len, _results;
       parts = partition(string);
+      parts = parts.slice(0, 30);
       wait = 0;
       set = function(ix, line) {
         return log.set(ix, line);

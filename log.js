@@ -186,13 +186,15 @@
     apply: function(string) {
       var result,
         _this = this;
-      string = string.replace(/.*(\033\[K\n?|\r(?:[^\n]))/gm, '');
-      string = string.replace(/\033\(B/g, '').replace(/\033\[\d+G/g, '').replace(/\[2K/g, '');
+      if (string.indexOf('etching') > -1) {
+        console.log(string);
+      }
+      string = string.replace(/.*(\033\[K\n|\r(?!\n))/gm, '');
       result = '';
       ansiparse(string).forEach(function(part) {
         return result += _this.span(part.text, _this.classes(part));
       });
-      return result.replace(/\033/g, '');
+      return result;
     },
     classes: function(part) {
       var result;
