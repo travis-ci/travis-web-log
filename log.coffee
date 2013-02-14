@@ -137,14 +137,64 @@ Log.JqueryRenderer.prototype = $.extend new Log.Renderer,
   remove: (ids) ->
     $("#log ##{id}").remove() for id in ids
 
-  insert: (after, nodes) ->
-    html = (nodes.map (node) => @render(node)).join("\n")
+  insert: (after, data) ->
+    html = (data.map (data) => @render(data)).join("\n")
     after && $("#log ##{after}").after(html) || $('#log').prepend(html).find('p')
     # $('#log').renumber()
 
   render: (node) ->
     style = node.hidden && 'display: none;' || ''
     "<p id=\"#{node.id}\"#{style}><a id=\"\"></a>#{node.text}</p>"
+
+Log.FragmentRenderer = ->
+  @node = @createNode()
+  @fragment = document.createDocumentFragment()
+  @
+
+Log.FragmentRenderer.prototype = $.extend new Log.Renderer,
+  remove: (ids) ->
+    for id in ids
+      node = document.getElementById(id)
+      node.parentNode.removeChild(node) if node
+
+  insert: (after, data) ->
+    node = @render(data)
+    if after
+      after = document.getElementById(after)
+      @insertAfter(node, after)
+    else
+      log = document.getElementById('log')
+      log.appendChild(node)
+
+  insertAfter: (node, after) ->
+    if after.nextSibling
+      after.parentNode.insertBefore(node, after.nextSibling)
+    else
+      after.parentNode.appendChild(node)
+
+  render: (data) ->
+    fragment = @cloneFragment()
+    fragment.appendChild(@renderNode(data)) for data in data
+    fragment
+
+  renderNode: (data) ->
+    node = @cloneNode()
+    node.setAttribute('id', data.id)
+    node.setAttribute('style', 'display: none;') if data.hidden
+    node.lastChild.nodeValue = data.text
+    node
+
+  createNode: ->
+    node = document.createElement('div')
+    node.appendChild(document.createElement('a'))
+    node.appendChild(document.createTextNode(''))
+    node
+
+  cloneNode: ->
+    @node.cloneNode(true)
+
+  cloneFragment: ->
+    @fragment.cloneNode(true)
 
 $.fn.renumber = ->
   num = 1

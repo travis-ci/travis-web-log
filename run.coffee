@@ -24,13 +24,17 @@ partition = (string) ->
   # randomly join some of the parts into multi-line ones
   parts
 
+INTERVAL = 0
+SLICE = 0
+
 $ ->
   log = new Log
-  log.listeners.push(new Log.JqueryRenderer)
+  # log.listeners.push(new Log.JqueryRenderer)
+  log.listeners.push(new Log.FragmentRenderer)
 
   $.get urls[2], (string) ->
     parts = partition(string)
-    parts = parts.slice(0, 30)
+    parts = parts.slice(0, SLICE) if SLICE > 0
     wait  = 0
     set   = (ix, line) -> log.set(ix, line)
-    setTimeout set, wait += 10, part[0], part[1] for part in parts
+    setTimeout set, wait += INTERVAL, part[0], part[1] for part in parts
