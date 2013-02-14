@@ -1,37 +1,35 @@
 urls = [
-  'https://s3.amazonaws.com/archive.travis-ci.org/jobs/4693454/log.txt'
+  'http://localhost:9292/jobs/4754461/log.txt',
+  'https://s3.amazonaws.com/archive.travis-ci.org/jobs/4693454/log.txt',
   'https://api.travis-ci.org/jobs/4754461/log.txt'
 ]
 
-# shuffle = (array) ->
-#   for element, i in array
-#     j = Math.floor(Math.random() * (i + 1))
-#     tmp = array[i]
-#     array[i] = array[j]
-#     array[j] = tmp
-#     array
-#
-# randomize = (lines) ->
-#   shuffle lines
-#   lines
+shuffle = (array, start, count) ->
+  for _, i in array.slice(start, start + count)
+    j = start + Math.floor(Math.random() * (i + 1))
+    i = start + i
+    tmp = array[i]
+    array[i] = array[j]
+    array[j] = tmp
 
-console.log('foo')
+randomize = (array) ->
+  for _, i in array by 10
+    shuffle(array, i, 10)
+  array
+
 $ ->
   log = new Log
   log.listeners.push(new Log.Renderer)
 
-  console.log(urls[1])
-  $.get urls[1], (string) ->
+  $.get urls[2], (string) ->
     lines = string.split(/^/m)
-    # lines = shuffle(lines)
-    parts = lines
+    # lines = lines.slice(0, 50)
+    parts = ([i, line] for line, i in lines)
+    parts = randomize(parts)
+    wait  = 0
+    set   = (ix, line) -> log.set(ix, line)
+    setTimeout set, wait += 10, part[0], part[1] for part in parts
 
-    set = (ix, line) -> log.set(ix, line)
-    wait = 0
-
-    for part, ix in parts
-      setTimeout set, wait, ix, part
-      wait += 50
 
 
   # log.set 2, "$ bundle install\n"
