@@ -32,13 +32,12 @@ Log.Buffer = (log, options) ->
   @
 $.extend Log.Buffer.prototype,
   set: (num, string) ->
-    @parts.push({ num: num, string: string, time: (new Date).getTime() })
+    @parts[num] = { string: string, time: (new Date).getTime() }
   flush: ->
-    part = @parts[0]
-    while part && part.num == @num + 1
-      @log.set(part.num, part.string)
-      @num += 1
-      @parts.shift()
+    for part, num in @parts
+      break unless part
+      delete @parts[num]
+      @log.set(num, part.string)
     @schedule()
   schedule: ->
     setTimeout((=> @flush()), @options.interval)
