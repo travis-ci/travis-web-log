@@ -16,24 +16,24 @@ App.Runner = Em.Object.extend
 
     console.log "Using #{options.renderer}"
 
-    self = this
-    $.get "https://api.travis-ci.org/jobs/#{options.jobId}/log.txt", (string) ->
+    $.get "https://api.travis-ci.org/jobs/#{options.jobId}/log.txt", (string) =>
       if options.partition
-        parts = self.partition(string)
+        parts = @partition(string)
         parts = parts.slice(0, options.slice) if options.slice
         # randomly split some of the parts into multiple small parts
         # randomly join some of the parts into multi-line ones
-        parts = self.randomize(parts) if options.randomize
+        parts = @randomize(parts) if options.randomize
 
-        set   = (ix, line) -> log.set(ix, line)
+        set = (ix, line) =>
+          log.set(ix, line) if @running
+
         if options.stream
-          wait  = 0
+          wait = 0
           setTimeout set, wait += options.interval, part[0], part[1] for part in parts
         else
           set(part[0], part[1]) for part in parts
       else
         log.set 1, string
-
 
   stop: ->
     @set 'running', false
@@ -58,7 +58,8 @@ App.Runner = Em.Object.extend
 App.ApplicationController = Em.Controller.extend
   jobId: 4754461
   randomize: true
-  stream: true
+  slice: 1000
+  stream: false
   partition: true
   interval: 10
   runningBinding: 'runner.running'
@@ -70,22 +71,25 @@ App.ApplicationController = Em.Controller.extend
 
   init: ->
     @_super.apply this, arguments
-
     @set 'runner', App.Runner.create()
+    # @start()
+
+  start: ->
+    @get('runner').start
+      randomize: @get('randomize')
+      stream: @get('stream')
+      partition: @get('partition')
+      jobId: @get('jobId')
+      slice: parseInt(@get('slice'))
+      renderer: @get('renderer')
+      interval: parseInt(@get('interval'))
+
+  stop: ->
+    @get('runner').stop()
 
   toggleText: (->
     if @get('running') then 'Stop' else 'Start'
   ).property('running')
 
   toggle: ->
-    if @get('running')
-      @get('runner').stop()
-    else
-      @get('runner').start
-        randomize: @get('randomize')
-        stream: @get('stream')
-        partition: @get('partition')
-        jobId: @get('jobId')
-        slice: parseInt(@get('slice'))
-        renderer: @get('renderer')
-        interval: parseInt(@get('interval'))
+    @get('running') && @stop() || @start()
