@@ -143,8 +143,10 @@ Log.JqueryRenderer.prototype = $.extend new Log.Renderer,
     # $('#log').renumber()
 
   render: (node) ->
-    style = node.hidden && 'display: none;' || ''
-    "<p id=\"#{node.id}\"#{style}><a id=\"\"></a>#{node.text}</p>"
+    "<p id=\"#{node.id}\"#{@style(node)}><a id=\"\"></a>#{node.text}</p>"
+
+  style: (node) ->
+    node.hidden && 'display: none;' || ''
 
 Log.FragmentRenderer = ->
   @node = @createNode()
@@ -166,12 +168,6 @@ Log.FragmentRenderer.prototype = $.extend new Log.Renderer,
       log = document.getElementById('log')
       log.appendChild(node)
 
-  insertAfter: (node, after) ->
-    if after.nextSibling
-      after.parentNode.insertBefore(node, after.nextSibling)
-    else
-      after.parentNode.appendChild(node)
-
   render: (data) ->
     fragment = @cloneFragment()
     fragment.appendChild(@renderNode(data)) for data in data
@@ -189,6 +185,12 @@ Log.FragmentRenderer.prototype = $.extend new Log.Renderer,
     node.appendChild(document.createElement('a'))
     node.appendChild(document.createTextNode(''))
     node
+
+  insertAfter: (node, after) ->
+    if after.nextSibling
+      after.parentNode.insertBefore(node, after.nextSibling)
+    else
+      after.parentNode.appendChild(node)
 
   cloneNode: ->
     @node.cloneNode(true)

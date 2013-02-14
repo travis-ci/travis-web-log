@@ -25,7 +25,7 @@ partition = (string) ->
   parts
 
 INTERVAL = 0
-SLICE = 0
+SLICE = 50
 
 $ ->
   log = new Log
