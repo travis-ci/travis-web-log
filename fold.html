@@ -5,14 +5,13 @@
     <script src="/vendor/jquery.min.js"></script>
     <script>
       $(function() {
-        $('#log .fold-start + p').on('click', function() {
-          $(this).prev().toggleClass('open');
-        });
         $('#log').on('mouseenter', 'a', function() {
-          console.log($(this.parentNode).prevAll('p'))
           num = $(this.parentNode).prevAll('p').length + 1;
           url = window.location + '';
           $(this).attr('href', url.replace(/#L\d+|(?=\?)|$/, '#L' + num));
+        });
+        $('#log .fold-start + p').on('click', function() {
+          $(this).prev().toggleClass('open');
         });
       });
     </script>
@@ -46,14 +45,14 @@
         counter-increment: line-numbering;
         padding-right: 1em;
         text-align: right;
-        opacity: 0.5;
+        opacity: 0.33;
       }
       #log a {
         display: inline-block;
         width: 35px;
         margin-left: -10px;
         text-align: right;
-        color: #666;
+        color: #fff !important;
         cursor: pointer;
         text-decoration: none;
       }

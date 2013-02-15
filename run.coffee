@@ -171,3 +171,12 @@ App.ApplicationController = Em.Controller.extend
 
   clear: ->
     @get('runner').clear()
+
+$ ->
+  $('#log').on 'mouseenter', 'a', ->
+    num = $(this.parentNode).prevAll('p').length + 1
+    url = window.location + ''
+    $(this).attr('href', url.replace(/#L\d+|(?=\?)|$/, '#L' + num))
+  $('#log .fold-start + p').on 'click', ->
+    $(this).prev().toggleClass('open')
+
