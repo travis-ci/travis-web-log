@@ -248,7 +248,7 @@ Log.FragmentRenderer.prototype = $.extend new Log.Listener,
     text
 
   createParagraph: ->
-    para = document.createElement('div')
+    para = document.createElement('p')
     para.appendChild(document.createElement('a'))
     para
 

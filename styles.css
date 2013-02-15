@@ -4,14 +4,16 @@
   right: 15px;
   text-align: right;
 }
-pre {
+p {
+  margin: 0;
+}
+#log {
   padding: 15px 0;
   min-height: 12px;
   line-height: 18px;
   color: #fff;
   font-family: monospace;
-  white-space: pre-wrap;
-  word-wrap: break-word;
+  white-space: normal;
   background-color: #333;
   border: 1px solid #ddd;
   -webkit-border-radius: 4px;
@@ -19,20 +21,32 @@ pre {
   border-radius: 4px;
   overflow-x: scroll;
 }
-p {
+#log {
+  counter-reset: line-numbering;
+}
+#log p::nth-line {
+  color: yellow !important;
+}
+#log a {
+  display: inline-block;
+  width: 35px;
+  margin-left: -10px;
+  text-align: right;
+  cursor: pointer;
+}
+#log p a::before {
+  content: counter(line-numbering);
+  counter-increment: line-numbering;
+  padding-right: 1em;
+  text-align: right;
+  opacity: 0.3;
+}
+#log p {
   margin: 0;
   padding: 0 15px 0 25px;
   min-height: 16px;
 }
-a {
-  display: inline-block;
-  width: 20px;
-  margin-left: -10px;
-  padding-right: 20px;
-  text-align: right;
-  color: #666;
-  cursor: pointer;
-}
+
 .green {
   color: lime;
 }
@@ -42,3 +56,16 @@ a {
 .yellow {
   color: yellow;
 }
+
+.log .fold-start ~ p {
+  display: none;
+}
+.log .fold-start + p {
+  background-color: #444;
+  cursor: pointer;
+}
+.log .fold-start + p,
+.log .fold-end ~ p {
+  display: block !important;
+}
+
