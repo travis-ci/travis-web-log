@@ -20,8 +20,10 @@ $.extend Log.prototype,
     @trigger('stop', event) unless event == 'start' || event == 'stop'
   set: (num, string) ->
     return if @parts[num]
-    @parts[num] = new Log.Part(@, num, string)
+    part = new Log.Part(@, num, string)
+    @parts[num] = part
     @parts[num].insert()
+    # @trigger('receive', part)
 
 Log.Buffer = (log, options) ->
   @start = 0
@@ -107,8 +109,10 @@ $.extend Log.Context.prototype,
   nodes: ->
     @lines.map (line) =>
       string = line.string
-      nodes = @deansi(string)
-      { id: line.id, nodes: nodes, hidden: string == '' }
+      if fold = @defold(string)
+        $.extend(fold, id: line.id)
+      else
+        { id: line.id, nodes: @deansi(string), hidden: string == '' }
   join: (all) ->
     lines = []
     while line = all.pop()
@@ -121,6 +125,10 @@ $.extend Log.Context.prototype,
     line = @part.lines[0]?.prev()
     line = line.prev() while line && !line.isNewline()
     line?.id
+  defold: (string) ->
+    if matches = string.match(/fold:(start|end):([\w]+)/)
+      { type: 'fold', event: matches[1], name: matches[2] }
+
   deansi: (string) ->
     Log.Deansi.apply(string)
 
@@ -135,7 +143,6 @@ Log.Deansi =
     result
 
   classes: (part) ->
-    # console.log(part)
     result = []
     result.push(part.foreground)         if part.foreground
     result.push("bg-#{part.background}") if part.background
@@ -169,7 +176,6 @@ $.extend Log.Metrics.prototype,
 Log.Listener = ->
 $.extend Log.Listener.prototype,
   notify: (log, event, num) ->
-    # console.log Array::slice.call(arguments)
     @[event].apply(@, [log].concat(Array::slice.call(arguments, 2))) if @[event]
 
 Log.Instrumenter = ->
@@ -180,13 +186,30 @@ Log.Instrumenter.prototype = $.extend new Log.Listener,
   stop: (log, event) ->
     log.metrics.stop(event)
 
+Log.Folds = ->
+  @folds = {}
+  @
+Log.Folds.prototype = $.extend new Log.Listener,
+  insert: (log, after, datas) ->
+    for data in datas
+      if data.type == 'fold'
+        fold = @merge(data.name, data.event, data.id)
+        @activate(fold.start) if fold.start && fold.end
+  merge: (name, event, id) ->
+    @folds[name] ||= {}
+    @folds[name][event] = id
+    @folds[name]
+  activate: (id) ->
+    node = document.getElementById(id)
+    node.setAttribute('class', "#{node.getAttribute('class')} active")
+
 Log.JqueryRenderer = ->
 Log.JqueryRenderer.prototype = $.extend new Log.Listener,
   remove: (log, ids) ->
     $("#log ##{id}").remove() for id in ids
 
-  insert: (log, after, data) ->
-    html = (data.map (data) => @render(data))
+  insert: (log, after, datas) ->
+    html = (datas.map (data) => @render(data))
     after && $("#log ##{after}").after(html) || $('#log').prepend(html).find('p')
     # $('#log').renumber()
 
@@ -205,6 +228,7 @@ Log.FragmentRenderer = ->
   @para = @createParagraph()
   @span = @createSpan()
   @text = document.createTextNode('')
+  @fold = document.createElement('div')
   @
 
 Log.FragmentRenderer.prototype = $.extend new Log.Listener,
@@ -213,8 +237,8 @@ Log.FragmentRenderer.prototype = $.extend new Log.Listener,
       node = document.getElementById(id)
       node.parentNode.removeChild(node) if node
 
-  insert: (log, after, data) ->
-    node = @render(data)
+  insert: (log, after, datas) ->
+    node = @render(datas)
     if after
       after = document.getElementById(after)
       @insertAfter(node, after)
@@ -224,7 +248,12 @@ Log.FragmentRenderer.prototype = $.extend new Log.Listener,
 
   render: (datas) ->
     frag = @frag.cloneNode(true)
-    frag.appendChild(@renderParagraph(data)) for data in datas
+    for data in datas
+      node = if data.type == 'fold'
+        @renderFold(data)
+      else
+        @renderParagraph(data)
+      frag.appendChild(node)
     frag
 
   renderParagraph: (data) ->
@@ -232,9 +261,17 @@ Log.FragmentRenderer.prototype = $.extend new Log.Listener,
     para.setAttribute('id', data.id)
     para.setAttribute('style', 'display: none;') if data.hidden
     for node in data.nodes
-      node = (node.type == 'span') && @renderSpan(node) || @renderText(node)
+      type = node.type[0].toUpperCase() + node.type.slice(1)
+      node = @["render#{type}"](node)
       para.appendChild(node)
     para
+
+  renderFold: (data) ->
+    fold = @fold.cloneNode(true)
+    fold.setAttribute('id', data.id)
+    fold.setAttribute('class', "fold-#{data.event}")
+    fold.setAttribute('name', data.name)
+    fold
 
   renderSpan: (data) ->
     span = @span.cloneNode(true)
@@ -244,7 +281,7 @@ Log.FragmentRenderer.prototype = $.extend new Log.Listener,
 
   renderText: (data) ->
     text = @text.cloneNode(true)
-    text.nodeValue = data.text.replace(/\n/gm, '')
+    text.nodeValue = (data.text || '').replace(/\n/gm, '')
     text
 
   createParagraph: ->

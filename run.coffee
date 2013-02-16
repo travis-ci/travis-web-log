@@ -33,6 +33,7 @@ App.Runner = Em.Object.extend
     else
       @set('loading', true)
       $.get url, (log) =>
+        log = @addFolds(log) if @options.folds
         @set('loading', false)
         @logs[url] = log
         handler.call(@, log)
@@ -52,6 +53,11 @@ App.Runner = Em.Object.extend
   receive: (ix, line) ->
     @log.set(ix, line) if @get('running')
 
+  addFolds: (log) ->
+    log = log.replace(/(\n)(?=\$ bundle install)/m, "\nfold:start:bundle_install\x1B\[K\n")
+    log = log.replace(/(Your bundle is complete[^\n]*)($)/m, "$1\nfold:end:bundle_install\x1B\[K\n")
+    log
+
   stream: (parts) ->
     wait = 0
     setTimeout((=> @receive.apply(@, arguments)), wait += @options.interval, part[0], part[1]) for part in parts
@@ -61,6 +67,7 @@ App.Runner = Em.Object.extend
     @clear()
     log = new Log
     log.listeners.push(new Log.Instrumenter)
+    log.listeners.push(new Log.Folds)
     log.listeners.push(new App.MetricsRenderer(@controller))
     log.listeners.push(new Log[@options.renderer])
     @log = @options.buffer && new Log.Buffer(log) || log
@@ -104,7 +111,7 @@ App.Runner = Em.Object.extend
     parts
 
   randomize: (array, step) ->
-    @shuffle(array, i, step) for _, i in array by step
+    @shuffle(array, i, step || 10) for _, i in array by step || 10
     array
 
   splitRand: (string, count) ->
@@ -128,12 +135,13 @@ App.Runner = Em.Object.extend
       array[j] = tmp
 
 App.ApplicationController = Em.Controller.extend
-  jobId: 4754461
+  jobId: 4767279
   randomize: true
   partition: true
   slice: 500
-  stream: true
-  buffer: true
+  stream: false
+  buffer: false
+  folds: true
   interval: 10
   runningBinding: 'runner.running'
   loadingBinding: 'runner.loading'
@@ -155,6 +163,7 @@ App.ApplicationController = Em.Controller.extend
       interval: parseInt(@get('interval'))
       stream: @get('stream')
       buffer: @get('buffer')
+      folds: @get('folds')
       randomize: @get('randomize')
       partition: @get('partition')
       renderer: @get('renderer')
@@ -177,6 +186,6 @@ $ ->
     num = $(this.parentNode).prevAll('p').length + 1
     url = window.location + ''
     $(this).attr('href', url.replace(/#L\d+|(?=\?)|$/, '#L' + num))
-  $('#log .fold-start + p').on 'click', ->
+  $('#log').on 'click', '.fold-start + p', ->
     $(this).prev().toggleClass('open')
 

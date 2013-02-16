@@ -51,7 +51,7 @@ p {
 .fold-start + p {
   cursor: pointer;
 }
-.fold-start:not(.open) ~ p {
+.fold-start.active:not(.open) ~ p {
   visibility: hidden;
   height: 0;
   min-height: 0;
