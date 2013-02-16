@@ -1,7 +1,7 @@
 build:
 
 ```
-coffee -w -o . *.coffee
+bundle exec rakep
 ```
 
 run server:

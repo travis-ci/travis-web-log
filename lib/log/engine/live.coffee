@@ -1,12 +1,25 @@
-Log.Part = (log, num, string) ->
+Log.Live = (log) ->
+  @log = log
+  @parts = []
+  @
+$.extend Log.Live.prototype,
+  set: (num, string) ->
+    return if @parts[num]
+    part = new Log.Live.Part(@, num, string)
+    @parts[num] = part
+    @parts[num].insert()
+  trigger: () ->
+    @log.trigger.apply(@log, arguments)
+
+Log.Live.Part = (log, num, string) ->
   @log = log
   @num = num
   @lines = for line, ix in string.replace(/\r\n/gm, "\n").split(/^/m)
-    new Log.Line(@, ix, line)
+    new Log.Live.Line(@, ix, line)
   @
-$.extend Log.Part.prototype,
+$.extend Log.Live.Part.prototype,
   insert: ->
-    new Log.Context(@log, @).insert()
+    new Log.Live.Context(@log, @).insert()
   head: ->
     head = []
     line = @lines[0]
@@ -29,13 +42,13 @@ $.extend Log.Part.prototype,
     next = @log.parts[num += 1] until next || num >= @log.parts.length
     next
 
-Log.Line = (part, num, string) ->
+Log.Live.Line = (part, num, string) ->
   @part = part
   @num  = num
   @id   = "#{part.num}-#{num}"
   @string = string
   @
-$.extend Log.Line.prototype,
+$.extend Log.Live.Line.prototype,
   prev: ->
     line = @part.lines[@num - 1]
     line || @part.prev()?.lines.slice(-1)[0]
@@ -45,16 +58,16 @@ $.extend Log.Line.prototype,
   isNewline: ->
     @string[@string.length - 1] == "\n"
   clone: ->
-    new Log.Line(@part, @num, @string)
+    new Log.Live.Line(@part, @num, @string)
 
-Log.Context = (log, part) ->
+Log.Live.Context = (log, part) ->
   @log   = log
   @part  = part
   @head  = part.head()
   @tail  = part.tail()
   @lines = @join(@head.concat(part.lines).concat(@tail))
   @
-$.extend Log.Context.prototype,
+$.extend Log.Live.Context.prototype,
   insert: ->
     ids = @head.concat(@tail).map (line) -> line.id
     @log.trigger('remove', ids) unless ids.length == 0
