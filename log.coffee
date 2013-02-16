@@ -48,7 +48,7 @@ $.extend Log.Buffer.prototype,
 Log.Part = (log, num, string) ->
   @log = log
   @num = num
-  @lines = for line, ix in string.split(/^/m)
+  @lines = for line, ix in string.replace(/\r\n/gm, "\n").split(/^/m)
     new Log.Line(@, ix, line)
   @
 $.extend Log.Part.prototype,
