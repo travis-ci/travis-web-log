@@ -20,10 +20,10 @@ $.extend Log.prototype,
     @trigger('stop', event) unless event == 'start' || event == 'stop'
   set: (num, string) ->
     return if @parts[num]
+    @trigger('receive', num, string)
     part = new Log.Part(@, num, string)
     @parts[num] = part
     @parts[num].insert()
-    # @trigger('receive', part)
 
 Log.Buffer = (log, options) ->
   @start = 0
@@ -186,6 +186,17 @@ Log.Instrumenter.prototype = $.extend new Log.Listener,
   stop: (log, event) ->
     log.metrics.stop(event)
 
+Log.Log = ->
+Log.Log.prototype = $.extend new Log.Listener,
+  receive: (log, num, string) ->
+    @log("<b><span>rcv #{num}</span> #{JSON.stringify(string)}</b>")
+  insert: (log, after, datas) ->
+    @log("<span>ins #{datas.map((data) -> data.id).join(', ')},</span> after: #{after || '?'}, #{JSON.stringify(datas)}")
+  remove: (log, id) ->
+    @log("<span>rem #{id}</span>")
+  log: (line) ->
+    $('#events').append("#{line}\n")
+
 Log.Folds = ->
   @folds = {}
   @
@@ -210,7 +221,7 @@ Log.JqueryRenderer.prototype = $.extend new Log.Listener,
 
   insert: (log, after, datas) ->
     html = (datas.map (data) => @render(data))
-    after && $("#log ##{after}").after(html) || $('#log').prepend(html).find('p')
+    after && $("#log ##{after}").after(html) || $('#log').prepend(html)
     # $('#log').renumber()
 
   render: (data) ->
@@ -244,7 +255,7 @@ Log.FragmentRenderer.prototype = $.extend new Log.Listener,
       @insertAfter(node, after)
     else
       log = document.getElementById('log')
-      log.appendChild(node)
+      log.insertBefore(node, log.firstChild)
 
   render: (datas) ->
     frag = @frag.cloneNode(true)

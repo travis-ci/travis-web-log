@@ -8,6 +8,8 @@ p {
   margin: 0;
 }
 #log {
+  float: left;
+  width: 59%;
   padding: 15px 0;
   min-height: 12px;
   line-height: 18px;
@@ -26,7 +28,8 @@ p {
 }
 #log p {
   margin: 0;
-  padding: 0 15px 0 25px;
+  padding: 0 15px 0 50px;
+  text-indent: -25px;
 }
 #log p::nth-line {
   color: yellow !important;
@@ -48,23 +51,24 @@ p {
   text-decoration: none;
 }
 
-.fold-start + p {
+#log .fold-start + p {
   cursor: pointer;
 }
-.fold-start.active:not(.open) ~ p {
+#log .fold-start.active:not(.open) ~ p {
   visibility: hidden;
   height: 0;
   min-height: 0;
 }
-.fold-start + p,
-.fold-end ~ p {
+#log .fold-start + p,
+#log .fold-end ~ p {
   visibility: visible !important;
+  height: auto !important;
   min-height: 16px !important;
 }
-.fold-start ~ p {
+#log .fold-start ~ p {
   background-color: #444;
 }
-.fold-end ~ p {
+#log .fold-end ~ p {
   background-color: transparent !important;
 }
 
@@ -76,4 +80,10 @@ p {
 }
 .yellow {
   color: yellow;
+}
+
+#events {
+  float: right;
+  width: 40%;
+  overflow-x: scroll;
 }

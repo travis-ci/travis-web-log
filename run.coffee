@@ -68,19 +68,23 @@ App.Runner = Em.Object.extend
     log = new Log
     log.listeners.push(new Log.Instrumenter)
     log.listeners.push(new Log.Folds)
+    log.listeners.push(new Log.Log)
     log.listeners.push(new App.MetricsRenderer(@controller))
     log.listeners.push(new Log[@options.renderer])
     @log = @options.buffer && new Log.Buffer(log) || log
 
   clear: ->
     $('#log').empty()
+    $('#events').empty()
 
   split: (string) ->
+    string = string.replace(/\r\n/gm, "\n") # it seems split(/^/) would remove the newline, but not the \r here?
     lines = string.split(/^/m)
     parts = ([i, line] for line, i in lines)
+    # console.log(JSON.stringify(parts))
     parts = @slice(parts)     if @options.slice
     parts = @randomize(parts) if @options.randomize
-    parts = @partition(parts) if false && @options.partition
+    # parts = @partition(parts) if @options.partition
     parts
 
   slice: (array) ->
