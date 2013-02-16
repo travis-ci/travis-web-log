@@ -66,9 +66,9 @@ App.Runner = Em.Object.extend
   reset: ->
     @clear()
     log = new Log
+    log.listeners.push(new Log.Log) if @options.log
+    log.listeners.push(new Log.Folds) if @options.folds
     log.listeners.push(new Log.Instrumenter)
-    log.listeners.push(new Log.Folds)
-    log.listeners.push(new Log.Log)
     log.listeners.push(new App.MetricsRenderer(@controller))
     log.listeners.push(new Log[@options.renderer])
     @log = @options.buffer && new Log.Buffer(log) || log
@@ -145,6 +145,7 @@ App.ApplicationController = Em.Controller.extend
   slice: 500
   stream: false
   buffer: false
+  log: false
   folds: true
   interval: 10
   runningBinding: 'runner.running'
@@ -168,6 +169,7 @@ App.ApplicationController = Em.Controller.extend
       stream: @get('stream')
       buffer: @get('buffer')
       folds: @get('folds')
+      log: @get('log')
       randomize: @get('randomize')
       partition: @get('partition')
       renderer: @get('renderer')

@@ -26,13 +26,14 @@ Log.Instrumenter.prototype = $.extend new Log.Listener,
 Log.Log = ->
 Log.Log.prototype = $.extend new Log.Listener,
   receive: (log, num, string) ->
-    @log("<b><span>rcv #{num}</span> #{JSON.stringify(string)}</b>")
+    @log("<b>rcv #{num} #{JSON.stringify(string)}</b>")
   insert: (log, after, datas) ->
-    @log("<span>ins #{datas.map((data) -> data.id).join(', ')},</span> after: #{after || '?'}, #{JSON.stringify(datas)}")
+    @log("ins #{datas.map((data) -> data.id).join(', ')}, after: #{after || '?'}, #{JSON.stringify(datas)}")
   remove: (log, id) ->
-    @log("<span>rem #{id}</span>")
+    @log("rem #{id}")
   log: (line) ->
     $('#events').append("#{line}\n")
+    # console.log(line)
 
 
 
