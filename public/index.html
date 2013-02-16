@@ -2,13 +2,18 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <script src="/vendor/jquery.min.js"></script>
-    <script src="/vendor/ansiparse.js" /></script>
-    <script src="/vendor/handlebars.js" /></script>
-    <script src="/vendor/ember.js" /></script>
-    <script src="/log.js" /></script>
-    <script src="/run.js" /></script>
+    <script src="/js/minispade.js"></script>
+    <script src="/js/vendor.js"></script>
+    <script src="/js/log.js" /></script>
+    <script src="/js/run.js" /></script>
     <link rel="stylesheet" href="/styles.css">
+    <script>
+      minispade.require('jquery')
+      minispade.require('handlebars')
+      minispade.require('ember')
+      minispade.require('log')
+      minispade.require('run')
+    </script>
   </head>
   <body>
     <script type="text/x-handlebars" data-template-name="application">

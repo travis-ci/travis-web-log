@@ -1,0 +1,33 @@
+require 'rake-pipeline-web-filters'
+
+modules = ->(input) { input.path.gsub('.js', '') }
+
+output 'public'
+
+input 'lib' do
+  match '**/*.coffee' do
+    coffee_script
+  end
+
+  match '**/*.js' do
+    minispade(string: true, rewrite_requires: true, module_id_generator: modules)
+    concat 'js/log.js'
+  end
+end
+
+input 'public' do
+  match 'run.coffee' do
+    coffee_script
+    minispade(string: true, rewrite_requires: true, module_id_generator: modules)
+    concat 'js/run.js'
+  end
+end
+
+input 'vendor' do
+  match '**/*.js' do
+    minispade(string: true, rewrite_requires: true, module_id_generator: modules)
+    concat 'js/vendor.js'
+  end
+end
+
+`cp vendor/minispade.js public/js/minispade.js` # hrmmm
