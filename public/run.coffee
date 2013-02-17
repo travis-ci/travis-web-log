@@ -56,6 +56,8 @@ App.Runner = Em.Object.extend
   addFolds: (log) ->
     log = log.replace(/(\n)(?=\$ bundle install)/m, "\nfold:start:bundle_install\x1B\[K\n")
     log = log.replace(/(Your bundle is complete[^\n]*)($)/m, "$1\nfold:end:bundle_install\x1B\[K\n")
+    log = log.replace(/(\n)(?=\** Invoke db:create)/m, "\nfold:start:migrate\x1B\[K\n")
+    log = log.replace(/(\$ \.\/build\.sh[^\n]*)($)/m, "$1\nfold:end:migrate\x1B\[K\n")
     log
 
   stream: (parts) ->
@@ -67,10 +69,10 @@ App.Runner = Em.Object.extend
     @clear()
     log = new Log
     log.listeners.push(new Log.Log) if @options.log
+    log.listeners.push(new Log[@options.renderer])
     log.listeners.push(new Log.Folds) if @options.folds
     log.listeners.push(new Log.Instrumenter)
     log.listeners.push(new App.MetricsRenderer(@controller))
-    log.listeners.push(new Log[@options.renderer])
     @log = @options.buffer && new Log.Buffer(log) || log
 
   clear: ->
@@ -192,6 +194,6 @@ $ ->
     num = $(this.parentNode).prevAll('p').length + 1
     url = window.location + ''
     $(this).attr('href', url.replace(/#L\d+|(?=\?)|$/, '#L' + num))
-  $('#log').on 'click', '.fold-start + p', ->
-    $(this).prev().toggleClass('open')
+  $('#log').on 'click', '.fold', ->
+    $(this).toggleClass('open')
 

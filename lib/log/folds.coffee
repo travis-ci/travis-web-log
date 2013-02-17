@@ -5,14 +5,19 @@ Log.Folds.prototype = $.extend new Log.Listener,
   insert: (log, after, datas) ->
     for data in datas
       if data.type == 'fold'
-        fold = @merge(data.name, data.event, data.id)
-        @activate(fold.start) if fold.start && fold.end
-  merge: (name, event, id) ->
-    @folds[name] ||= {}
-    @folds[name][event] = id
-    @folds[name]
-  activate: (id) ->
-    node = document.getElementById(id)
-    node.setAttribute('class', "#{node.getAttribute('class')} active")
+        fold = @folds[data.name] ||= new Log.Fold
+        fold.receive(data)
 
-
+Log.Fold = ->
+  @
+$.extend Log.Fold.prototype,
+  receive: (data) ->
+    @[data.event] = data.id
+    @activate() if @start && @end && !@active
+  activate: ->
+    fold = node = document.getElementById(@start)
+    nodes = []
+    nodes.push(node) while (node = node.nextSibling) && node.id != @end
+    fold.appendChild(node) for node in nodes
+    fold.setAttribute('class', fold.getAttribute('class') + ' fold')
+    @active = true

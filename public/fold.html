@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <script src="/vendor/jquery.min.js"></script>
+    <script src="/vendor/jquery.js"></script>
     <script>
       $(function() {
         $('#log').on('mouseenter', 'a', function() {
@@ -67,14 +67,14 @@
       }
       .fold-start + p,
       .fold-end ~ p {
-        visibility: visible !important;
-        min-height: 16px !important;
+        visibility: visible;
+        min-height: 16px;
       }
       .fold-start ~ p {
         background-color: #444;
       }
       .fold-end ~ p {
-        background-color: transparent !important;
+        background-color: transparent;
       }
 
       .green {
@@ -102,11 +102,13 @@
       <p><a></a>$ bundle exec rake</p>
       <p><a></a>Run options: --seed 47307</p>
       <p><a></a></p>
+      <span class="fold-start"></span>
       <p><a></a># Running tests:</p>
       <p><a></a></p>
       <p><a></a>..................</p>
       <p><a></a></p>
       <p><a></a>Finished tests in 0.100803s, 178.5666 tests/s, 178.5666 assertions/s.</p>
+      <span class="fold-end"></span>
       <p><a></a></p>
       <p><a></a>18 tests, 18 assertions, 0 failures, 0 errors, 0 skips</p>
       <p><a></a></p>

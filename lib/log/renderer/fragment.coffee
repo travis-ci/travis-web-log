@@ -10,7 +10,7 @@ Log.FragmentRenderer.prototype = $.extend new Log.Listener,
   remove: (log, ids) ->
     for id in ids
       node = document.getElementById(id)
-      node.parentNode.removeChild(node) if node
+      node.parentNode.removeChild(node) if node && !node.getAttribute('class')?.match(/fold/)
 
   insert: (log, after, datas) ->
     node = @render(datas)
@@ -21,14 +21,13 @@ Log.FragmentRenderer.prototype = $.extend new Log.Listener,
       log = document.getElementById('log')
       log.insertBefore(node, log.firstChild)
 
-  render: (datas) ->
+  render: (data) ->
     frag = @frag.cloneNode(true)
-    for data in datas
-      node = if data.type == 'fold'
-        @renderFold(data)
-      else
-        @renderParagraph(data)
-      frag.appendChild(node)
+    for node in data
+      node.type ||= 'paragraph'
+      type = node.type[0].toUpperCase() + node.type.slice(1)
+      node = @["render#{type}"](node)
+      frag.appendChild(node) if node
     frag
 
   renderParagraph: (data) ->
@@ -42,6 +41,7 @@ Log.FragmentRenderer.prototype = $.extend new Log.Listener,
     para
 
   renderFold: (data) ->
+    return if document.getElementById(data.id)
     fold = @fold.cloneNode(true)
     fold.setAttribute('id', data.id)
     fold.setAttribute('class', "fold-#{data.event}")
