@@ -1,6 +1,10 @@
 @Log = ->
   @listeners = []
   @
+Log.create = (options) ->
+  log = new Log
+  log.listeners.push(listener) for listener in options.listeners || []
+  log
 $.extend Log.prototype,
   trigger: () ->
     args = Array::slice.apply(arguments)
