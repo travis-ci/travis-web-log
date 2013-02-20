@@ -30,4 +30,12 @@ input 'vendor' do
   end
 end
 
-`cp vendor/ansiparse.js vendor/minispade.js public/js/` # hrmmm
+input 'vendor' do
+  match 'ansiparse.js' do
+    copy 'js/ansiparse.js'
+  end
+
+  match 'minispade.js' do
+    copy 'js/minispade.js'
+  end
+end
