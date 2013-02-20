@@ -30,4 +30,4 @@ input 'vendor' do
   end
 end
 
-`cp vendor/minispade.js public/js/minispade.js` # hrmmm
+`cp vendor/ansiparse.js vendor/minispade.js public/js/` # hrmmm

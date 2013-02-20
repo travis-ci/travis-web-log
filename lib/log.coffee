@@ -28,5 +28,6 @@ require 'log/engine/live'
 require 'log/folds'
 require 'log/instrument'
 require 'log/renderer/fragment'
+require 'log/renderer/inner_html'
 require 'log/renderer/jquery'
 

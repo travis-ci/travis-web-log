@@ -16,7 +16,6 @@ App.Runner = Em.Object.extend
   logs: {}
 
   start: (controller, options) ->
-    console.log 'Start, options: ', options
     @set('running', true)
     @controller = controller
     @options = options
@@ -154,6 +153,7 @@ App.ApplicationController = Em.Controller.extend
   loadingBinding: 'runner.loading'
 
   renderers: [
+    Em.Object.create(name: 'InnerHtmlRenderer')
     Em.Object.create(name: 'FragmentRenderer')
     Em.Object.create(name: 'JqueryRenderer'  )
   ]

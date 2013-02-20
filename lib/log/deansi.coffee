@@ -1,4 +1,4 @@
-require 'ansiparse'
+# require 'ansiparse'
 
 Log.Deansi =
   apply: (string) ->
