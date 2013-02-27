@@ -15,8 +15,7 @@ Log.FragmentRenderer.prototype = $.extend new Log.Listener,
   insert: (log, after, datas) ->
     node = @render(datas)
     if after
-      after = document.getElementById(after)
-      @insertAfter(node, after)
+      @insertAfter(node, document.getElementById(after))
     else
       log = document.getElementById('log')
       log.insertBefore(node, log.firstChild)

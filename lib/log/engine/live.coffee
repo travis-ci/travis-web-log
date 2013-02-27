@@ -4,10 +4,12 @@ Log.Live = (log) ->
   @
 $.extend Log.Live.prototype,
   set: (num, string) ->
-    return if @parts[num]
-    part = new Log.Live.Part(@, num, string)
-    @parts[num] = part
-    @parts[num].insert()
+    if @parts[num]
+      console.log "part #{num} exists"
+    else
+      part = new Log.Live.Part(@, num, string)
+      @parts[num] = part
+      @parts[num].insert()
   trigger: () ->
     @log.trigger.apply(@log, arguments)
 

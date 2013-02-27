@@ -1,5 +1,6 @@
 @Log = ->
   @listeners = []
+  @engine = new Log.Live(@)
   @
 Log.create = (options) ->
   log = new Log
@@ -14,7 +15,7 @@ $.extend Log.prototype,
     @trigger('stop', event) unless event == 'start' || event == 'stop'
   set: (num, string) ->
     @trigger('receive', num, string)
-    @engine ||= new Log.Live(@)
+    # Ember.run.next @, =>
     @engine.set(num, string)
 
 Log.Listener = ->
