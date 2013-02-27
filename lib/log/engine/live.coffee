@@ -80,7 +80,7 @@ $.extend Log.Live.Context.prototype,
       if fold = @defold(string)
         $.extend(fold, id: line.id)
       else
-        { id: line.id, nodes: @deansi(string), hidden: string == '' }
+        { id: line.id, nodes: @deansi(string) }
   join: (all) ->
     lines = []
     while line = all.pop()
@@ -96,7 +96,6 @@ $.extend Log.Live.Context.prototype,
   defold: (string) ->
     if matches = string.match(/fold:(start|end):([\w]+)/)
       { type: 'fold', event: matches[1], name: matches[2] }
-
   deansi: (string) ->
     Log.Deansi.apply(string)
 

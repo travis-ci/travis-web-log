@@ -140,21 +140,21 @@ App.Runner = Em.Object.extend
       array[j] = tmp
 
 App.ApplicationController = Em.Controller.extend
-  jobId: 4767279
-  randomize: true
+  jobId: 5090319
   partition: true
-  slice: 500
+  randomize: false
+  slice: 9
   stream: false
   buffer: false
-  log: false
+  log: true
   folds: true
   interval: 10
   runningBinding: 'runner.running'
   loadingBinding: 'runner.loading'
 
   renderers: [
-    Em.Object.create(name: 'InnerHtmlRenderer')
     Em.Object.create(name: 'FragmentRenderer')
+    Em.Object.create(name: 'InnerHtmlRenderer')
     Em.Object.create(name: 'JqueryRenderer'  )
   ]
 
