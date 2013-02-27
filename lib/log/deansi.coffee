@@ -2,7 +2,6 @@
 
 Log.Deansi =
   apply: (string) ->
-    console.log(string)
     string = string.replace(/.*(\033\[K\n|\r(?!\n))/gm, '')
     # string = string.replace(/\033\(B/g, '').replace(/\033\[\d+G/g, '').replace(/\[2K/g, '')
     result = []

@@ -16,8 +16,9 @@ $.extend Log.Fold.prototype,
     @activate() if @start && @end && !@active
   activate: ->
     fold = node = document.getElementById(@start)
-    nodes = []
-    nodes.push(node) while (node = node.nextSibling) && node.id != @end
-    fold.appendChild(node) for node in nodes
-    fold.setAttribute('class', fold.getAttribute('class') + ' fold')
+    unless node.nextSibling?.id == @end
+      nodes = []
+      nodes.push(node) while (node = node.nextSibling) && node.id != @end
+      fold.appendChild(node) for node in nodes
+      fold.setAttribute('class', fold.getAttribute('class') + ' fold')
     @active = true

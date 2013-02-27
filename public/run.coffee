@@ -26,13 +26,14 @@ App.Runner = Em.Object.extend
     @set('running', false)
 
   fetch: (handler) ->
-    url = "https://api.travis-ci.org/jobs/#{@options.jobId}/log.txt"
+    # url = "https://api.travis-ci.org/jobs/#{@options.jobId}/log.txt"
+    url = "https://api-staging.travis-ci.org/jobs/#{@options.jobId}/log.txt"
     if @logs[url]
       handler.call(@, @logs[url])
     else
       @set('loading', true)
       $.get url, (log) =>
-        log = @addFolds(log) if @options.folds
+        # log = @addFolds(log) if @options.folds
         @set('loading', false)
         @logs[url] = log
         handler.call(@, log)
@@ -140,10 +141,10 @@ App.Runner = Em.Object.extend
       array[j] = tmp
 
 App.ApplicationController = Em.Controller.extend
-  jobId: 5090319
+  jobId: 386444
   partition: true
   randomize: false
-  slice: 9
+  slice: 1000
   stream: false
   buffer: false
   log: true

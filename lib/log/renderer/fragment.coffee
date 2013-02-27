@@ -3,7 +3,7 @@ Log.FragmentRenderer = ->
   @para = @createParagraph()
   @span = @createSpan()
   @text = document.createTextNode('')
-  @fold = document.createElement('div')
+  @fold = @createFold()
   @
 
 Log.FragmentRenderer.prototype = $.extend new Log.Listener,
@@ -45,6 +45,7 @@ Log.FragmentRenderer.prototype = $.extend new Log.Listener,
     fold.setAttribute('id', data.id)
     fold.setAttribute('class', "fold-#{data.event}")
     fold.setAttribute('name', data.name)
+    fold.lastChild.lastChild.nodeValue = data.name
     fold
 
   renderSpan: (data) ->
@@ -62,6 +63,12 @@ Log.FragmentRenderer.prototype = $.extend new Log.Listener,
     para = document.createElement('p')
     para.appendChild(document.createElement('a'))
     para
+
+  createFold: ->
+    fold = document.createElement('div')
+    fold.appendChild(@createSpan())
+    fold.lastChild.setAttribute('class', 'fold-name')
+    fold
 
   createSpan: ->
     span = document.createElement('span')

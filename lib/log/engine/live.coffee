@@ -59,6 +59,8 @@ $.extend Log.Live.Line.prototype,
     line || @part.next()?.lines[0]
   isNewline: ->
     @string[@string.length - 1] == "\n"
+  isFold: ->
+    @string.indexOf('fold') != -1
   clone: ->
     new Log.Live.Line(@part, @num, @string)
 
@@ -91,7 +93,7 @@ $.extend Log.Live.Context.prototype,
     lines
   after:  ->
     line = @part.lines[0]?.prev()
-    line = line.prev() while line && !line.isNewline()
+    line = line.prev() while line && !line.isNewline() && !line.isFold()
     line?.id
   defold: (string) ->
     if matches = string.match(/fold:(start|end):([\w]+)/)

@@ -24,6 +24,7 @@ p {
   overflow-x: scroll;
 }
 #log {
+  position: relative;
   counter-reset: line-numbering;
 }
 #log p {
@@ -63,10 +64,26 @@ p {
   height: 0;
   min-height: 0;
 }
-#log .fold:not(.open) p:first-child {
+#log .fold:not(.open) p:first-of-type {
   visibility: visible;
   height: auto;
   min-height: 16px;
+}
+#log .fold-start:not(.fold),
+#log .fold-end {
+  display: none;
+}
+#log .fold span.fold-name {
+  position: absolute;
+  display: block;
+  right: 20px;
+  margin-top: 3px;
+  padding: 0px 5px 2px 5px;
+  line-height: 10px;
+  font-size: 10px;
+  background-color: #999;
+  border-radius: 4px;
+  color: #eee;
 }
 
 .green {
