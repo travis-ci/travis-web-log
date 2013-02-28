@@ -152,6 +152,7 @@ App.ApplicationController = Em.Controller.extend
   interval: 10
   runningBinding: 'runner.running'
   loadingBinding: 'runner.loading'
+  renderer: 'FragmentRenderer'
 
   renderers: [
     Em.Object.create(name: 'FragmentRenderer')
@@ -162,7 +163,7 @@ App.ApplicationController = Em.Controller.extend
   init: ->
     @_super.apply this, arguments
     @set 'runner', App.Runner.create()
-    # @start()
+    @start()
 
   start: ->
     @get('runner').start @,

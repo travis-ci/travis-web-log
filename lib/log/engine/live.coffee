@@ -16,7 +16,7 @@ $.extend Log.Live.prototype,
 Log.Live.Part = (log, num, string) ->
   @log = log
   @num = num
-  @lines = for line, ix in string.replace(/\r\n/gm, "\n").split(/^/m)
+  @lines = for line, ix in string.split(/^/m)
     new Log.Live.Line(@, ix, line)
   @
 $.extend Log.Live.Part.prototype,
@@ -96,7 +96,7 @@ $.extend Log.Live.Context.prototype,
     line = line.prev() while line && !line.isNewline() && !line.isFold()
     line?.id
   defold: (string) ->
-    if matches = string.match(/fold:(start|end):([\w]+)/)
+    if matches = string.match(/fold:(start|end):([\w_\-\.]+)/)
       { type: 'fold', event: matches[1], name: matches[2] }
   deansi: (string) ->
     Log.Deansi.apply(string)
