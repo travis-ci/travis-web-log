@@ -1,7 +1,7 @@
 /*jshint evil:true*/
 
-if (typeof document !== "undefined") {
-  (function() {
+// if (typeof document !== "undefined") {
+//   (function() {
     minispade = {
       root: null,
       modules: {},
@@ -63,6 +63,6 @@ if (typeof document !== "undefined") {
         minispade.modules[name] = callback;
       }
     };
-  })();
-}
+//   })();
+// }
 

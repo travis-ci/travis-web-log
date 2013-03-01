@@ -32,7 +32,7 @@ Log.FragmentRenderer.prototype = $.extend new Log.Listener,
   renderParagraph: (data) ->
     para = @para.cloneNode(true)
     para.setAttribute('id', data.id)
-    para.setAttribute('style', 'display: none;') if data.nodes.length == 0
+    # para.setAttribute('style', 'display: none;') if data.nodes.length == 0
     for node in data.nodes
       type = node.type[0].toUpperCase() + node.type.slice(1)
       node = @["render#{type}"](node)

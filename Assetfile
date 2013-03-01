@@ -39,3 +39,12 @@ input 'vendor' do
     copy 'js/minispade.js'
   end
 end
+
+output 'spec'
+
+input 'spec' do
+  match '**/*.coffee' do
+    coffee_script
+  end
+end
+

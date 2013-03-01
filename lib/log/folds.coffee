@@ -16,7 +16,8 @@ $.extend Log.Fold.prototype,
     @activate() if @start && @end && !@active
   activate: ->
     fold = node = document.getElementById(@start)
-    unless node.nextSibling?.id == @end
+    next = node.nextSibling
+    unless next?.id == @end || next?.nextSibling?.id == @end
       nodes = []
       nodes.push(node) while (node = node.nextSibling) && node.id != @end
       fold.appendChild(node) for node in nodes
