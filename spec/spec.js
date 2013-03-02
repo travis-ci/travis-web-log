@@ -1,5 +1,5 @@
 (function() {
-  var $, ConsoleReporter, beforeEach, describe, document, env, expect, it, jasmine, window, _ref;
+  var $, ConsoleReporter, beforeEach, describe, document, env, expect, it, jasmine, log, window, _ref;
 
   $ = require('./../vendor/jquery.fake.js').$;
 
@@ -21,6 +21,16 @@
   eval(require('fs').readFileSync('vendor/minispade.js', 'utf-8'));
 
   eval(require('fs').readFileSync('vendor/ansiparse.js', 'utf-8'));
+
+  eval(require('fs').readFileSync('spec/jsdom.js', 'utf-8'));
+
+  document = new exports.Document;
+
+  log = document.createElement('pre');
+
+  log.setAttribute('id', 'log');
+
+  document.appendChild(log);
 
   require('./../public/js/log.js');
 

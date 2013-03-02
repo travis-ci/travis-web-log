@@ -7,27 +7,30 @@ Log.FragmentRenderer = ->
   @
 
 Log.FragmentRenderer.prototype = $.extend new Log.Listener,
-  remove: (log, ids) ->
-    for id in ids
-      node = document.getElementById(id)
-      node.parentNode.removeChild(node) if node && !node.getAttribute('class')?.match(/fold/)
+  remove: (log, id) ->
+    node = document.getElementById(id)
+    node.parentNode.removeChild(node) if node
 
-  insert: (log, after, datas) ->
-    node = @render(datas)
-    if after
-      @insertAfter(node, document.getElementById(after))
+  insert: (log, data, pos) ->
+    node = @render(data)
+    if pos.after
+      @insertAfter(node, document.getElementById(pos.after))
+    else if pos.before
+      @insertBefore(node, document.getElementById(pos.before))
     else
-      log = document.getElementById('log')
-      log.insertBefore(node, log.firstChild)
+      @insertBefore(node)
 
   render: (data) ->
     frag = @frag.cloneNode(true)
     for node in data
-      node.type ||= 'paragraph'
-      type = node.type[0].toUpperCase() + node.type.slice(1)
-      node = @["render#{type}"](node)
+      node = @renderNode(node)
       frag.appendChild(node) if node
     frag
+
+  renderNode: (data) ->
+    data.type ||= 'paragraph'
+    type = data.type[0].toUpperCase() + data.type.slice(1)
+    @["render#{type}"](data)
 
   renderParagraph: (data) ->
     para = @para.cloneNode(true)
@@ -50,13 +53,14 @@ Log.FragmentRenderer.prototype = $.extend new Log.Listener,
 
   renderSpan: (data) ->
     span = @span.cloneNode(true)
-    span.setAttribute('class', data.class)
-    span.lastChild.nodeValue = data.text.replace(/\n/gm, '')
+    span.setAttribute('id', data.id) if data.id
+    span.setAttribute('class', data.class) if data.class
+    span.lastChild.nodeValue = data.text
     span
 
   renderText: (data) ->
     text = @text.cloneNode(true)
-    text.nodeValue = (data.text || '').replace(/\n/gm, '')
+    text.nodeValue = data.text
     text
 
   createParagraph: ->
@@ -75,10 +79,16 @@ Log.FragmentRenderer.prototype = $.extend new Log.Listener,
     span.appendChild(document.createTextNode(''))
     span
 
-  insertAfter: (node, after) ->
-    if after.nextSibling
-      after.parentNode.insertBefore(node, after.nextSibling)
+  insertBefore: (node, other) ->
+    if other
+      other.parentNode.insertBefore(node, other)
     else
-      after.parentNode.appendChild(node)
+      log = document.getElementById('log')
+      log.appendChild(node, log.firstChild)
 
+  insertAfter: (node, other) ->
+    if other.nextSibling
+      @insertBefore(node, other.nextSibling)
+    else
+      other.parentNode.appendChild(node)
 
