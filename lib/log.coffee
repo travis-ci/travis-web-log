@@ -2,6 +2,7 @@
   @listeners = []
   @engine = new (engine || Log.Chunks)(@)
   @
+Log.DEBUG = false
 Log.create = (options) ->
   log = new Log
   log.listeners.push(listener) for listener in options.listeners || []
@@ -11,8 +12,9 @@ $.extend Log.prototype,
     args = Array::slice.apply(arguments)
     event = args[0]
     # @trigger('start', event) unless event == 'start' || event == 'stop'
-    listener.notify.apply(listener, [@].concat(args)) for listener in @listeners
+    result = listener.notify.apply(listener, [@].concat(args)) for listener in @listeners
     # @trigger('stop', event) unless event == 'start' || event == 'stop'
+    result
   set: (num, string) ->
     @trigger('receive', num, string)
     # Ember.run.next @, =>
@@ -25,6 +27,7 @@ $.extend Log.Listener.prototype,
 
 require 'log/buffer'
 require 'log/deansi'
+require 'log/engine/dom'
 require 'log/engine/chunks'
 require 'log/engine/live'
 require 'log/folds'

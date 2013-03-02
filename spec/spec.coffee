@@ -17,7 +17,7 @@ document.appendChild(log)
 require './../public/js/log.js'
 minispade.require 'log'
 
-eval require('fs').readFileSync('./spec/engine/chunks.js', 'utf-8')
+eval require('fs').readFileSync('./spec/engine/dom.js', 'utf-8')
 
 env = jasmine.getEnv()
 env.addReporter(new ConsoleReporter(jasmine))

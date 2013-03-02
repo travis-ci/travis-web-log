@@ -1,8 +1,3 @@
-Object.prototype.clone = ->
-  clone = {}
-  clone[name] = @[name] for name in @
-  clone
-
 Log.Chunks = (log) ->
   @log = log
   @parts = []
@@ -59,7 +54,7 @@ $.extend Log.Chunks.Chunk.prototype,
     else if (prev = @prev()) && !prev.isLine
       @trigger 'insert', @nodes, after: prev.nodes[prev.nodes.length - 1].id
     else
-      @trigger 'insert', [{ type: 'paragraph', id: @id, nodes: @nodes }], before: next
+      @trigger 'insert', [{ type: 'paragraph', id: @id, nodes: @nodes }], before: undefined
   remove: ->
     # if !node.getAttribute('class')?.match(/fold/)
     for node in @nodes
