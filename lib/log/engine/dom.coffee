@@ -18,16 +18,25 @@ Log.Dom.Part = (engine, num, string) ->
   @engine = engine
   @num = num
   @string = string.replace(/\r\n/gm, '\n')
-  @lines = new Log.Dom.Lines()
+  @nodes = new Log.Dom.Nodes()
   @
 $.extend Log.Dom.Part.prototype,
+  FOLDS:
+    /fold:(start|end):([\w_\-\.]+)/
   insert: ->
-    for line, ix in @string.split(/^/gm)
-      line = new Log.Dom.Line(@, ix, line)
-      @lines.push(line)
-      line.insert()
+    for string, ix in @string.split(/^/gm)
+      node = @node(string, ix)
+      @nodes.push(node)
+      node.insert()
+  node: (string, ix) ->
+    if fold = string.match(@FOLDS)
+      new Log.Dom.Fold(@, ix, fold[1], fold[2])
+    else
+      new Log.Dom.Line(@, ix, string)
   trigger: () ->
     @engine.trigger.apply(@engine, arguments)
+  # defold: (string) ->
+  #   { event: match[1], name: match[2] } if match = string.match(@FOLDS)
 
 Log.Dom.Part::__defineGetter__ 'prev', ->
   num  = @num
@@ -38,21 +47,44 @@ Log.Dom.Part::__defineGetter__ 'next', ->
   next = @engine.parts[num += 1] until next || num >= @engine.parts.length
   next
 
-Log.Dom.Lines = () ->
+Log.Dom.Nodes = () ->
   @
-Log.Dom.Lines.prototype = new Array
-Log.Dom.Lines::__defineGetter__ 'first', -> @[0]
-Log.Dom.Lines::__defineGetter__ 'last',  -> @[@.length - 1]
+Log.Dom.Nodes.prototype = new Array
+Log.Dom.Nodes::__defineGetter__ 'first', -> @[0]
+Log.Dom.Nodes::__defineGetter__ 'last',  -> @[@.length - 1]
 
+Log.Dom.Fold = (part, num, event, name) ->
+  @part  = part
+  @num   = num
+  @event = event
+  @name  = name
+  @id    = "#{@part.num}-#{@num}"
+  @ends  = true
+  @data  = { type: 'fold', id: @id, num: part.num, event: event, name: name }
+  @
+$.extend Log.Dom.Fold.prototype,
+  insert: ->
+    pos = if prev = @prev
+      { after: prev.element }
+    else if next = @next
+      { before: next.element }
+    @element = @trigger 'insert', @data, pos || {}
+  trigger: () ->
+    @part.trigger.apply(@part, arguments)
+
+Log.Dom.Fold::__defineGetter__ 'prev', ->
+  @part.nodes[@num - 1] || @part.prev?.nodes.last
+Log.Dom.Fold::__defineGetter__ 'next', ->
+  @part.nodes[@num + 1] || @part.next?.nodes.first
 
 Log.Dom.Line = (part, num, line) ->
   @part   = part
   @num    = num
   @id     = "#{@part.num}-#{@num}"
   @ends   = !!line[line.length - 1].match(/\r|\n/)
-  @hidden = line.match(/\r/)
+  @hidden = !!line.match(/\r/)
   @chunks = new Log.Dom.Chunks(@, line.replace(/\n$/, ''))
-  @data   = { type: 'paragraph', hidden: @hidden, nodes: (chunk.data for chunk in @chunks) }
+  @data   = { type: 'paragraph', num: @part.num, hidden: @hidden, nodes: (chunk.data for chunk in @chunks) }
   @
 $.extend Log.Dom.Line.prototype,
   # 1 - The previous line does not have a line ending, so the current line's chunks are
@@ -103,9 +135,9 @@ Log.Dom.Line::__defineSetter__ 'element', (element) ->
 Log.Dom.Line::__defineGetter__ 'element', ->
   @chunks.first.element.parentNode
 Log.Dom.Line::__defineGetter__ 'prev', ->
-  @part.lines[@num - 1] || @part.prev?.lines.last
+  @part.nodes[@num - 1] || @part.prev?.nodes.last
 Log.Dom.Line::__defineGetter__ 'next', ->
-  @part.lines[@num + 1] || @part.next?.lines.first
+  @part.nodes[@num + 1] || @part.next?.nodes.first
 
 
 Log.Dom.Chunks = (parent, line) ->
@@ -116,9 +148,10 @@ Log.Dom.Chunks.prototype = $.extend new Array,
   FOLDS:
     /fold:(start|end):([\w_\-\.]+)/
   parse: (parent, string) ->
-    data = @defold(string)
-    data = if data then [data] else @deansi(string)
-    new Log.Dom.Chunk(parent, ix, chunk) for chunk, ix in data
+    # fold = @defold(string)
+    # data = if fold then [fold] else @deansi(string)
+    # new Log.Dom.Chunk(parent, ix, chunk) for chunk, ix in data
+    new Log.Dom.Chunk(parent, ix, chunk) for chunk, ix in @deansi(string)
   defold: (string) ->
     { type: 'fold', event: match[1], name: match[2] } if match = string.match(@FOLDS)
   deansi: (string) ->

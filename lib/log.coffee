@@ -4,7 +4,7 @@
   @
 Log.DEBUG = false
 Log.create = (options) ->
-  log = new Log
+  log = new Log(options.engine)
   log.listeners.push(listener) for listener in options.listeners || []
   log
 $.extend Log.prototype,
@@ -12,9 +12,11 @@ $.extend Log.prototype,
     args = Array::slice.apply(arguments)
     event = args[0]
     # @trigger('start', event) unless event == 'start' || event == 'stop'
-    result = listener.notify.apply(listener, [@].concat(args)) for listener in @listeners
+    for listener in @listeners
+      result = listener.notify.apply(listener, [@].concat(args))
+      element = result if result?.hasChildNodes # ugh.
     # @trigger('stop', event) unless event == 'start' || event == 'stop'
-    result
+    element
   set: (num, string) ->
     @trigger('receive', num, string)
     # Ember.run.next @, =>

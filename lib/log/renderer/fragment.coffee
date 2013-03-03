@@ -40,7 +40,6 @@ Log.FragmentRenderer.prototype = $.extend new Log.Listener,
     # para.setAttribute('style', 'display: none;') if data.nodes.length == 0
     para.setAttribute('style', 'display: none;') if data.hidden
     for node in data.nodes
-      console.log(data) unless node.type
       type = node.type[0].toUpperCase() + node.type.slice(1)
       node = @["render#{type}"](node)
       para.appendChild(node)
@@ -51,8 +50,10 @@ Log.FragmentRenderer.prototype = $.extend new Log.Listener,
     fold = @fold.cloneNode(true)
     fold.setAttribute('id', data.id)
     fold.setAttribute('class', "fold-#{data.event}")
-    fold.setAttribute('name', data.name)
-    fold.lastChild.lastChild.nodeValue = data.name
+    if data.event == 'start'
+      fold.lastChild.lastChild.nodeValue = data.name
+    else
+      fold.removeChild(fold.lastChild)
     fold
 
   renderSpan: (data) ->
