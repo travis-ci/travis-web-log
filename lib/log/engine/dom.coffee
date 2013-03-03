@@ -44,6 +44,17 @@ Log.Dom.Line = (part, num, line) ->
   @data   = { type: 'paragraph', nodes: (chunk.data for chunk in @chunks) }
   @
 $.extend Log.Dom.Line.prototype,
+  # 1 - The previous line does not have a line ending, so the current line's chunks are
+  #     injected into that (previous) paragraph. If the current line has a line ending and
+  #     there's a next line then we need to re-insert that next line so it gets split out
+  #     of the current one.
+  # 2 - The current line does not have a line ending and there's a next line, so the current
+  #     line's chunks are injected into that (next) paragraph.
+  # 3 - There's a previous line which has a line ending, so we're going to insert the current
+  #     line after the previous one.
+  # 4 - There's a next line and the current line has a line ending, so we're going to insert
+  #     the current line before the next one.
+  # 5 - There are neither previous nor next lines.
   insert: ->
     if (prev = @prev()) && !prev.ends
       after = prev.chunks.last.element
@@ -56,15 +67,13 @@ $.extend Log.Dom.Line.prototype,
       chunk.element = @trigger('insert', chunk.data, before: before) for chunk in @chunks
     else if prev
       console.log "3 - insert #{id} after the parentNode of the last node of prev, id #{prev.element.id}" if Log.DEBUG
-      @element = @trigger('insert', @data, after: prev.element)
+      @element = @trigger 'insert', @data, after: prev.element
     else if next
       console.log "4 - insert #{id} before the parentNode of the first node of next, id #{next.element.id}" if Log.DEBUG
-      @element = @trigger('insert', @data, before: next.element)
+      @element = @trigger 'insert', @data, before: next.element
     else
       console.log "5 - insert #{id} at the beginning of #log" if Log.DEBUG
-      @element = @trigger('insert', @data)
-    # console.log document.firstChild.innerHTML
-  insertChunks: (pos) ->
+      @element = @trigger 'insert', @data
 
   remove: ->
     # if !node.getAttribute('class')?.match(/fold/)
