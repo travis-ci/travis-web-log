@@ -32,9 +32,10 @@ ConsoleReporter.prototype = {
             var failed = this.executed_specs - this.passed_specs;
             var spec_str = this.executed_specs + (this.executed_specs === 1 ? " spec, " : " specs, ");
             var fail_str = failed + (failed === 1 ? " failure in " : " failures in ");
+            var color = failed > 0 ? "\033[31m" : "\033[32m"
 
             this.log("Runner Finished.");
-            this.log(spec_str + fail_str + (dur/1000) + "s.");
+            this.log(color + spec_str + fail_str + (dur/1000) + "s.\033[0m");
         }
         this.finished = true;
     },

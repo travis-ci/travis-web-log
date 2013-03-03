@@ -70,7 +70,7 @@ Log.FragmentRenderer.prototype = $.extend new Log.Listener,
 
   createParagraph: ->
     para = document.createElement('p')
-    # para.appendChild(document.createElement('a'))
+    para.appendChild(document.createElement('a'))
     para
 
   createFold: ->

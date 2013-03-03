@@ -43,31 +43,33 @@ Log.Dom.Line = (part, num, line) ->
 $.extend Log.Dom.Line.prototype,
   insert: ->
     if (prev = @prev()) && !prev.ends
-      chunk = prev.chunks[prev.chunks.length - 1]
-      after = document.getElementById(chunk.id)
-      console.log "1 - insert #{@part.num}-#{@num}'s nodes after the last node of prev, id #{chunk.id}" if Log.DEBUG
-      @trigger 'insert', chunk.data, after: after for chunk in @chunks
+      after = prev.chunks[prev.chunks.length - 1]
+      console.log "1 - insert #{@part.num}-#{@num}'s nodes after the last node of prev, id #{after.id}" if Log.DEBUG
+      chunk.element = @trigger('insert', chunk.data, after: after.element) for chunk in @chunks
       next.reinsert() if @ends && next = @next()
     else if (next = @next()) && !@ends
-      chunk = next.chunks[0]
-      before = document.getElementById(chunk.id)
-      console.log "2 - insert #{@part.num}-#{@num}'s nodes before the first node of next, id #{chunk.id}" if Log.DEBUG
-      @trigger 'insert', chunk.data, before: before for chunk in @chunks
+      # insertChunksBefore(prev.chunks.last)
+      before = next.chunks[0]
+      console.log "2 - insert #{@part.num}-#{@num}'s nodes before the first node of next, id #{before.id}" if Log.DEBUG
+      chunk.element = @trigger('insert', chunk.data, before: before.element) for chunk in @chunks
     else if prev
-      chunk = prev.chunks[prev.chunks.length - 1]
-      after = document.getElementById(chunk.id).parentNode
-      console.log "3 - insert #{@part.num}-#{@num} after the parentNode of the last node of prev, id #{chunk.id}" if Log.DEBUG
-      @trigger 'insert', @data, after: after
+      after = prev.chunks[prev.chunks.length - 1]
+      console.log "3 - insert #{@part.num}-#{@num} after the parentNode of the last node of prev, id #{after.id}" if Log.DEBUG
+      @element = @trigger('insert', @data, after: after.element.parentNode)
+      child = @element.firstChild
+      chunk.element = (child = child.nextSibling) for chunk in @chunks
     else if next
-      chunk = next.chunks[0]
-      before = document.getElementById(chunk.id).parentNode
-      console.log "4 - insert #{@part.num}-#{@num} before the parentNode of the first node of next, id #{chunk.id}" if Log.DEBUG
-      @trigger 'insert', @data, before: before
+      before = next.chunks[0]
+      console.log "4 - insert #{@part.num}-#{@num} before the parentNode of the first node of next, id #{before.id}" if Log.DEBUG
+      @element = @trigger('insert', @data, before: before.element.parentNode)
+      child = @element.firstChild
+      (chunk.element = child = child.nextSibling) for chunk in @chunks
     else
       console.log "5 - insert #{@part.num}-#{@num} at the beginning of #log" if Log.DEBUG
-      @trigger 'insert', @data
+      @element = @trigger('insert', @data)
+      child = @element.firstChild
+      (chunk.element = child = child.nextSibling) for chunk in @chunks
     # console.log document.firstChild.innerHTML
-
   remove: ->
     # if !node.getAttribute('class')?.match(/fold/)
     element = document.getElementById(@chunks[0].id).parentNode
@@ -99,3 +101,7 @@ $.extend Log.Dom.Chunk.prototype,
   next: ->
     chunk = @line.chunks[@num + 1]
     chunk || @line.next()?.chunks[0]
+  # defold: (string) ->
+  #   if matches = string.match(/fold:(start|end):([\w_\-\.]+)/)
+  #     { type: 'fold', event: matches[1], name: matches[2] }
+
