@@ -38,7 +38,9 @@ Log.FragmentRenderer.prototype = $.extend new Log.Listener,
   renderParagraph: (data) ->
     para = @para.cloneNode(true)
     # para.setAttribute('style', 'display: none;') if data.nodes.length == 0
+    para.setAttribute('style', 'display: none;') if data.hidden
     for node in data.nodes
+      console.log(data) unless node.type
       type = node.type[0].toUpperCase() + node.type.slice(1)
       node = @["render#{type}"](node)
       para.appendChild(node)

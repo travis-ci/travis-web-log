@@ -17,12 +17,12 @@ $.extend Log.Dom.prototype,
 Log.Dom.Part = (engine, num, string) ->
   @engine = engine
   @num = num
-  @string = string
+  @string = string.replace(/\r\n/gm, '\n')
   @lines = new Log.Dom.Lines()
   @
 $.extend Log.Dom.Part.prototype,
   insert: ->
-    for line, ix in @string.split(/^/m)
+    for line, ix in @string.split(/^/gm)
       line = new Log.Dom.Line(@, ix, line)
       @lines.push(line)
       line.insert()
@@ -50,8 +50,9 @@ Log.Dom.Line = (part, num, line) ->
   @num    = num
   @id     = "#{@part.num}-#{@num}"
   @ends   = !!line[line.length - 1].match(/\r|\n/)
-  @chunks = new Log.Dom.Chunks(@, line.replace(/\n$/, '')) # deansi will expand this
-  @data   = { type: 'paragraph', nodes: (chunk.data for chunk in @chunks) }
+  @hidden = line.match(/\r/)
+  @chunks = new Log.Dom.Chunks(@, line.replace(/\n$/, ''))
+  @data   = { type: 'paragraph', hidden: @hidden, nodes: (chunk.data for chunk in @chunks) }
   @
 $.extend Log.Dom.Line.prototype,
   # 1 - The previous line does not have a line ending, so the current line's chunks are
@@ -117,7 +118,7 @@ Log.Dom.Chunks.prototype = $.extend new Array,
   parse: (parent, string) ->
     data = @defold(string)
     data = if data then [data] else @deansi(string)
-    new Log.Dom.Chunk(parent, ix, data) for data, ix in data
+    new Log.Dom.Chunk(parent, ix, chunk) for chunk, ix in data
   defold: (string) ->
     { type: 'fold', event: match[1], name: match[2] } if match = string.match(@FOLDS)
   deansi: (string) ->

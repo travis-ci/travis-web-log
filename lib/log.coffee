@@ -2,7 +2,7 @@
   @listeners = []
   @engine = new (engine || Log.Dom)(@)
   @
-Log.DEBUG = true
+Log.DEBUG = false
 Log.create = (options) ->
   log = new Log
   log.listeners.push(listener) for listener in options.listeners || []
