@@ -13,6 +13,7 @@ $.extend Log.Dom.prototype,
   trigger: () ->
     @log.trigger.apply(@log, arguments)
 
+
 Log.Dom.Part = (engine, num, string) ->
   @engine = engine
   @num = num
@@ -33,43 +34,38 @@ $.extend Log.Dom.Part.prototype,
   trigger: () ->
     @engine.trigger.apply(@engine, arguments)
 
+
 Log.Dom.Line = (part, num, line) ->
   @part   = part
   @num    = num
+  @id     = "#{@part.num}-#{@num}"
   @ends   = !!line[line.length - 1].match(/\r|\n/)
-  @chunks = [new Log.Dom.Chunk(@, 0, line.replace(/\n$/, ''))] # deansi will expand this
+  @chunks = new Log.Dom.Chunks([new Log.Dom.Chunk(@, 0, line.replace(/\n$/, ''))]) # deansi will expand this
   @data   = { type: 'paragraph', nodes: (chunk.data for chunk in @chunks) }
   @
 $.extend Log.Dom.Line.prototype,
   insert: ->
     if (prev = @prev()) && !prev.ends
-      after = prev.chunks[prev.chunks.length - 1]
-      console.log "1 - insert #{@part.num}-#{@num}'s nodes after the last node of prev, id #{after.id}" if Log.DEBUG
-      chunk.element = @trigger('insert', chunk.data, after: after.element) for chunk in @chunks
+      after = prev.chunks.last.element
+      console.log "1 - insert #{id}'s nodes after the last node of prev, id #{after.id}" if Log.DEBUG
+      chunk.element = @trigger('insert', chunk.data, after: after) for chunk in @chunks
       next.reinsert() if @ends && next = @next()
     else if (next = @next()) && !@ends
-      # insertChunksBefore(prev.chunks.last)
-      before = next.chunks[0]
-      console.log "2 - insert #{@part.num}-#{@num}'s nodes before the first node of next, id #{before.id}" if Log.DEBUG
-      chunk.element = @trigger('insert', chunk.data, before: before.element) for chunk in @chunks
+      before = next.chunks.first.element
+      console.log "2 - insert #{id}'s nodes before the first node of prev, id #{before.id}" if Log.DEBUG
+      chunk.element = @trigger('insert', chunk.data, before: before) for chunk in @chunks
     else if prev
-      after = prev.chunks[prev.chunks.length - 1]
-      console.log "3 - insert #{@part.num}-#{@num} after the parentNode of the last node of prev, id #{after.id}" if Log.DEBUG
-      @element = @trigger('insert', @data, after: after.element.parentNode)
-      child = @element.firstChild
-      chunk.element = (child = child.nextSibling) for chunk in @chunks
+      console.log "3 - insert #{id} after the parentNode of the last node of prev, id #{prev.element.id}" if Log.DEBUG
+      @element = @trigger('insert', @data, after: prev.element)
     else if next
-      before = next.chunks[0]
-      console.log "4 - insert #{@part.num}-#{@num} before the parentNode of the first node of next, id #{before.id}" if Log.DEBUG
-      @element = @trigger('insert', @data, before: before.element.parentNode)
-      child = @element.firstChild
-      (chunk.element = child = child.nextSibling) for chunk in @chunks
+      console.log "4 - insert #{id} before the parentNode of the first node of next, id #{next.element.id}" if Log.DEBUG
+      @element = @trigger('insert', @data, before: next.element)
     else
-      console.log "5 - insert #{@part.num}-#{@num} at the beginning of #log" if Log.DEBUG
+      console.log "5 - insert #{id} at the beginning of #log" if Log.DEBUG
       @element = @trigger('insert', @data)
-      child = @element.firstChild
-      (chunk.element = child = child.nextSibling) for chunk in @chunks
     # console.log document.firstChild.innerHTML
+  insertChunks: (pos) ->
+
   remove: ->
     # if !node.getAttribute('class')?.match(/fold/)
     element = document.getElementById(@chunks[0].id).parentNode
@@ -86,6 +82,24 @@ $.extend Log.Dom.Line.prototype,
     line || @part.next()?.lines[0]
   trigger: () ->
     @part.trigger.apply(@part, arguments)
+
+Log.Dom.Line::__defineSetter__ 'element', (element) ->
+  child = element.firstChild
+  (chunk.element = child = child.nextSibling) for chunk in @chunks
+
+Log.Dom.Line::__defineGetter__ 'element', ->
+  @chunks.first.element.parentNode
+
+
+Log.Dom.Chunks = (chunks) ->
+  @push.apply(@, chunks)
+  @
+Log.Dom.Chunks.prototype = new Array
+Log.Dom.Chunks::__defineGetter__ 'first', ->
+  @[0]
+Log.Dom.Chunks::__defineGetter__ 'last', ->
+  @[@.length - 1]
+
 
 Log.Dom.Chunk = (line, num, text) ->
   @line = line

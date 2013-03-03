@@ -8,7 +8,6 @@ Log.FragmentRenderer = ->
 
 Log.FragmentRenderer.prototype = $.extend new Log.Listener,
   remove: (log, id) ->
-    console.log 'remove', id
     node = document.getElementById(id)
     node.parentNode.removeChild(node) if node
 
@@ -24,22 +23,20 @@ Log.FragmentRenderer.prototype = $.extend new Log.Listener,
       @insertBefore(node)
     node
 
-  # render: (data) ->
-  #   data = [data] unless data instanceof Array
-  #   frag = @frag.cloneNode(true)
-  #   for node in data
-  #     node = @renderNode(node)
-  #     frag.appendChild(node) if node
-  #   frag
-
   render: (data) ->
-    data.type ||= 'paragraph'
-    type = data.type[0].toUpperCase() + data.type.slice(1)
-    @["render#{type}"](data)
+    if data instanceof Array
+      frag = @frag.cloneNode(true)
+      for node in data
+        node = @render(node)
+        frag.appendChild(node) if node
+      frag
+    else
+      data.type ||= 'paragraph'
+      type = data.type[0].toUpperCase() + data.type.slice(1)
+      @["render#{type}"](data)
 
   renderParagraph: (data) ->
     para = @para.cloneNode(true)
-    # para.setAttribute('id', data.id)
     # para.setAttribute('style', 'display: none;') if data.nodes.length == 0
     for node in data.nodes
       type = node.type[0].toUpperCase() + node.type.slice(1)
