@@ -4,17 +4,17 @@ Log.Folds = ->
 Log.Folds.prototype = $.extend new Log.Listener,
   insert: (log, data, pos) ->
     if data.type == 'fold'
-      fold = @folds[data.name] ||= new Log.Fold
+      fold = @folds[data.name] ||= new Log.Folds.Fold
       fold.receive(data)
 
-Log.Fold = ->
+Log.Folds.Fold = ->
   @
-$.extend Log.Fold.prototype,
+$.extend Log.Folds.Fold.prototype,
   receive: (data) ->
-    console.log(data.num)
-    @[data.event] = data.num
+    @[data.event] = data.id
     @activate() if @start && @end && !@active
   activate: ->
+    console.log(@start, @end)
     fold = node = document.getElementById(@start)
     next = node.nextSibling
     unless next?.id == @end || next?.nextSibling?.id == @end

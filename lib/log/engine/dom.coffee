@@ -21,23 +21,13 @@ Log.Dom.Part = (engine, num, string) ->
   @nodes = new Log.Dom.Nodes()
   @
 $.extend Log.Dom.Part.prototype,
-  FOLDS:
-    /fold:(start|end):([\w_\-\.]+)/
   insert: ->
     for string, ix in @string.split(/^/gm)
-      node = @node(string, ix)
+      node = Log.Dom.Node.create(@, ix, string)
       @nodes.push(node)
       node.insert()
-  node: (string, ix) ->
-    if fold = string.match(@FOLDS)
-      new Log.Dom.Fold(@, ix, fold[1], fold[2])
-    else
-      new Log.Dom.Line(@, ix, string)
   trigger: () ->
     @engine.trigger.apply(@engine, arguments)
-  # defold: (string) ->
-  #   { event: match[1], name: match[2] } if match = string.match(@FOLDS)
-
 Log.Dom.Part::__defineGetter__ 'prev', ->
   num  = @num
   prev = @engine.parts[num -= 1] until prev || num < 0
@@ -47,22 +37,37 @@ Log.Dom.Part::__defineGetter__ 'next', ->
   next = @engine.parts[num += 1] until next || num >= @engine.parts.length
   next
 
-Log.Dom.Nodes = () ->
-  @
+
+Log.Dom.Nodes = ->
 Log.Dom.Nodes.prototype = new Array
 Log.Dom.Nodes::__defineGetter__ 'first', -> @[0]
 Log.Dom.Nodes::__defineGetter__ 'last',  -> @[@.length - 1]
 
+
+Log.Dom.Node = ->
+$.extend Log.Dom.Node,
+  FOLDS_PATTERN:
+    /fold:(start|end):([\w_\-\.]+)/
+  create: (part, num, string) ->
+    console.log string
+    if fold = string.match(@FOLDS_PATTERN)
+      console.log [num, fold[1], fold[2]]
+      new Log.Dom.Fold(part, num, fold[1], fold[2])
+    else
+      new Log.Dom.Line(part, num, string)
+
+Log.Dom.Node::__defineGetter__ 'prev', ->
+  @part.nodes[@num - 1] || @part.prev?.nodes.last
+Log.Dom.Node::__defineGetter__ 'next', ->
+  @part.nodes[@num + 1] || @part.next?.nodes.first
+
+
 Log.Dom.Fold = (part, num, event, name) ->
   @part  = part
-  @num   = num
-  @event = event
-  @name  = name
-  @id    = "#{@part.num}-#{@num}"
   @ends  = true
-  @data  = { type: 'fold', id: @id, num: part.num, event: event, name: name }
+  @data  = { type: 'fold', id: "fold-#{event}-#{part.num}", event: event, name: name }
   @
-$.extend Log.Dom.Fold.prototype,
+Log.Dom.Fold.prototype = $.extend new Log.Dom.Node,
   insert: ->
     pos = if prev = @prev
       { after: prev.element }
@@ -71,11 +76,6 @@ $.extend Log.Dom.Fold.prototype,
     @element = @trigger 'insert', @data, pos || {}
   trigger: () ->
     @part.trigger.apply(@part, arguments)
-
-Log.Dom.Fold::__defineGetter__ 'prev', ->
-  @part.nodes[@num - 1] || @part.prev?.nodes.last
-Log.Dom.Fold::__defineGetter__ 'next', ->
-  @part.nodes[@num + 1] || @part.next?.nodes.first
 
 Log.Dom.Line = (part, num, line) ->
   @part   = part
@@ -86,7 +86,7 @@ Log.Dom.Line = (part, num, line) ->
   @chunks = new Log.Dom.Chunks(@, line.replace(/\n$/, ''))
   @data   = { type: 'paragraph', num: @part.num, hidden: @hidden, nodes: (chunk.data for chunk in @chunks) }
   @
-$.extend Log.Dom.Line.prototype,
+Log.Dom.Line.prototype = $.extend new Log.Dom.Node,
   # 1 - The previous line does not have a line ending, so the current line's chunks are
   #     injected into that (previous) paragraph. If the current line has a line ending and
   #     there's a next line then we need to re-insert that next line so it gets split out
@@ -120,7 +120,6 @@ $.extend Log.Dom.Line.prototype,
 
   remove: ->
     element = @chunks.first.element.parentNode
-    # if !element.getAttribute('class')?.match(/fold/)
     @trigger 'remove', chunk.id for chunk in @chunks
     @trigger 'remove', element.id unless element.hasChildNodes()
   reinsert: ->
@@ -134,28 +133,13 @@ Log.Dom.Line::__defineSetter__ 'element', (element) ->
   (chunk.element = child = child.nextSibling) for chunk in @chunks
 Log.Dom.Line::__defineGetter__ 'element', ->
   @chunks.first.element.parentNode
-Log.Dom.Line::__defineGetter__ 'prev', ->
-  @part.nodes[@num - 1] || @part.prev?.nodes.last
-Log.Dom.Line::__defineGetter__ 'next', ->
-  @part.nodes[@num + 1] || @part.next?.nodes.first
 
 
 Log.Dom.Chunks = (parent, line) ->
-  data = @parse(parent, line)
-  @push.apply(@, data)
-  @
+  @push.apply(@, @parse(parent, line))
 Log.Dom.Chunks.prototype = $.extend new Array,
-  FOLDS:
-    /fold:(start|end):([\w_\-\.]+)/
   parse: (parent, string) ->
-    # fold = @defold(string)
-    # data = if fold then [fold] else @deansi(string)
-    # new Log.Dom.Chunk(parent, ix, chunk) for chunk, ix in data
-    new Log.Dom.Chunk(parent, ix, chunk) for chunk, ix in @deansi(string)
-  defold: (string) ->
-    { type: 'fold', event: match[1], name: match[2] } if match = string.match(@FOLDS)
-  deansi: (string) ->
-    Log.Deansi.apply(string)
+    new Log.Dom.Chunk(parent, ix, chunk) for chunk, ix in Log.Deansi.apply(string)
 
 Log.Dom.Chunks::__defineGetter__ 'first', -> @[0]
 Log.Dom.Chunks::__defineGetter__ 'last',  -> @[@.length - 1]
