@@ -1,8 +1,8 @@
 @Log = (engine)->
   @listeners = []
-  @engine = new (engine || Log.Chunks)(@)
+  @engine = new (engine || Log.Dom)(@)
   @
-Log.DEBUG = false
+Log.DEBUG = true
 Log.create = (options) ->
   log = new Log
   log.listeners.push(listener) for listener in options.listeners || []
@@ -25,14 +25,14 @@ $.extend Log.Listener.prototype,
   notify: (log, event, num) ->
     @[event].apply(@, [log].concat(Array::slice.call(arguments, 2))) if @[event]
 
-require 'log/buffer'
+# require 'log/buffer'
 require 'log/deansi'
 require 'log/engine/dom'
-require 'log/engine/chunks'
-require 'log/engine/live'
+# require 'log/engine/chunks'
+# require 'log/engine/live'
 require 'log/folds'
 require 'log/instrument'
 require 'log/renderer/fragment'
-require 'log/renderer/inner_html'
-require 'log/renderer/jquery'
+# require 'log/renderer/inner_html'
+# require 'log/renderer/jquery'
 
