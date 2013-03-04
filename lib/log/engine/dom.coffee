@@ -18,7 +18,7 @@ Log.Dom.Part = (engine, num, string) ->
   @engine = engine
   @num = num
   @string = string.replace(/\r\n/gm, '\n')
-  @nodes = new Log.Dom.Nodes()
+  @nodes = new Log.Dom.Nodes(@)
   @
 $.extend Log.Dom.Part.prototype,
   insert: ->
@@ -38,7 +38,9 @@ Log.Dom.Part::__defineGetter__ 'next', ->
   next
 
 
-Log.Dom.Nodes = ->
+Log.Dom.Nodes = (part) ->
+  @part = part
+  @
 Log.Dom.Nodes.prototype = new Array
 Log.Dom.Nodes::__defineGetter__ 'first', -> @[0]
 Log.Dom.Nodes::__defineGetter__ 'last',  -> @[@.length - 1]
@@ -50,15 +52,18 @@ $.extend Log.Dom.Node,
     /fold:(start|end):([\w_\-\.]+)/
   create: (part, num, string) ->
     if fold = string.match(@FOLDS_PATTERN)
-      # console.log [num, fold[1], fold[2]]
       new Log.Dom.Fold(part, num, fold[1], fold[2])
     else
       new Log.Dom.Line(part, num, string)
 
 Log.Dom.Node::__defineGetter__ 'prev', ->
-  @part.nodes[@num - 1] || @part.prev?.nodes.last
+  num = @num
+  prev = @part.nodes[num -= 1] until prev || num < 0
+  prev || @part.prev?.nodes.last
 Log.Dom.Node::__defineGetter__ 'next', ->
-  @part.nodes[@num + 1] || @part.next?.nodes.first
+  num = @num
+  next = @part.nodes[num += 1] until next || num >= @part.nodes.length
+  next || @part.next?.nodes.first
 
 
 Log.Dom.Fold = (part, num, event, name) ->
@@ -82,19 +87,13 @@ Log.Dom.Fold.prototype = $.extend new Log.Dom.Node,
   trigger: () ->
     @part.trigger.apply(@part, arguments)
 
-# Log.Dom.Fold::__defineSetter__ 'element', (element) ->
-#   child = element.firstChild
-#   (chunk.element = child = child.nextSibling) for chunk in @chunks
-# Log.Dom.Fold::__defineGetter__ 'element', ->
-#   @chunks.first.element.parentNode
-
 Log.Dom.Line = (part, num, line) ->
   @part   = part
   @num    = num
   @id     = "#{@part.num}-#{@num}"
   @ends   = !!line[line.length - 1].match(/\r|\n/)
   @hidden = !!line.match(/\r/)
-  @chunks = new Log.Dom.Chunks(@, line.replace(/\n$/, ''))
+  @chunks = new Log.Dom.Chunks(@, line.replace(/\n$/, '').replace(/\r/g, ''))
   @data   = { type: 'paragraph', num: @part.num, hidden: @hidden, nodes: (chunk.data for chunk in @chunks) }
   @
 Log.Dom.Line.prototype = $.extend new Log.Dom.Node,
@@ -120,19 +119,19 @@ Log.Dom.Line.prototype = $.extend new Log.Dom.Node,
       console.log "2 - insert #{@id}'s nodes before the first node of prev, id #{before.id}" if Log.DEBUG
       chunk.element = @trigger('insert', chunk.data, before: before) for chunk in @chunks
     else if prev
-      console.log "3 - insert #{@id} after the parentNode of the last node of prev, id #{prev.element.id}" if Log.DEBUG
+      console.log "3 - insert #{@id} after the parentNode of the last node of prev, id #{prev.id}" if Log.DEBUG
       @element = @trigger 'insert', @data, after: prev.element
     else if next
-      console.log "4 - insert #{@id} before the parentNode of the first node of next, id #{next.element.id}" if Log.DEBUG
+      console.log "4 - insert #{@id} before the parentNode of the first node of next, id #{next.id}" if Log.DEBUG
       @element = @trigger 'insert', @data, before: next.element
     else
       console.log "5 - insert #{@id} at the beginning of #log" if Log.DEBUG
       @element = @trigger 'insert', @data
 
   remove: ->
-    element = @chunks.first.element.parentNode
-    @trigger 'remove', chunk.id for chunk in @chunks
-    @trigger 'remove', element.id unless element.hasChildNodes()
+    element = @element
+    @trigger 'remove', chunk.element for chunk in @chunks
+    @trigger 'remove', element unless element.hasChildNodes()
   reinsert: ->
     @remove()
     @insert()

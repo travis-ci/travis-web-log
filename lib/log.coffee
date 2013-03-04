@@ -3,7 +3,7 @@
   @engine = new (engine || Log.Dom)(@)
   @
 $.extend Log,
-  DEBUG: false
+  DEBUG: true
   create: (options) ->
     log = new Log(options.engine)
     log.listeners.push(listener) for listener in options.listeners || []

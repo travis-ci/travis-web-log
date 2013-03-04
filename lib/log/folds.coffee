@@ -14,7 +14,6 @@ $.extend Log.Folds.Fold.prototype,
     @[data.event] = data.id
     @activate() if @start && @end && !@active
   activate: ->
-    console.log(@start, @end)
     fold = node = document.getElementById(@start)
     next = node.nextSibling
     unless next?.id == @end || next?.nextSibling?.id == @end

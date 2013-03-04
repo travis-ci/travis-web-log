@@ -1,7 +1,7 @@
 (function() {
 
   describe('Log.Dom', function() {
-    var FOLD_END, FOLD_START, rescueing, strip;
+    var FOLD_END, FOLD_START, progress, rescueing, strip;
     FOLD_START = 'fold:start:install\r\n';
     FOLD_END = 'fold:end:install\r\n';
     strip = function(string) {
@@ -549,7 +549,7 @@
         return expect(this.render([[4, 'bar\n'], [3, '.\n'], [2, '.'], [1, '.'], [0, 'foo\n']])).toBe(this.html[3]);
       });
     });
-    return describe('folds', function() {
+    describe('folds', function() {
       describe('renders a bunch of lines', function() {
         beforeEach(function() {
           return this.html = strip('<p><span id="0-0-0">foo</span></p>\n<div id="fold-start-install" class="fold-start"><span class="fold-name">install</span></div>\n<p><span id="2-0-0">bar</span></p>\n<p><span id="3-0-0">baz</span></p>\n<p><span id="4-0-0">buz</span></p>\n<div id="fold-end-install" class="fold-end"></div>\n<p><span id="6-0-0">bum</span></p>');
@@ -584,6 +584,51 @@
         return it('unordered (3)', function() {
           return expect(this.render([[6, 'bum\n'], [5, FOLD_END], [4, 'buz\n'], [3, 'baz\n'], [2, 'bar\n'], [1, FOLD_START], [0, 'foo\n']])).toBe(this.html);
         });
+      });
+    });
+    progress = function(total, callback) {
+      var count, curr, ix, part, result, step, _i;
+      total -= 1;
+      result = [];
+      step = Math.ceil(100 / total);
+      part = Math.ceil(total / 100);
+      curr = 1;
+      ix = 0;
+      for (count = _i = 1; _i <= 99; count = _i += step) {
+        count = count.toString();
+        count = Array(4 - count.length).join(' ') + count;
+        result.push(callback(ix, count, curr, total));
+        ix += 1;
+        curr += part;
+        if (curr > total) {
+          curr = total;
+        }
+      }
+      result.push(callback(ix, 100, total + 1, total + 1));
+      return result;
+    };
+    return describe('deansi', function() {
+      return it('simulating git clone', function() {
+        var html, lines;
+        html = strip('<p><span id="0-0-0">Cloning into \'jsdom\'...</span></p>\n<p><span id="1-0-0">remote: Counting objects: 13358, done.</span></p>\n<p style="display: none;"><span id="2-0-0">remote: Compressing objects   1% (1/4)   </span></p>\n<p style="display: none;"><span id="3-0-0">remote: Compressing objects  26% (2/4)   </span></p>\n<p style="display: none;"><span id="4-0-0">remote: Compressing objects  51% (3/4)   </span></p>\n<p style="display: none;"><span id="5-0-0">remote: Compressing objects  76% (4/4)   </span></p>\n<p><span id="6-0-0">remote: Compressing objects 100% (5/5), done.</span></p>\n<p style="display: none;"><span id="7-0-0">Receiving objects   1% (1/4)   </span></p>\n<p style="display: none;"><span id="8-0-0">Receiving objects  26% (2/4)   </span></p>\n<p style="display: none;"><span id="9-0-0">Receiving objects  51% (3/4)   </span></p>\n<p style="display: none;"><span id="10-0-0">Receiving objects  76% (4/4)   </span></p>\n<p><span id="11-0-0">Receiving objects 100% (5/5), done.</span></p>\n<p style="display: none;"><span id="12-0-0">Resolving deltas:   1% (1/4)   </span></p>\n<p style="display: none;"><span id="13-0-0">Resolving deltas:  26% (2/4)   </span></p>\n<p style="display: none;"><span id="14-0-0">Resolving deltas:  51% (3/4)   </span></p>\n<p style="display: none;"><span id="15-0-0">Resolving deltas:  76% (4/4)   </span></p>\n<p><span id="16-0-0">Resolving deltas: 100% (5/5), done.</span></p>\n<p><span id="17-0-0">Something else.</span></p>');
+        lines = progress(5, function(ix, count, curr, total) {
+          var end;
+          end = count === 100 ? ", done.\e[K\n" : "   \e[K\r";
+          return [ix + 2, "remote: Compressing objects " + count + "% (" + curr + "/" + total + ")" + end];
+        });
+        lines = lines.concat(progress(5, function(ix, count, curr, total) {
+          var end;
+          end = count === 100 ? ", done.\n" : "   \r";
+          return [ix + 7, "Receiving objects " + count + "% (" + curr + "/" + total + ")" + end];
+        }));
+        lines = lines.concat(progress(5, function(ix, count, curr, total) {
+          var end;
+          end = count === 100 ? ", done.\n" : "   \r";
+          return [ix + 12, "Resolving deltas: " + count + "% (" + curr + "/" + total + ")" + end];
+        }));
+        lines = [[0, "Cloning into 'jsdom'...\n"], [1, "remote: Counting objects: 13358, done.\e[K\n"]].concat(lines);
+        lines = lines.concat([[17, 'Something else.']]);
+        return expect(this.render(lines)).toBe(html);
       });
     });
   });

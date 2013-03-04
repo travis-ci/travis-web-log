@@ -7,8 +7,8 @@ Log.FragmentRenderer = ->
   @
 
 Log.FragmentRenderer.prototype = $.extend new Log.Listener,
-  remove: (log, id) ->
-    node = document.getElementById(id)
+  remove: (log, node) ->
+    # node = document.getElementById(id)
     node.parentNode.removeChild(node) if node
 
   insert: (log, data, pos) ->

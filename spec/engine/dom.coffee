@@ -688,3 +688,61 @@ describe 'Log.Dom', ->
       it 'unordered (3)', ->
         expect(@render [[6, 'bum\n'], [5, FOLD_END], [4, 'buz\n'], [3, 'baz\n'], [2, 'bar\n'], [1, FOLD_START], [0, 'foo\n']]).toBe @html
 
+
+  progress = (total, callback) ->
+    total -= 1
+    result = []
+    step   = Math.ceil(100 / total)
+    part   = Math.ceil(total / 100)
+    curr   = 1
+    ix     = 0
+    for count in [1..99] by step
+      count = count.toString()
+      count = Array(4 - count.length).join(' ') + count
+      result.push callback(ix, count, curr, total)
+      ix   += 1
+      curr += part
+      curr = total if curr > total
+    result.push callback(ix, 100, total + 1, total + 1)
+    result
+
+  describe 'deansi', ->
+    it 'simulating git clone', ->
+      html = strip '''
+        <p><span id="0-0-0">Cloning into 'jsdom'...</span></p>
+        <p><span id="1-0-0">remote: Counting objects: 13358, done.</span></p>
+        <p style="display: none;"><span id="2-0-0">remote: Compressing objects   1% (1/4)   </span></p>
+        <p style="display: none;"><span id="3-0-0">remote: Compressing objects  26% (2/4)   </span></p>
+        <p style="display: none;"><span id="4-0-0">remote: Compressing objects  51% (3/4)   </span></p>
+        <p style="display: none;"><span id="5-0-0">remote: Compressing objects  76% (4/4)   </span></p>
+        <p><span id="6-0-0">remote: Compressing objects 100% (5/5), done.</span></p>
+        <p style="display: none;"><span id="7-0-0">Receiving objects   1% (1/4)   </span></p>
+        <p style="display: none;"><span id="8-0-0">Receiving objects  26% (2/4)   </span></p>
+        <p style="display: none;"><span id="9-0-0">Receiving objects  51% (3/4)   </span></p>
+        <p style="display: none;"><span id="10-0-0">Receiving objects  76% (4/4)   </span></p>
+        <p><span id="11-0-0">Receiving objects 100% (5/5), done.</span></p>
+        <p style="display: none;"><span id="12-0-0">Resolving deltas:   1% (1/4)   </span></p>
+        <p style="display: none;"><span id="13-0-0">Resolving deltas:  26% (2/4)   </span></p>
+        <p style="display: none;"><span id="14-0-0">Resolving deltas:  51% (3/4)   </span></p>
+        <p style="display: none;"><span id="15-0-0">Resolving deltas:  76% (4/4)   </span></p>
+        <p><span id="16-0-0">Resolving deltas: 100% (5/5), done.</span></p>
+        <p><span id="17-0-0">Something else.</span></p>
+      '''
+
+      lines = progress 5, (ix, count, curr, total) ->
+        end = if count == 100 then ", done.\e[K\n" else "   \e[K\r"
+        [ix + 2, "remote: Compressing objects #{count}% (#{curr}/#{total})#{end}"]
+
+      lines = lines.concat progress 5, (ix, count, curr, total) ->
+        end = if count == 100 then ", done.\n" else "   \r"
+        [ix + 7, "Receiving objects #{count}% (#{curr}/#{total})#{end}"]
+
+      lines = lines.concat progress 5, (ix, count, curr, total) ->
+        end = if count == 100 then ", done.\n" else "   \r"
+        [ix + 12, "Resolving deltas: #{count}% (#{curr}/#{total})#{end}"]
+
+      lines = [[0, "Cloning into 'jsdom'...\n"], [1, "remote: Counting objects: 13358, done.\e[K\n"]].concat(lines)
+      lines = lines.concat([[17, 'Something else.']])
+
+      expect(@render lines).toBe html
+
