@@ -49,9 +49,8 @@ $.extend Log.Dom.Node,
   FOLDS_PATTERN:
     /fold:(start|end):([\w_\-\.]+)/
   create: (part, num, string) ->
-    console.log string
     if fold = string.match(@FOLDS_PATTERN)
-      console.log [num, fold[1], fold[2]]
+      # console.log [num, fold[1], fold[2]]
       new Log.Dom.Fold(part, num, fold[1], fold[2])
     else
       new Log.Dom.Line(part, num, string)
@@ -63,19 +62,31 @@ Log.Dom.Node::__defineGetter__ 'next', ->
 
 
 Log.Dom.Fold = (part, num, event, name) ->
-  @part  = part
-  @ends  = true
-  @data  = { type: 'fold', id: "fold-#{event}-#{part.num}", event: event, name: name }
+  @part = part
+  @ends = true
+  @num  = num
+  @id   = "fold-#{event}-#{name}"
+  @data = { type: 'fold', id: @id, event: event, name: name }
   @
 Log.Dom.Fold.prototype = $.extend new Log.Dom.Node,
   insert: ->
-    pos = if prev = @prev
-      { after: prev.element }
+    @element = if prev = @prev
+      console.log "F - insert fold #{@id} after #{prev.element.id}" if Log.DEBUG
+      @trigger 'insert', @data, after: prev.element
     else if next = @next
-      { before: next.element }
-    @element = @trigger 'insert', @data, pos || {}
+      console.log "F - insert fold #{@id} before #{next.element.id}" if Log.DEBUG
+      @trigger 'insert', @data, before: next.element
+    else
+      console.log "F - insert fold #{@id}" if Log.DEBUG
+      @trigger 'insert', @data
   trigger: () ->
     @part.trigger.apply(@part, arguments)
+
+# Log.Dom.Fold::__defineSetter__ 'element', (element) ->
+#   child = element.firstChild
+#   (chunk.element = child = child.nextSibling) for chunk in @chunks
+# Log.Dom.Fold::__defineGetter__ 'element', ->
+#   @chunks.first.element.parentNode
 
 Log.Dom.Line = (part, num, line) ->
   @part   = part

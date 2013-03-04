@@ -648,14 +648,13 @@ describe 'Log.Dom', ->
       beforeEach ->
         @html = strip '''
           <p><span id="0-0-0">foo</span></p>
-          <div id="1-0" class="fold-start"><span class="fold-name">install</span></div>
+          <div id="fold-start-install" class="fold-start"><span class="fold-name">install</span></div>
           <p><span id="2-0-0">bar</span></p>
           <p><span id="3-0-0">baz</span></p>
           <p><span id="4-0-0">buz</span></p>
-          <div id="5-0" class="fold-end"></div>
+          <div id="fold-end-install" class="fold-end"></div>
           <p><span id="6-0-0">bum</span></p>
         '''
-
       it 'ordered', ->
         expect(@render [[0, 'foo\n'], [1, FOLD_START], [2, 'bar\n'], [3, 'baz\n'], [4, 'buz\n'], [5, FOLD_END], [6, 'bum\n']]).toBe @html
       it 'unordered (1)', ->
@@ -670,13 +669,13 @@ describe 'Log.Dom', ->
         @log.listeners.push(new Log.Folds)
         @html = strip '''
           <p><span id="0-0-0">foo</span></p>
-          <div id="1-0" class="fold-start fold">
+          <div id="fold-start-install" class="fold-start fold">
             <span class="fold-name">install</span>
             <p><span id="2-0-0">bar</span></p>
             <p><span id="3-0-0">baz</span></p>
             <p><span id="4-0-0">buz</span></p>
           </div>
-          <div id="5-0" class="fold-end"></div>
+          <div id="fold-end-install" class="fold-end"></div>
           <p><span id="6-0-0">bum</span></p>
         '''
 

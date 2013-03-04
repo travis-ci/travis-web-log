@@ -2,11 +2,12 @@
   @listeners = []
   @engine = new (engine || Log.Dom)(@)
   @
-Log.DEBUG = false
-Log.create = (options) ->
-  log = new Log(options.engine)
-  log.listeners.push(listener) for listener in options.listeners || []
-  log
+$.extend Log,
+  DEBUG: false
+  create: (options) ->
+    log = new Log(options.engine)
+    log.listeners.push(listener) for listener in options.listeners || []
+    log
 $.extend Log.prototype,
   trigger: () ->
     args = Array::slice.apply(arguments)
