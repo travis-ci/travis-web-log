@@ -1,11 +1,14 @@
 (function() {
 
   describe('Log.Dom', function() {
-    var FOLD_END, FOLD_START, progress, rescueing, strip;
+    var FOLD_END, FOLD_START, format, progress, rescueing, strip;
     FOLD_START = 'fold:start:install\r\n';
     FOLD_END = 'fold:end:install\r\n';
     strip = function(string) {
       return string.replace(/^\s+/gm, '').replace(/<a><\/a>/gm, '').replace(/\n/gm, '');
+    };
+    format = function(html) {
+      return html.replace(/<div/gm, '\n<div').replace(/<p>/gm, '\n<p>').replace(/<\/p>/gm, '\n</p>').replace(/<span/gm, '\n  <span');
     };
     rescueing = function(context, block) {
       var line, _i, _len, _ref, _results;
@@ -607,7 +610,7 @@
       result.push(callback(ix, 100, total + 1, total + 1));
       return result;
     };
-    return describe('deansi', function() {
+    describe('deansi', function() {
       return it('simulating git clone', function() {
         var html, lines;
         html = strip('<p><span id="0-0-0">Cloning into \'jsdom\'...</span></p>\n<p><span id="1-0-0">remote: Counting objects: 13358, done.</span></p>\n<p style="display: none;"><span id="2-0-0">remote: Compressing objects   1% (1/4)   </span></p>\n<p style="display: none;"><span id="3-0-0">remote: Compressing objects  26% (2/4)   </span></p>\n<p style="display: none;"><span id="4-0-0">remote: Compressing objects  51% (3/4)   </span></p>\n<p style="display: none;"><span id="5-0-0">remote: Compressing objects  76% (4/4)   </span></p>\n<p><span id="6-0-0">remote: Compressing objects 100% (5/5), done.</span></p>\n<p style="display: none;"><span id="7-0-0">Receiving objects   1% (1/4)   </span></p>\n<p style="display: none;"><span id="8-0-0">Receiving objects  26% (2/4)   </span></p>\n<p style="display: none;"><span id="9-0-0">Receiving objects  51% (3/4)   </span></p>\n<p style="display: none;"><span id="10-0-0">Receiving objects  76% (4/4)   </span></p>\n<p><span id="11-0-0">Receiving objects 100% (5/5), done.</span></p>\n<p style="display: none;"><span id="12-0-0">Resolving deltas:   1% (1/4)   </span></p>\n<p style="display: none;"><span id="13-0-0">Resolving deltas:  26% (2/4)   </span></p>\n<p style="display: none;"><span id="14-0-0">Resolving deltas:  51% (3/4)   </span></p>\n<p style="display: none;"><span id="15-0-0">Resolving deltas:  76% (4/4)   </span></p>\n<p><span id="16-0-0">Resolving deltas: 100% (5/5), done.</span></p>\n<p><span id="17-0-0">Something else.</span></p>');
@@ -629,6 +632,14 @@
         lines = [[0, "Cloning into 'jsdom'...\n"], [1, "remote: Counting objects: 13358, done.\e[K\n"]].concat(lines);
         lines = lines.concat([[17, 'Something else.']]);
         return expect(this.render(lines)).toBe(html);
+      });
+    });
+    return describe('random part sizes w/ dot output', function() {
+      return it('foo', function() {
+        var html, parts;
+        html = strip('<p>\n  <span id="178-0-0" class="green">.</span>\n  <span id="179-0-0" class="green">.</span>\n  <span id="180-0-0" class="green">.</span>\n  <span id="180-0-1" class="yellow">*</span>\n  <span id="180-0-2" class="yellow">*</span>\n  <span id="181-0-0" class="yellow">*</span>\n</p>');
+        parts = [[178, "\u001b[32m.\u001b[0m"], [179, "\u001b[32m.\u001b[0m"], [180, "\u001b[32m.\u001b[0m\u001b[33m*\u001b[0m\u001b[33m*\u001b[0m"], [181, "\u001b[33m*\u001b[0m"]];
+        return expect(this.render(parts)).toBe(html);
       });
     });
   });

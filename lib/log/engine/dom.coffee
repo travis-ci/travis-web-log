@@ -112,8 +112,8 @@ Log.Dom.Line.prototype = $.extend new Log.Dom.Node,
     if (prev = @prev) && !prev.ends
       after = prev.chunks.last.element
       console.log "1 - insert #{@id}'s nodes after the last node of prev, id #{after.id}" if Log.DEBUG
-      chunk.element = @trigger('insert', chunk.data, after: after) for chunk in @chunks
-      next.reinsert() if @ends && next = @next
+      chunk.element = @trigger('insert', chunk.data, after: after) for chunk in @chunks.slice().reverse()
+      next.reinsert() if @ends && (next = @next) && next.reinsert
     else if (next = @next) && !@ends
       before = next.chunks.first.element
       console.log "2 - insert #{@id}'s nodes before the first node of prev, id #{before.id}" if Log.DEBUG

@@ -8,7 +8,6 @@ Log.FragmentRenderer = ->
 
 Log.FragmentRenderer.prototype = $.extend new Log.Listener,
   remove: (log, node) ->
-    # node = document.getElementById(id)
     node.parentNode.removeChild(node) if node
 
   insert: (log, data, pos) ->
@@ -37,7 +36,6 @@ Log.FragmentRenderer.prototype = $.extend new Log.Listener,
 
   renderParagraph: (data) ->
     para = @para.cloneNode(true)
-    # para.setAttribute('style', 'display: none;') if data.nodes.length == 0
     para.setAttribute('style', 'display: none;') if data.hidden
     for node in data.nodes
       type = node.type[0].toUpperCase() + node.type.slice(1)
