@@ -692,6 +692,13 @@ describe 'Log.Dom', ->
         expect(@render [[6, 'bum\n'], [5, FOLD_END], [4, 'buz\n'], [3, 'baz\n'], [2, 'bar\n'], [1, FOLD_START], [0, 'foo\n']]).toBe @html
 
 
+  describe 'escaping', ->
+    it 'escapes a script tag', ->
+      html = strip '''
+        <p><span id="0-0-0">&lt;script&gt;alert("hi!")&lt;/script&gt;</span></p>
+      '''
+      expect(@render [[0, '<script>alert("hi!")</script>']]).toBe html
+
   progress = (total, callback) ->
     total -= 1
     result = []
@@ -711,510 +718,62 @@ describe 'Log.Dom', ->
 
   describe 'deansi', ->
     it 'simulating git clone', ->
-      html = strip '''
-        <p><span id="0-0-0">Cloning into 'jsdom'...</span></p>
-        <p><span id="1-0-0">remote: Counting objects: 13358, done.</span></p>
-        <p style="display: none;"><span id="2-0-0">remote: Compressing objects   1% (1/4)   </span></p>
-        <p style="display: none;"><span id="3-0-0">remote: Compressing objects  26% (2/4)   </span></p>
-        <p style="display: none;"><span id="4-0-0">remote: Compressing objects  51% (3/4)   </span></p>
-        <p style="display: none;"><span id="5-0-0">remote: Compressing objects  76% (4/4)   </span></p>
-        <p><span id="6-0-0">remote: Compressing objects 100% (5/5), done.</span></p>
-        <p style="display: none;"><span id="7-0-0">Receiving objects   1% (1/4)   </span></p>
-        <p style="display: none;"><span id="8-0-0">Receiving objects  26% (2/4)   </span></p>
-        <p style="display: none;"><span id="9-0-0">Receiving objects  51% (3/4)   </span></p>
-        <p style="display: none;"><span id="10-0-0">Receiving objects  76% (4/4)   </span></p>
-        <p><span id="11-0-0">Receiving objects 100% (5/5), done.</span></p>
-        <p style="display: none;"><span id="12-0-0">Resolving deltas:   1% (1/4)   </span></p>
-        <p style="display: none;"><span id="13-0-0">Resolving deltas:  26% (2/4)   </span></p>
-        <p style="display: none;"><span id="14-0-0">Resolving deltas:  51% (3/4)   </span></p>
-        <p style="display: none;"><span id="15-0-0">Resolving deltas:  76% (4/4)   </span></p>
-        <p><span id="16-0-0">Resolving deltas: 100% (5/5), done.</span></p>
-        <p><span id="17-0-0">Something else.</span></p>
-      '''
+      rescueing @, ->
+        html = strip '''
+          <p><span id="0-0-0">Cloning into 'jsdom'...</span></p>
+          <p><span id="1-0-0">remote: Counting objects: 13358, done.</span></p>
+          <p style="display: none;"><span id="2-0-0">remote: Compressing objects   1% (1/4)   </span></p>
+          <p style="display: none;"><span id="3-0-0">remote: Compressing objects  26% (2/4)   </span></p>
+          <p style="display: none;"><span id="4-0-0">remote: Compressing objects  51% (3/4)   </span></p>
+          <p style="display: none;"><span id="5-0-0">remote: Compressing objects  76% (4/4)   </span></p>
+          <p><span id="6-0-0">remote: Compressing objects 100% (5/5), done.</span></p>
+          <p style="display: none;"><span id="7-0-0">Receiving objects   1% (1/4)   </span></p>
+          <p style="display: none;"><span id="8-0-0">Receiving objects  26% (2/4)   </span></p>
+          <p style="display: none;"><span id="9-0-0">Receiving objects  51% (3/4)   </span></p>
+          <p style="display: none;"><span id="10-0-0">Receiving objects  76% (4/4)   </span></p>
+          <p><span id="11-0-0">Receiving objects 100% (5/5), done.</span></p>
+          <p style="display: none;"><span id="12-0-0">Resolving deltas:   1% (1/4)   </span></p>
+          <p style="display: none;"><span id="13-0-0">Resolving deltas:  26% (2/4)   </span></p>
+          <p style="display: none;"><span id="14-0-0">Resolving deltas:  51% (3/4)   </span></p>
+          <p style="display: none;"><span id="15-0-0">Resolving deltas:  76% (4/4)   </span></p>
+          <p><span id="16-0-0">Resolving deltas: 100% (5/5), done.</span></p>
+          <p><span id="17-0-0">Something else.</span></p>
+        '''
 
-      lines = progress 5, (ix, count, curr, total) ->
-        end = if count == 100 then ", done.\e[K\n" else "   \e[K\r"
-        [ix + 2, "remote: Compressing objects #{count}% (#{curr}/#{total})#{end}"]
+        lines = progress 5, (ix, count, curr, total) ->
+          end = if count == 100 then ", done.\e[K\n" else "   \e[K\r"
+          [ix + 2, "remote: Compressing objects #{count}% (#{curr}/#{total})#{end}"]
 
-      lines = lines.concat progress 5, (ix, count, curr, total) ->
-        end = if count == 100 then ", done.\n" else "   \r"
-        [ix + 7, "Receiving objects #{count}% (#{curr}/#{total})#{end}"]
+        lines = lines.concat progress 5, (ix, count, curr, total) ->
+          end = if count == 100 then ", done.\n" else "   \r"
+          [ix + 7, "Receiving objects #{count}% (#{curr}/#{total})#{end}"]
 
-      lines = lines.concat progress 5, (ix, count, curr, total) ->
-        end = if count == 100 then ", done.\n" else "   \r"
-        [ix + 12, "Resolving deltas: #{count}% (#{curr}/#{total})#{end}"]
+        lines = lines.concat progress 5, (ix, count, curr, total) ->
+          end = if count == 100 then ", done.\n" else "   \r"
+          [ix + 12, "Resolving deltas: #{count}% (#{curr}/#{total})#{end}"]
 
-      lines = [[0, "Cloning into 'jsdom'...\n"], [1, "remote: Counting objects: 13358, done.\e[K\n"]].concat(lines)
-      lines = lines.concat([[17, 'Something else.']])
+        lines = [[0, "Cloning into 'jsdom'...\n"], [1, "remote: Counting objects: 13358, done.\e[K\n"]].concat(lines)
+        lines = lines.concat([[17, 'Something else.']])
 
-      expect(@render lines).toBe html
+        expect(@render lines).toBe html
 
-  describe 'random part sizes w/ dot output', ->
-    it 'foo', ->
-      html = strip '''
-        <p>
-          <span id="178-0-0" class="green">.</span>
-          <span id="179-0-0" class="green">.</span>
-          <span id="180-0-0" class="green">.</span>
-          <span id="180-0-1" class="yellow">*</span>
-          <span id="180-0-2" class="yellow">*</span>
-          <span id="181-0-0" class="yellow">*</span>
-        </p>
-      '''
+  it 'random part sizes w/ dot output', ->
+    html = strip '''
+      <p>
+        <span id="178-0-0" class="green">.</span>
+        <span id="179-0-0" class="green">.</span>
+        <span id="180-0-0" class="green">.</span>
+        <span id="180-0-1" class="yellow">*</span>
+        <span id="180-0-2" class="yellow">*</span>
+        <span id="181-0-0" class="yellow">*</span>
+      </p>
+    '''
 
-      parts = [
-        [178,"\u001b[32m.\u001b[0m"],
-        [179,"\u001b[32m.\u001b[0m"],
-        [180,"\u001b[32m.\u001b[0m\u001b[33m*\u001b[0m\u001b[33m*\u001b[0m"],
-        [181,"\u001b[33m*\u001b[0m"],
-      ]
-      expect(@render parts).toBe html
-
-    # it 'foo', ->
-    #  @log.listeners.push(new Log.Folds)
-
-    #   html = strip '''
-    #     <p><span id="171-0-0">$ bundle exec rake db:seed RAILS_ENV=test</span></p>
-    #     <div id="fold-start-before_script.5" class="fold-start"><span class="fold-name">before_script.5</span></div>
-    #     <p><span id="172-1-0">$ sh -e /etc/init.d/xvfb start</span></p>
-    #     <p><span id="172-2-0">Starting virtual X frame buffer: Xvfb.</span></p>
-    #     <div id="fold-end-before_script.5" class="fold-end"></div>
-    #     <p><span id="173-0-0">$ bundle exec rake travis</span></p>
-    #     <p>
-    #       <span id="178-0-0" class="green">.</span>
-    #       <span id="178-0-1" class="green">.</span>
-    #       <span id="179-0-0" class="green">.</span>
-    #       <span id="179-0-1" class="green">.</span>
-    #       <span id="179-0-2" class="green">.</span>
-    #     </p>
-    #   '''
-
-    #   parts = [
-    #     [171,"$ bundle exec rake db:seed RAILS_ENV=test\r\n"],
-    #     [172,"travis_fold:start:before_script.5\\r\r\n$ sh -e /etc/init.d/xvfb start\r\nStarting virtual X frame buffer: Xvfb.\r\ntravis_fold:end:before_script.5\\r\r\n"],
-    #     [173,"$ bundle exec rake travis\r\n"],
-    #     [178,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [179,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [180,"\u001b[32m.\u001b[0m\u001b[33m*\u001b[0m"],
-    #     [181,"\u001b[33m*\u001b[0m\u001b[33m*\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [182,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [183,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [184,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [185,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [186,"\u001b[32m.\u001b[0m"],
-    #     [187,"\u001b[32m.\u001b[0m"],
-    #     [188,"\u001b[32m.\u001b[0m"],
-    #     [189,"\u001b[32m.\u001b[0m"],
-    #     [190,"\u001b[32m.\u001b[0m"],
-    #     [191,"\u001b[32m.\u001b[0m"],
-    #     [192,"\u001b[32m.\u001b[0m"],
-    #     [193,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [194,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [195,"\u001b[32m.\u001b[0m"],
-    #     [196,"\u001b[32m.\u001b[0m"],
-    #     [197,"\u001b[32m.\u001b[0m"],
-    #     [198,"\u001b[32m.\u001b[0m"],
-    #     [199,"\u001b[32m.\u001b[0m"],
-    #     [200,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [201,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [202,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [203,"\u001b[32m.\u001b[0m"],
-    #     [204,"\u001b[32m.\u001b[0m"],
-    #     [205,"\u001b[32m.\u001b[0m"],
-    #     [206,"\u001b[32m.\u001b[0m"],
-    #     [207,"\u001b[32m.\u001b[0m"],
-    #     [208,"\u001b[32m.\u001b[0m"],
-    #     [219,"\u001b[32m.\u001b[0m"],
-    #     [230,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [241,"\u001b[32m.\u001b[0m"],
-    #     [252,"\u001b[32m.\u001b[0m"],
-    #     [209,"\u001b[32m.\u001b[0m"],
-    #     [220,"\u001b[32m.\u001b[0m"],
-    #     [231,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [242,"\u001b[32m.\u001b[0m"],
-    #     [253,"\u001b[32m.\u001b[0m"],
-    #     [210,"\u001b[32m.\u001b[0m"],
-    #     [221,"\u001b[32m.\u001b[0m"],
-    #     [232,"\u001b[32m.\u001b[0m"],
-    #     [243,"\u001b[32m.\u001b[0m"],
-    #     [254,"\u001b[32m.\u001b[0m"],
-    #     [211,"\u001b[32m.\u001b[0m"],
-    #     [222,"\u001b[32m.\u001b[0m"],
-    #     [233,"\u001b[32m.\u001b[0m"],
-    #     [244,"\u001b[32m.\u001b[0m"],
-    #     [255,"\u001b[32m.\u001b[0m"],
-    #     [212,"\u001b[32m.\u001b[0m"],
-    #     [223,"\u001b[32m.\u001b[0m"],
-    #     [234,"\u001b[32m.\u001b[0m"],
-    #     [245,"\u001b[32m.\u001b[0m"],
-    #     [256,"\u001b[32m.\u001b[0m"],
-    #     [213,"\u001b[32m.\u001b[0m"],
-    #     [224,"\u001b[32m.\u001b[0m"],
-    #     [235,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [246,"\u001b[32m.\u001b[0m"],
-    #     [257,"\u001b[32m.\u001b[0m"],
-    #     [214,"\u001b[32m.\u001b[0m"],
-    #     [225,"\u001b[32m.\u001b[0m"],
-    #     [236,"\u001b[32m.\u001b[0m"],
-    #     [247,"\u001b[32m.\u001b[0m"],
-    #     [258,"\u001b[32m.\u001b[0m"],
-    #     [215,"\u001b[32m.\u001b[0m"],
-    #     [226,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[33m*\u001b[0m"],
-    #     [237,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [248,"\u001b[32m.\u001b[0m"],
-    #     [259,"\u001b[32m.\u001b[0m"],
-    #     [216,"\u001b[32m.\u001b[0m"],
-    #     [227,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [238,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [249,"\u001b[32m.\u001b[0m"],
-    #     [260,"\u001b[32m.\u001b[0m"],
-    #     [217,"\u001b[32m.\u001b[0m"],
-    #     [228,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [239,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [250,"\u001b[32m.\u001b[0m"],
-    #     [261,"\u001b[32m.\u001b[0m"],
-    #     [218,"\u001b[32m.\u001b[0m"],
-    #     [229,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[33m*\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [240,"\u001b[32m.\u001b[0m"],
-    #     [251,"\u001b[32m.\u001b[0m"],
-    #     [262,"\u001b[32m.\u001b[0m"],
-    #     [263,"\u001b[32m.\u001b[0m"],
-    #     [264,"\u001b[32m.\u001b[0m"],
-    #     [265,"\u001b[32m.\u001b[0m"],
-    #     [266,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[33m*\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[33m*\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[33m*\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[33m*\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[33m*\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[33m*\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[33m*\u001b[0m\u001b[32m.\u001b[0m\u001b[33m*\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [267,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [268,"\u001b[32m.\u001b[0m"],
-    #     [269,"\u001b[32m.\u001b[0m"],
-    #     [270,"\u001b[32m.\u001b[0m"],
-    #     [271,"\u001b[32m.\u001b[0m"],
-    #     [272,"\u001b[32m.\u001b[0m"],
-    #     [273,"\u001b[32m.\u001b[0m"],
-    #     [274,"\u001b[32m.\u001b[0m"],
-    #     [275,"\u001b[32m.\u001b[0m"],
-    #     [276,"\u001b[32m.\u001b[0m"],
-    #     [277,"\u001b[32m.\u001b[0m"],
-    #     [278,"\u001b[32m.\u001b[0m"],
-    #     [279,"\u001b[32m.\u001b[0m"],
-    #     [280,"\u001b[32m.\u001b[0m"],
-    #     [281,"\u001b[32m.\u001b[0m"],
-    #     [282,"\u001b[32m.\u001b[0m"],
-    #     [283,"\u001b[32m.\u001b[0m"],
-    #     [284,"\u001b[32m.\u001b[0m"],
-    #     [285,"\u001b[32m.\u001b[0m"],
-    #     [286,"\u001b[32m.\u001b[0m"],
-    #     [287,"\u001b[32m.\u001b[0m"],
-    #     [288,"\u001b[32m.\u001b[0m"],
-    #     [289,"\u001b[32m.\u001b[0m"],
-    #     [290,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [291,"\u001b[32m.\u001b[0m"],
-    #     [292,"\u001b[32m.\u001b[0m\u001b[33m*\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [293,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[33m*\u001b[0m\u001b[33m*\u001b[0m"],
-    #     [294,"\u001b[32m.\u001b[0m\u001b[33m*\u001b[0m\u001b[32m.\u001b[0m\u001b[33m*\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [295,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [296,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [297,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[33m*\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [298,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [299,"\u001b[32m.\u001b[0m\u001b[33m*\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [300,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [301,"\u001b[32m.\u001b[0m"],
-    #     [302,"\u001b[32m.\u001b[0m"],
-    #     [303,"\u001b[32m.\u001b[0m"],
-    #     [304,"\u001b[32m.\u001b[0m"],
-    #     [305,"\u001b[32m.\u001b[0m"],
-    #     [306,"\u001b[32m.\u001b[0m"],
-    #     [307,"\u001b[32m.\u001b[0m"],
-    #     [308,"\u001b[32m.\u001b[0m"],
-    #     [309,"\u001b[32m.\u001b[0m"],
-    #     [310,"\u001b[32m.\u001b[0m"],
-    #     [311,"\u001b[32m.\u001b[0m"],
-    #     [312,"\u001b[32m.\u001b[0m"],
-    #     [313,"\u001b[32m.\u001b[0m"],
-    #     [314,"\u001b[32m.\u001b[0m"],
-    #     [315,"\u001b[32m.\u001b[0m"],
-    #     [316,"\u001b[32m.\u001b[0m"],
-    #     [317,"\u001b[32m.\u001b[0m"],
-    #     [318,"\u001b[32m.\u001b[0m"],
-    #     [319,"\u001b[32m.\u001b[0m"],
-    #     [320,"\u001b[32m.\u001b[0m"],
-    #     [321,"\u001b[32m.\u001b[0m"],
-    #     [322,"\u001b[32m.\u001b[0m"],
-    #     [323,"\u001b[32m.\u001b[0m"],
-    #     [324,"\u001b[32m.\u001b[0m"],
-    #     [325,"\u001b[32m.\u001b[0m"],
-    #     [326,"\u001b[32m.\u001b[0m"],
-    #     [327,"\u001b[32m.\u001b[0m"],
-    #     [328,"\u001b[32m.\u001b[0m"],
-    #     [329,"\u001b[32m.\u001b[0m"],
-    #     [330,"\u001b[32m.\u001b[0m"],
-    #     [331,"\u001b[32m.\u001b[0m"],
-    #     [332,"\u001b[32m.\u001b[0m"],
-    #     [333,"\u001b[32m.\u001b[0m"],
-    #     [334,"\u001b[32m.\u001b[0m"],
-    #     [335,"\u001b[32m.\u001b[0m"],
-    #     [336,"\u001b[32m.\u001b[0m"],
-    #     [337,"\u001b[32m.\u001b[0m"],
-    #     [338,"\u001b[32m.\u001b[0m"],
-    #     [339,"\u001b[32m.\u001b[0m"],
-    #     [340,"\u001b[32m.\u001b[0m"],
-    #     [341,"\u001b[32m.\u001b[0m"],
-    #     [342,"\u001b[32m.\u001b[0m"],
-    #     [343,"\u001b[32m.\u001b[0m"],
-    #     [344,"\u001b[32m.\u001b[0m"],
-    #     [345,"\u001b[32m.\u001b[0m"],
-    #     [346,"\u001b[32m.\u001b[0m"],
-    #     [347,"\u001b[32m.\u001b[0m"],
-    #     [348,"\u001b[32m.\u001b[0m"],
-    #     [349,"\u001b[32m.\u001b[0m"],
-    #     [350,"\u001b[32m.\u001b[0m"],
-    #     [351,"\u001b[32m.\u001b[0m"],
-    #     [352,"\u001b[32m.\u001b[0m"],
-    #     [353,"\u001b[32m.\u001b[0m"],
-    #     [354,"\u001b[32m.\u001b[0m"],
-    #     [355,"\u001b[32m.\u001b[0m"],
-    #     [356,"\u001b[32m.\u001b[0m"],
-    #     [357,"\u001b[32m.\u001b[0m"],
-    #     [358,"\u001b[32m.\u001b[0m"],
-    #     [359,"\u001b[32m.\u001b[0m"],
-    #     [360,"\u001b[32m.\u001b[0m"],
-    #     [361,"\u001b[32m.\u001b[0m"],
-    #     [362,"\u001b[32m.\u001b[0m"],
-    #     [363,"\u001b[32m.\u001b[0m"],
-    #     [364,"\u001b[32m.\u001b[0m"],
-    #     [365,"\u001b[32m.\u001b[0m"],
-    #     [366,"\u001b[32m.\u001b[0m"],
-    #     [367,"\u001b[32m.\u001b[0m"],
-    #     [368,"\u001b[32m.\u001b[0m"],
-    #     [369,"\u001b[32m.\u001b[0m"],
-    #     [370,"\u001b[32m.\u001b[0m"],
-    #     [371,"\u001b[32m.\u001b[0m"],
-    #     [372,"\u001b[32m.\u001b[0m"],
-    #     [373,"\u001b[32m.\u001b[0m"],
-    #     [374,"\u001b[32m.\u001b[0m"],
-    #     [375,"\u001b[32m.\u001b[0m"],
-    #     [376,"\u001b[32m.\u001b[0m"],
-    #     [377,"\u001b[32m.\u001b[0m"],
-    #     [378,"\u001b[32m.\u001b[0m"],
-    #     [379,"\u001b[32m.\u001b[0m"],
-    #     [380,"\u001b[32m.\u001b[0m"],
-    #     [381,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [382,"\u001b[32m.\u001b[0m"],
-    #     [383,"\u001b[32m.\u001b[0m"],
-    #     [384,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [385,"\u001b[32m.\u001b[0m"],
-    #     [386,"\u001b[32m.\u001b[0m"],
-    #     [387,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [388,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [389,"\u001b[32m.\u001b[0m"],
-    #     [390,"\u001b[32m.\u001b[0m"],
-    #     [391,"\u001b[32m.\u001b[0m"],
-    #     [392,"\u001b[32m.\u001b[0m"],
-    #     [393,"\u001b[32m.\u001b[0m"],
-    #     [394,"\u001b[32m.\u001b[0m"],
-    #     [395,"\u001b[32m.\u001b[0m"],
-    #     [396,"\u001b[32m.\u001b[0m"],
-    #     [397,"\u001b[32m.\u001b[0m"],
-    #     [398,"\u001b[32m.\u001b[0m"],
-    #     [399,"\u001b[32m.\u001b[0m"],
-    #     [400,"\u001b[32m.\u001b[0m"],
-    #     [401,"\u001b[32m.\u001b[0m"],
-    #     [402,"\u001b[32m.\u001b[0m"],
-    #     [403,"\u001b[32m.\u001b[0m"],
-    #     [404,"\u001b[32m.\u001b[0m"],
-    #     [405,"\u001b[32m.\u001b[0m"],
-    #     [406,"\u001b[32m.\u001b[0m"],
-    #     [407,"\u001b[32m.\u001b[0m"],
-    #     [408,"\u001b[32m.\u001b[0m"],
-    #     [409,"\u001b[32m.\u001b[0m"],
-    #     [410,"\u001b[32m.\u001b[0m"],
-    #     [411,"\u001b[32m.\u001b[0m"],
-    #     [412,"\u001b[32m.\u001b[0m"],
-    #     [413,"\u001b[32m.\u001b[0m"],
-    #     [414,"\u001b[32m.\u001b[0m"],
-    #     [415,"\u001b[32m.\u001b[0m"],
-    #     [416,"\u001b[32m.\u001b[0m"],
-    #     [417,"\u001b[32m.\u001b[0m"],
-    #     [418,"\u001b[32m.\u001b[0m\u001b[33m*\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [419,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [420,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [421,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [422,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [423,"\u001b[32m.\u001b[0m"],
-    #     [424,"\u001b[32m.\u001b[0m"],
-    #     [425,"\u001b[32m.\u001b[0m"],
-    #     [426,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [427,"\u001b[32m.\u001b[0m"],
-    #     [428,"\u001b[32m.\u001b[0m"],
-    #     [429,"\u001b[32m.\u001b[0m"],
-    #     [430,"\u001b[32m.\u001b[0m"],
-    #     [431,"\u001b[32m.\u001b[0m"],
-    #     [432,"\u001b[32m.\u001b[0m"],
-    #     [433,"\u001b[32m.\u001b[0m"],
-    #     [434,"\u001b[32m.\u001b[0m"],
-    #     [435,"\u001b[32m.\u001b[0m"],
-    #     [436,"\u001b[32m.\u001b[0m"],
-    #     [437,"\u001b[32m.\u001b[0m"],
-    #     [438,"\u001b[32m.\u001b[0m"],
-    #     [439,"\u001b[32m.\u001b[0m"],
-    #     [440,"\u001b[32m.\u001b[0m"],
-    #     [441,"\u001b[32m.\u001b[0m"],
-    #     [442,"\u001b[32m.\u001b[0m"],
-    #     [443,"\u001b[32m.\u001b[0m"],
-    #     [444,"\u001b[32m.\u001b[0m"],
-    #     [445,"\u001b[32m.\u001b[0m"],
-    #     [446,"\u001b[32m.\u001b[0m"],
-    #     [447,"\u001b[32m.\u001b[0m"],
-    #     [448,"\u001b[32m.\u001b[0m"],
-    #     [449,"\u001b[32m.\u001b[0m"],
-    #     [450,"\u001b[32m.\u001b[0m"],
-    #     [451,"\u001b[32m.\u001b[0m"],
-    #     [452,"\u001b[32m.\u001b[0m"],
-    #     [453,"\u001b[32m.\u001b[0m"],
-    #     [454,"\u001b[32m.\u001b[0m"],
-    #     [455,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [456,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [457,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [458,"\u001b[32m.\u001b[0m"],
-    #     [459,"\u001b[32m.\u001b[0m"],
-    #     [460,"\u001b[32m.\u001b[0m"],
-    #     [461,"\u001b[32m.\u001b[0m"],
-    #     [472,"\u001b[32m.\u001b[0m"],
-    #     [462,"\u001b[32m.\u001b[0m"],
-    #     [473,"\u001b[32m.\u001b[0m"],
-    #     [463,"\u001b[32m.\u001b[0m"],
-    #     [474,"\u001b[32m.\u001b[0m"],
-    #     [464,"\u001b[32m.\u001b[0m"],
-    #     [475,"\u001b[32m.\u001b[0m"],
-    #     [465,"\u001b[32m.\u001b[0m"],
-    #     [476,"\u001b[32m.\u001b[0m"],
-    #     [466,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [477,"\u001b[32m.\u001b[0m"],
-    #     [467,"\u001b[32m.\u001b[0m"],
-    #     [478,"\u001b[32m.\u001b[0m"],
-    #     [468,"\u001b[32m.\u001b[0m"],
-    #     [479,"\u001b[32m.\u001b[0m"],
-    #     [469,"\u001b[32m.\u001b[0m"],
-    #     [470,"\u001b[32m.\u001b[0m"],
-    #     [471,"\u001b[32m.\u001b[0m"],
-    #     [480,"\u001b[32m.\u001b[0m"],
-    #     [481,"\u001b[32m.\u001b[0m"],
-    #     [482,"\u001b[32m.\u001b[0m"],
-    #     [483,"\u001b[32m.\u001b[0m"],
-    #     [484,"\u001b[32m.\u001b[0m"],
-    #     [485,"\u001b[32m.\u001b[0m"],
-    #     [486,"\u001b[32m.\u001b[0m"],
-    #     [487,"\u001b[32m.\u001b[0m"],
-    #     [488,"\u001b[32m.\u001b[0m"],
-    #     [489,"\u001b[32m.\u001b[0m"],
-    #     [490,"\u001b[32m.\u001b[0m"],
-    #     [491,"\u001b[32m.\u001b[0m"],
-    #     [492,"\u001b[32m.\u001b[0m"],
-    #     [493,"\u001b[32m.\u001b[0m"],
-    #     [494,"\u001b[32m.\u001b[0m"],
-    #     [495,"\u001b[32m.\u001b[0m"],
-    #     [496,"\u001b[32m.\u001b[0m"],
-    #     [497,"\u001b[32m.\u001b[0m"],
-    #     [498,"\u001b[32m.\u001b[0m"],
-    #     [499,"\u001b[32m.\u001b[0m"],
-    #     [500,"\u001b[32m.\u001b[0m"],
-    #     [501,"\u001b[32m.\u001b[0m"],
-    #     [502,"\u001b[32m.\u001b[0m"],
-    #     [503,"\u001b[32m.\u001b[0m"],
-    #     [504,"\u001b[32m.\u001b[0m"],
-    #     [505,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[33m*\u001b[0m"],
-    #     [506,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [507,"\u001b[32m.\u001b[0m"],
-    #     [508,"\u001b[32m.\u001b[0m"],
-    #     [509,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [510,"\u001b[32m.\u001b[0m"],
-    #     [511,"\u001b[32m.\u001b[0m"],
-    #     [512,"\u001b[32m.\u001b[0m"],
-    #     [513,"\u001b[32m.\u001b[0m"],
-    #     [514,"\u001b[32m.\u001b[0m"],
-    #     [515,"\u001b[32m.\u001b[0m"],
-    #     [516,"\u001b[32m.\u001b[0m"],
-    #     [517,"\u001b[32m.\u001b[0m"],
-    #     [518,"\u001b[32m.\u001b[0m"],
-    #     [519,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [520,"\u001b[32m.\u001b[0m"],
-    #     [521,"\u001b[32m.\u001b[0m"],
-    #     [522,"\u001b[32m.\u001b[0m"],
-    #     [523,"\u001b[32m.\u001b[0m"],
-    #     [524,"\u001b[32m.\u001b[0m"],
-    #     [525,"\u001b[32m.\u001b[0m"],
-    #     [526,"\u001b[32m.\u001b[0m"],
-    #     [527,"\u001b[32m.\u001b[0m"],
-    #     [528,"\u001b[33m*\u001b[0m"],
-    #     [529,"\u001b[32m.\u001b[0m"],
-    #     [530,"\u001b[32m.\u001b[0m"],
-    #     [531,"\u001b[32m.\u001b[0m"],
-    #     [532,"\u001b[32m.\u001b[0m"],
-    #     [533,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [534,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [535,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [536,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [537,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [538,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[33m*\u001b[0m\u001b[33m*\u001b[0m"],
-    #     [539,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [540,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [541,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [542,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [543,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [544,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [545,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [546,"\u001b[32m.\u001b[0m"],
-    #     [547,"\u001b[32m.\u001b[0m"],
-    #     [548,"\u001b[32m.\u001b[0m"],
-    #     [549,"\u001b[32m.\u001b[0m"],
-    #     [550,"\u001b[32m.\u001b[0m"],
-    #     [551,"\u001b[32m.\u001b[0m"],
-    #     [552,"\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m"],
-    #     [553,"\u001b[32m.\u001b[0m"],
-    #     [554,"\u001b[32m.\u001b[0m"],
-    #     [555,"\u001b[32m.\u001b[0m"],
-    #     [556,"\u001b[32m.\u001b[0m"],
-    #     [557,"\u001b[32m.\u001b[0m"],
-    #     [558,"\u001b[32m.\u001b[0m"],
-    #     [559,"\u001b[32m.\u001b[0m"],
-    #     [560,"\u001b[32m.\u001b[0m"],
-    #     [561,"\u001b[32m.\u001b[0m"],
-    #     [562,"\u001b[32m.\u001b[0m"],
-    #     [563,"\u001b[32m.\u001b[0m"],
-    #     [564,"\u001b[32m.\u001b[0m"],
-    #     [565,"\u001b[32m.\u001b[0m"],
-    #     [566,"\u001b[32m.\u001b[0m"],
-    #     [567,"\u001b[32m.\u001b[0m"],
-    #     [568,"\u001b[33m*\u001b[0m"],
-    #     [569,"\u001b[32m.\u001b[0m"],
-    #     [570,"\u001b[32m.\u001b[0m"],
-    #     [571,"\u001b[32m.\u001b[0m"],
-    #     [572,"\u001b[32m.\u001b[0m"],
-    #     [573,"\u001b[32m.\u001b[0m"],
-    #     [574,"\u001b[32m.\u001b[0m"],
-    #     [575,"\u001b[32m.\u001b[0m"],
-    #     [576,"\u001b[33m*\u001b[0m"],
-    #     [577,"\u001b[33m*\u001b[0m"],
-    #     [578,"\u001b[33m*\u001b[0m"],
-    #     [579,"\u001b[32m.\u001b[0m"],
-    #     [580,"\u001b[32m.\u001b[0m"],
-    #     [581,"\u001b[32m.\u001b[0m"],
-    #     [582,"\u001b[32m.\u001b[0m"],
-    #     [583,"\u001b[32m.\u001b[0m"],
-    #     [584,"\u001b[32m.\u001b[0m"],
-    #     [585,"\u001b[32m.\u001b[0m"],
-    #     [586,"\u001b[32m.\u001b[0m"],
-    #     [587,"\u001b[32m.\u001b[0m"],
-    #     [588,"\u001b[32m.\u001b[0m"],
-    #     [589,"\u001b[32m.\u001b[0m"],
-    #     [590,"\u001b[32m.\u001b[0m\u001b[33m*\u001b[0m\u001b[33m*\u001b[0m"],
-    #     [591,"\u001b[33m*\u001b[0m\u001b[33m*\u001b[0m\u001b[33m*\u001b[0m\u001b[33m*\u001b[0m"],
-    #     [592,"\u001b[33m*\u001b[0m\u001b[33m*\u001b[0m\u001b[33m*\u001b[0m\u001b[33m*\u001b[0m\u001b[33m*\u001b[0m\u001b[33m*\u001b[0m\u001b[33m*\u001b[0m"],
-    #     [593,"\u001b[33m*\u001b[0m\u001b[33m*\u001b[0m"],
-    #     [594,"\u001b[32m.\u001b[0m"],
-    #     [595,"\u001b[32m.\u001b[0m"],
-    #     [596,"\u001b[32m.\u001b[0m"],
-    #     [597,"\u001b[32m.\u001b[0m"]
-    #   ]
-    #   result = @render parts
-    #   console.log format result
-
+    parts = [
+      [178,"\u001b[32m.\u001b[0m"],
+      [179,"\u001b[32m.\u001b[0m"],
+      [180,"\u001b[32m.\u001b[0m\u001b[33m*\u001b[0m\u001b[33m*\u001b[0m"],
+      [181,"\u001b[33m*\u001b[0m"],
+    ]
+    expect(@render parts).toBe html
 
