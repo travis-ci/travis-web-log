@@ -23,7 +23,7 @@ Log.Dom.Part = (engine, num, string) ->
 $.extend Log.Dom.Part.prototype,
   SLICE: 500
   insert: ->
-    lines  = @string.split(/^/gm)
+    lines  = @string.split(/^/gm) || [] # hu?
     slices = (lines.splice(0, @SLICE) while lines.length > 0)
     ix = -1
     next = =>
@@ -31,7 +31,7 @@ $.extend Log.Dom.Part.prototype,
       setTimeout(next, 50) unless slices.length == 0
     next()
   insertSlice: (lines, start) ->
-    for line, ix in lines
+    for line, ix in lines || []
       node = Log.Dom.Node.create(@, start * @SLICE + ix, line)
       @nodes.push(node)
       node.insert()
