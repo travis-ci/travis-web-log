@@ -78,6 +78,7 @@ Log.Dom.Node::__defineGetter__ 'next', ->
 Log.Dom.Fold = (part, num, event, name) ->
   @part = part
   @ends = true
+  @fold = true
   @num  = num
   @id   = "fold-#{event}-#{name}"
   @data = { type: 'fold', id: @id, event: event, name: name }
@@ -118,12 +119,12 @@ Log.Dom.Line.prototype = $.extend new Log.Dom.Node,
   #     the current line before the next one.
   # 5 - There are neither previous nor next lines.
   insert: ->
-    if (prev = @prev) && !prev.ends
+    if (prev = @prev) && !prev.ends && !prev.fold
       after = prev.chunks.last.element
       console.log "1 - insert #{@id}'s nodes after the last node of prev, id #{after.id}" if Log.DEBUG
       chunk.element = @trigger('insert', chunk.data, after: after) for chunk in @chunks.slice().reverse()
       next.reinsert() if @ends && (next = @next) && next.reinsert
-    else if (next = @next) && !@ends
+    else if (next = @next) && !@ends && !next.fold
       before = next.chunks.first.element
       console.log "2 - insert #{@id}'s nodes before the first node of prev, id #{before.id}" if Log.DEBUG
       chunk.element = @trigger('insert', chunk.data, before: before) for chunk in @chunks

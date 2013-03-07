@@ -776,3 +776,15 @@ describe 'Log.Dom', ->
     ]
     expect(@render parts).toBe html
 
+  it 'inserting an unterminated part in front of a fold', ->
+    parts = [
+      [2,"travis_fold:start:before_script.1\r$ ./before_script\r\ntravis_fold:end:before_script.1\r"],
+      [1,"bar"],
+    ]
+    html = strip '''
+      <p><span id="1-0-0">bar</span></p>
+      <div id="fold-start-before_script.1" class="fold-start"><span class="fold-name">before_script.1</span></div>
+      <p><span id="2-1-0">$ ./before_script</span></p>
+      <div id="fold-end-before_script.1" class="fold-end"></div>
+    '''
+    expect(@render parts).toBe html

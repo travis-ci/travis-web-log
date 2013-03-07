@@ -641,10 +641,16 @@
         return expect(this.render(lines)).toBe(html);
       });
     });
-    return it('random part sizes w/ dot output', function() {
+    it('random part sizes w/ dot output', function() {
       var html, parts;
       html = strip('<p>\n  <span id="178-0-0" class="green">.</span>\n  <span id="179-0-0" class="green">.</span>\n  <span id="180-0-0" class="green">.</span>\n  <span id="180-0-1" class="yellow">*</span>\n  <span id="180-0-2" class="yellow">*</span>\n  <span id="181-0-0" class="yellow">*</span>\n</p>');
       parts = [[178, "\u001b[32m.\u001b[0m"], [179, "\u001b[32m.\u001b[0m"], [180, "\u001b[32m.\u001b[0m\u001b[33m*\u001b[0m\u001b[33m*\u001b[0m"], [181, "\u001b[33m*\u001b[0m"]];
+      return expect(this.render(parts)).toBe(html);
+    });
+    return it('inserting an unterminated part in front of a fold', function() {
+      var html, parts;
+      parts = [[2, "travis_fold:start:before_script.1\r$ ./before_script\r\ntravis_fold:end:before_script.1\r"], [1, "bar"]];
+      html = strip('<p><span id="1-0-0">bar</span></p>\n<div id="fold-start-before_script.1" class="fold-start"><span class="fold-name">before_script.1</span></div>\n<p><span id="2-1-0">$ ./before_script</span></p>\n<div id="fold-end-before_script.1" class="fold-end"></div>');
       return expect(this.render(parts)).toBe(html);
     });
   });
