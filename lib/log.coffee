@@ -6,21 +6,19 @@ $.extend Log,
   DEBUG: true
   create: (options) ->
     log = new Log(options.engine)
+    log.listeners.push(log.limit = new Log.Limit(options.limit)) if options.limit
+    console.log log.listeners[0]
     log.listeners.push(listener) for listener in options.listeners || []
     log
 $.extend Log.prototype,
   trigger: () ->
     args = Array::slice.apply(arguments)
     event = args[0]
-    # @trigger('start', event) unless event == 'start' || event == 'stop'
-    for listener in @listeners
+    for listener, ix in @listeners
       result = listener.notify.apply(listener, [@].concat(args))
       element = result if result?.hasChildNodes # ugh.
-    # @trigger('stop', event) unless event == 'start' || event == 'stop'
     element
   set: (num, string) ->
-    @trigger('receive', num, string)
-    # Ember.run.next @, =>
     @engine.set(num, string)
 
 Log.Listener = ->
@@ -35,6 +33,7 @@ require 'log/engine/dom'
 # require 'log/engine/live'
 require 'log/folds'
 require 'log/instrument'
+require 'log/limit'
 require 'log/renderer/fragment'
 # require 'log/renderer/inner_html'
 # require 'log/renderer/jquery'

@@ -32,6 +32,7 @@ $.extend Log.Dom.Part.prototype,
     next()
   insertSlice: (lines, start) ->
     for line, ix in lines || []
+      break if @engine.log.limit?.limited # hrm ...
       node = Log.Dom.Node.create(@, start * @SLICE + ix, line)
       @nodes.push(node)
       node.insert()

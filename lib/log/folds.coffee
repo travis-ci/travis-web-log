@@ -6,6 +6,7 @@ Log.Folds.prototype = $.extend new Log.Listener,
     if data.type == 'fold'
       fold = @folds[data.name] ||= new Log.Folds.Fold
       fold.receive(data)
+    true
 
 Log.Folds.Fold = ->
   @

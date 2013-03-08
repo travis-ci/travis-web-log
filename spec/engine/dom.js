@@ -46,25 +46,26 @@
       });
     });
     describe('lines', function() {
-      var HTML;
-      HTML = strip('<p><span id="0-0-0">foo</span></p>\n<p><span id="1-0-0">bar</span></p>\n<p><span id="2-0-0">baz</span></p>');
+      beforeEach(function() {
+        return this.html = strip('<p><span id="0-0-0">foo</span></p>\n<p><span id="1-0-0">bar</span></p>\n<p><span id="2-0-0">baz</span></p>');
+      });
       it('ordered', function() {
-        return expect(this.render([[0, 'foo\n'], [1, 'bar\n'], [2, 'baz\n']])).toBe(HTML);
+        return expect(this.render([[0, 'foo\n'], [1, 'bar\n'], [2, 'baz\n']])).toBe(this.html);
       });
       it('unordered (1)', function() {
-        return expect(this.render([[0, 'foo\n'], [2, 'baz\n'], [1, 'bar\n']])).toBe(HTML);
+        return expect(this.render([[0, 'foo\n'], [2, 'baz\n'], [1, 'bar\n']])).toBe(this.html);
       });
       it('unordered (2)', function() {
-        return expect(this.render([[1, 'bar\n'], [0, 'foo\n'], [2, 'baz\n']])).toBe(HTML);
+        return expect(this.render([[1, 'bar\n'], [0, 'foo\n'], [2, 'baz\n']])).toBe(this.html);
       });
       it('unordered (3)', function() {
-        return expect(this.render([[1, 'bar\n'], [2, 'baz\n'], [0, 'foo\n']])).toBe(HTML);
+        return expect(this.render([[1, 'bar\n'], [2, 'baz\n'], [0, 'foo\n']])).toBe(this.html);
       });
       it('unordered (4)', function() {
-        return expect(this.render([[2, 'baz\n'], [0, 'foo\n'], [1, 'bar\n']])).toBe(HTML);
+        return expect(this.render([[2, 'baz\n'], [0, 'foo\n'], [1, 'bar\n']])).toBe(this.html);
       });
       return it('unordered (5)', function() {
-        return expect(this.render([[2, 'baz\n'], [1, 'bar\n'], [0, 'foo\n']])).toBe(HTML);
+        return expect(this.render([[2, 'baz\n'], [1, 'bar\n'], [0, 'foo\n']])).toBe(this.html);
       });
     });
     describe('multiple lines on the same part', function() {

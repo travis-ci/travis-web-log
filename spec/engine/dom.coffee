@@ -24,29 +24,30 @@ describe 'Log.Dom', ->
           strip document.firstChild.innerHTML
 
   describe 'lines', ->
-    HTML = strip '''
-      <p><span id="0-0-0">foo</span></p>
-      <p><span id="1-0-0">bar</span></p>
-      <p><span id="2-0-0">baz</span></p>
-    '''
+    beforeEach ->
+      @html = strip '''
+        <p><span id="0-0-0">foo</span></p>
+        <p><span id="1-0-0">bar</span></p>
+        <p><span id="2-0-0">baz</span></p>
+      '''
 
     it 'ordered', ->
-      expect(@render [[0, 'foo\n'], [1, 'bar\n'], [2, 'baz\n']]).toBe HTML
+      expect(@render [[0, 'foo\n'], [1, 'bar\n'], [2, 'baz\n']]).toBe @html
 
     it 'unordered (1)', ->
-      expect(@render [[0, 'foo\n'], [2, 'baz\n'], [1, 'bar\n']]).toBe HTML
+      expect(@render [[0, 'foo\n'], [2, 'baz\n'], [1, 'bar\n']]).toBe @html
 
     it 'unordered (2)', ->
-      expect(@render [[1, 'bar\n'], [0, 'foo\n'], [2, 'baz\n']]).toBe HTML
+      expect(@render [[1, 'bar\n'], [0, 'foo\n'], [2, 'baz\n']]).toBe @html
 
     it 'unordered (3)', ->
-      expect(@render [[1, 'bar\n'], [2, 'baz\n'], [0, 'foo\n']]).toBe HTML
+      expect(@render [[1, 'bar\n'], [2, 'baz\n'], [0, 'foo\n']]).toBe @html
 
     it 'unordered (4)', ->
-      expect(@render [[2, 'baz\n'], [0, 'foo\n'], [1, 'bar\n']]).toBe HTML
+      expect(@render [[2, 'baz\n'], [0, 'foo\n'], [1, 'bar\n']]).toBe @html
 
     it 'unordered (5)', ->
-      expect(@render [[2, 'baz\n'], [1, 'bar\n'], [0, 'foo\n']]).toBe HTML
+      expect(@render [[2, 'baz\n'], [1, 'bar\n'], [0, 'foo\n']]).toBe @html
 
   describe 'multiple lines on the same part', ->
     it 'ordered (1)', ->
