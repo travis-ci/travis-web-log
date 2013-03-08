@@ -13,10 +13,6 @@ $.extend Log.Dom.prototype,
   trigger: () ->
     @log.trigger.apply(@log, arguments)
 
-format = (html) ->
-  html.replace(/<div/gm, '\n<div').replace(/<p>/gm, '\n<p>').replace(/<\/p>/gm, '\n</p>').replace(/<span/gm, '\n  <span')
-strip = (string) ->
-  string.replace(/^\s+/gm, '').replace(/<a><\/a>/gm, '').replace(/\n/gm, '')
 
 Log.Dom.Part = (engine, num, string) ->
   @engine = engine
@@ -38,10 +34,7 @@ $.extend Log.Dom.Part.prototype,
     for line, ix in lines || []
       break if @engine.log.limit?.limited # hrm ...
       node = Log.Dom.Node.create(@, start * @SLICE + ix, line)
-      @nodes.push(node)
-      node.insert()
-      console.log format strip document.firstChild.innerHTML
-      console.log '\n'
+      @nodes.insert(node)
   trigger: () ->
     @engine.trigger.apply(@engine, arguments)
 Log.Dom.Part::__defineGetter__ 'prev', ->
@@ -56,10 +49,20 @@ Log.Dom.Part::__defineGetter__ 'next', ->
 
 Log.Dom.Nodes = (part) ->
   @part = part
+  @nodes = []
   @
-Log.Dom.Nodes.prototype = new Array
-Log.Dom.Nodes::__defineGetter__ 'first', -> @[0]
-Log.Dom.Nodes::__defineGetter__ 'last',  -> @[@.length - 1]
+$.extend Log.Dom.Nodes.prototype,
+  at: (ix) ->
+    @nodes[ix]
+  insert: (node) ->
+    @nodes[node.num] = node
+    node.insert()
+  remove: (node) ->
+    @nodes.splice(node.num, 1)
+
+Log.Dom.Nodes::__defineGetter__ 'length', -> @nodes.length
+Log.Dom.Nodes::__defineGetter__ 'first',  -> @nodes[0]
+Log.Dom.Nodes::__defineGetter__ 'last',   -> @nodes[@length - 1]
 
 
 Log.Dom.Node = ->
@@ -71,14 +74,18 @@ $.extend Log.Dom.Node,
       new Log.Dom.Fold(part, num, fold[1], fold[2])
     else
       new Log.Dom.Line(part, num, string)
-
+  reinsert: (nodes) ->
+    # console.log "reinsert: #{nodes.map((node) -> node.id).join(', ')}"
+    node.remove() for node in nodes
+    node.part.nodes.insert(node) for node in nodes
+    # console.log document.firstChild.innerHTML.replace(/<\/p>/gm, '</p>\n')
 Log.Dom.Node::__defineGetter__ 'prev', ->
   num = @num
-  prev = @part.nodes[num -= 1] until prev || num < 0
+  prev = @part.nodes.at(num -= 1) until prev || num < 0
   prev || @part.prev?.nodes.last
 Log.Dom.Node::__defineGetter__ 'next', ->
   num = @num
-  next = @part.nodes[num += 1] until next || num >= @part.nodes.length
+  next = @part.nodes.at(num += 1) until next || num >= @part.nodes.length
   next || @part.next?.nodes.first
 
 
@@ -93,13 +100,13 @@ Log.Dom.Fold = (part, num, event, name) ->
 Log.Dom.Fold.prototype = $.extend new Log.Dom.Node,
   insert: ->
     @element = if prev = @prev
-      console.log "F - insert fold #{@id} after #{prev.element.id}" if Log.DEBUG
+      console.log "F - insert #{@id} after #{prev.element.id}" if Log.DEBUG
       @trigger 'insert', @data, after: prev.element
     else if next = @next
-      console.log "F - insert fold #{@id} before #{next.element.id}" if Log.DEBUG
+      console.log "F - insert #{@id} before #{next.element.id}" if Log.DEBUG
       @trigger 'insert', @data, before: next.element
     else
-      console.log "F - insert fold #{@id}" if Log.DEBUG
+      console.log "F - insert #{@id}" if Log.DEBUG
       @trigger 'insert', @data
   trigger: () ->
     @part.trigger.apply(@part, arguments)
@@ -128,39 +135,48 @@ Log.Dom.Line.prototype = $.extend new Log.Dom.Node,
   insert: ->
     if (prev = @prev) && !prev.ends && !prev.fold
       after = prev.chunks.last.element
-      console.log "1 - insert #{@id}'s nodes after the last node of prev, id #{after.id}" if Log.DEBUG
+      console.log "1 - insert #{@id}'s chunks after the last node of prev, id #{after.id}" if Log.DEBUG
       chunk.element = @trigger('insert', chunk.data, after: after) for chunk in @chunks.slice().reverse()
-      next.reinsert() if @ends && (next = @next) && next.reinsert
+      # console.log document.firstChild.innerHTML.replace(/<\/p>/gm, '</p>\n')
+      Log.Dom.Node.reinsert(@tail) if @ends
     else if (next = @next) && !@ends && !next.fold
       before = next.chunks.first.element
-      console.log "2 - insert #{@id}'s nodes before the first node of next, id #{before.id}" if Log.DEBUG
+      console.log "2 - insert #{@id}'s chunks before the first node of next, id #{before.id}" if Log.DEBUG
       chunk.element = @trigger('insert', chunk.data, before: before) for chunk in @chunks
+      # console.log document.firstChild.innerHTML.replace(/<\/p>/gm, '</p>\n')
     else if prev
       console.log "3 - insert #{@id} after the parentNode of the last node of prev, id #{prev.id}" if Log.DEBUG
       @element = @trigger 'insert', @data, after: prev.element
+      # console.log document.firstChild.innerHTML.replace(/<\/p>/gm, '</p>\n')
     else if next
       console.log "4 - insert #{@id} before the parentNode of the first node of next, id #{next.id}" if Log.DEBUG
       @element = @trigger 'insert', @data, before: next.element
+      # console.log document.firstChild.innerHTML.replace(/<\/p>/gm, '</p>\n')
     else
       console.log "5 - insert #{@id} at the beginning of #log" if Log.DEBUG
       @element = @trigger 'insert', @data
+      # console.log document.firstChild.innerHTML.replace(/<\/p>/gm, '</p>\n')
 
   remove: ->
     element = @element
     @trigger 'remove', chunk.element for chunk in @chunks
-    @trigger 'remove', element unless element.hasChildNodes()
-  reinsert: ->
-    console.log "1 - reinsert #{@id}" if Log.DEBUG
-    @remove()
-    @insert()
+    @trigger 'remove', element unless element.childNodes.length > 1
+    @part.nodes.remove(@)
   trigger: () ->
     @part.trigger.apply(@part, arguments)
+
 
 Log.Dom.Line::__defineSetter__ 'element', (element) ->
   child = element.firstChild
   (chunk.element = child = child.nextSibling) for chunk in @chunks
 Log.Dom.Line::__defineGetter__ 'element', ->
   @chunks.first.element.parentNode
+Log.Dom.Line::__defineGetter__ 'tail', ->
+  parent = @element.parentNode
+  next = @
+  tail = []
+  tail.push(next) while (next = next.next) && next.element?.parentNode == parent #!next.ends
+  tail
 
 
 Log.Dom.Chunks = (parent, line) ->

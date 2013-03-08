@@ -7,7 +7,6 @@ $.extend Log,
   create: (options) ->
     log = new Log(options.engine)
     log.listeners.push(log.limit = new Log.Limit(options.limit)) if options.limit
-    console.log log.listeners[0]
     log.listeners.push(listener) for listener in options.listeners || []
     log
 $.extend Log.prototype,
