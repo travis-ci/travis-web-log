@@ -13,6 +13,10 @@ $.extend Log.Dom.prototype,
   trigger: () ->
     @log.trigger.apply(@log, arguments)
 
+format = (html) ->
+  html.replace(/<div/gm, '\n<div').replace(/<p>/gm, '\n<p>').replace(/<\/p>/gm, '\n</p>').replace(/<span/gm, '\n  <span')
+strip = (string) ->
+  string.replace(/^\s+/gm, '').replace(/<a><\/a>/gm, '').replace(/\n/gm, '')
 
 Log.Dom.Part = (engine, num, string) ->
   @engine = engine
@@ -36,6 +40,8 @@ $.extend Log.Dom.Part.prototype,
       node = Log.Dom.Node.create(@, start * @SLICE + ix, line)
       @nodes.push(node)
       node.insert()
+      console.log format strip document.firstChild.innerHTML
+      console.log '\n'
   trigger: () ->
     @engine.trigger.apply(@engine, arguments)
 Log.Dom.Part::__defineGetter__ 'prev', ->
@@ -127,7 +133,7 @@ Log.Dom.Line.prototype = $.extend new Log.Dom.Node,
       next.reinsert() if @ends && (next = @next) && next.reinsert
     else if (next = @next) && !@ends && !next.fold
       before = next.chunks.first.element
-      console.log "2 - insert #{@id}'s nodes before the first node of prev, id #{before.id}" if Log.DEBUG
+      console.log "2 - insert #{@id}'s nodes before the first node of next, id #{before.id}" if Log.DEBUG
       chunk.element = @trigger('insert', chunk.data, before: before) for chunk in @chunks
     else if prev
       console.log "3 - insert #{@id} after the parentNode of the last node of prev, id #{prev.id}" if Log.DEBUG
@@ -144,6 +150,7 @@ Log.Dom.Line.prototype = $.extend new Log.Dom.Node,
     @trigger 'remove', chunk.element for chunk in @chunks
     @trigger 'remove', element unless element.hasChildNodes()
   reinsert: ->
+    console.log "1 - reinsert #{@id}" if Log.DEBUG
     @remove()
     @insert()
   trigger: () ->
