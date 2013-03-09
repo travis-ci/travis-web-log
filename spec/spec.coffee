@@ -17,6 +17,34 @@ document.appendChild(log)
 require './../public/js/log.js'
 minispade.require 'log'
 
+strip = (string) ->
+  string.replace(/^\s+/gm, '').replace(/<a><\/a>/gm, '').replace(/\n/gm, '')
+
+format = (html) ->
+  # html.replace(/<div/gm, '\n<div').replace(/<p>/gm, '\n<p>').replace(/<\/p>/gm, '\n</p>').replace(/<span/gm, '\n  <span')
+  html.replace(/<\/p>/gm, '</p>\n').replace(/<\/div>/gm, '</div>\n')
+
+rescueing = (context, block) ->
+  try
+    block.apply(context)
+  catch e
+    console.log(line) for line in e.stack.split("\n")
+
+render = (context, parts) ->
+  context.log.set(num, part) for [num, part] in parts
+  strip document.firstChild.innerHTML
+
+describe 'foo', ->
+  beforeEach ->
+    rescueing @, ->
+      log.removeChild(log.firstChild) while log.firstChild
+      @log = Log.create(engine: Log.Dom, listeners: [new Log.FragmentRenderer])
+      @render = (parts) -> render(@, parts)
+
+  it 'bar', ->
+    parts = eval require('fs').readFileSync('./log.parts.js', 'utf-8')
+    console.log format @render [[6,"0% \r 1% "], [7,"\r"]]
+
 eval require('fs').readFileSync('./spec/engine/dom.js', 'utf-8')
 eval require('fs').readFileSync('./spec/limit.js', 'utf-8')
 

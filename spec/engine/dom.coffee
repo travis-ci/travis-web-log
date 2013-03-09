@@ -2,27 +2,11 @@ describe 'Log.Dom', ->
   FOLD_START = 'fold:start:install\r\n'
   FOLD_END   = 'fold:end:install\r\n'
 
-  strip = (string) ->
-    string.replace(/^\s+/gm, '').replace(/<a><\/a>/gm, '').replace(/\n/gm, '')
-
-  format = (html) ->
-    # html.replace(/<div/gm, '\n<div').replace(/<p>/gm, '\n<p>').replace(/<\/p>/gm, '\n</p>').replace(/<span/gm, '\n  <span')
-    html.replace(/<\/p>/gm, '</p>\n').replace(/<\/div>/gm, '</div>\n')
-
-  rescueing = (context, block) ->
-    try
-      block.apply(context)
-    catch e
-      console.log(line) for line in e.stack.split("\n")
-
   beforeEach ->
     rescueing @, ->
       log.removeChild(log.firstChild) while log.firstChild
       @log = Log.create(engine: Log.Dom, listeners: [new Log.FragmentRenderer])
-      @render = (data) ->
-        rescueing @, ->
-          @log.set(num, string) for [num, string] in data
-          strip document.firstChild.innerHTML
+      @render = (parts) -> render(@, parts)
 
   describe 'lines', ->
     beforeEach ->
@@ -720,43 +704,48 @@ describe 'Log.Dom', ->
 
   describe 'deansi', ->
     it 'simulating git clone', ->
-      html = strip '''
-        <p><span id="0-0-0">Cloning into 'jsdom'...</span></p>
-        <p><span id="1-0-0">remote: Counting objects: 13358, done.</span></p>
-        <p style="display: none;"><span id="2-0-0">remote: Compressing objects   1% (1/4)   </span></p>
-        <p style="display: none;"><span id="3-0-0">remote: Compressing objects  26% (2/4)   </span></p>
-        <p style="display: none;"><span id="4-0-0">remote: Compressing objects  51% (3/4)   </span></p>
-        <p style="display: none;"><span id="5-0-0">remote: Compressing objects  76% (4/4)   </span></p>
-        <p><span id="6-0-0">remote: Compressing objects 100% (5/5), done.</span></p>
-        <p style="display: none;"><span id="7-0-0">Receiving objects   1% (1/4)   </span></p>
-        <p style="display: none;"><span id="8-0-0">Receiving objects  26% (2/4)   </span></p>
-        <p style="display: none;"><span id="9-0-0">Receiving objects  51% (3/4)   </span></p>
-        <p style="display: none;"><span id="10-0-0">Receiving objects  76% (4/4)   </span></p>
-        <p><span id="11-0-0">Receiving objects 100% (5/5), done.</span></p>
-        <p style="display: none;"><span id="12-0-0">Resolving deltas:   1% (1/4)   </span></p>
-        <p style="display: none;"><span id="13-0-0">Resolving deltas:  26% (2/4)   </span></p>
-        <p style="display: none;"><span id="14-0-0">Resolving deltas:  51% (3/4)   </span></p>
-        <p style="display: none;"><span id="15-0-0">Resolving deltas:  76% (4/4)   </span></p>
-        <p><span id="16-0-0">Resolving deltas: 100% (5/5), done.</span></p>
-        <p><span id="17-0-0">Something else.</span></p>
-      '''
+      rescueing @, ->
+        html = strip '''
+          <p><span id="0-0-0">Cloning into 'jsdom'...</span></p>
+          <p><span id="1-0-0">remote: Counting objects: 13358, done.</span></p>
+          <p>
+            <span id="2-0-0" class="hidden">remote: Compressing objects   1% (1/4)   </span>
+            <span id="3-0-0" class="hidden">remote: Compressing objects  26% (2/4)   </span>
+            <span id="4-0-0" class="hidden">remote: Compressing objects  51% (3/4)   </span>
+            <span id="5-0-0" class="hidden">remote: Compressing objects  76% (4/4)   </span>
+            <span id="6-0-0">remote: Compressing objects 100% (5/5), done.</span></p>
+          <p>
+            <span id="7-0-0" class="hidden">Receiving objects   1% (1/4)   </span>
+            <span id="8-0-0" class="hidden">Receiving objects  26% (2/4)   </span>
+            <span id="9-0-0" class="hidden">Receiving objects  51% (3/4)   </span>
+            <span id="10-0-0" class="hidden">Receiving objects  76% (4/4)   </span>
+            <span id="11-0-0">Receiving objects 100% (5/5), done.</span></p>
+          <p>
+            <span id="12-0-0" class="hidden">Resolving deltas:   1% (1/4)   </span>
+            <span id="13-0-0" class="hidden">Resolving deltas:  26% (2/4)   </span>
+            <span id="14-0-0" class="hidden">Resolving deltas:  51% (3/4)   </span>
+            <span id="15-0-0" class="hidden">Resolving deltas:  76% (4/4)   </span>
+            <span id="16-0-0">Resolving deltas: 100% (5/5), done.</span>
+          </p>
+          <p><span id="17-0-0">Something else.</span></p>
+        '''
 
-      lines = progress 5, (ix, count, curr, total) ->
-        end = if count == 100 then ", done.\e[K\n" else "   \e[K\r"
-        [ix + 2, "remote: Compressing objects #{count}% (#{curr}/#{total})#{end}"]
+        lines = progress 5, (ix, count, curr, total) ->
+          end = if count == 100 then ", done.\e[K\n" else "   \e[K\r"
+          [ix + 2, "remote: Compressing objects #{count}% (#{curr}/#{total})#{end}"]
 
-      lines = lines.concat progress 5, (ix, count, curr, total) ->
-        end = if count == 100 then ", done.\n" else "   \r"
-        [ix + 7, "Receiving objects #{count}% (#{curr}/#{total})#{end}"]
+        lines = lines.concat progress 5, (ix, count, curr, total) ->
+          end = if count == 100 then ", done.\n" else "   \r"
+          [ix + 7, "Receiving objects #{count}% (#{curr}/#{total})#{end}"]
 
-      lines = lines.concat progress 5, (ix, count, curr, total) ->
-        end = if count == 100 then ", done.\n" else "   \r"
-        [ix + 12, "Resolving deltas: #{count}% (#{curr}/#{total})#{end}"]
+        lines = lines.concat progress 5, (ix, count, curr, total) ->
+          end = if count == 100 then ", done.\n" else "   \r"
+          [ix + 12, "Resolving deltas: #{count}% (#{curr}/#{total})#{end}"]
 
-      lines = [[0, "Cloning into 'jsdom'...\n"], [1, "remote: Counting objects: 13358, done.\e[K\n"]].concat(lines)
-      lines = lines.concat([[17, 'Something else.']])
+        lines = [[0, "Cloning into 'jsdom'...\n"], [1, "remote: Counting objects: 13358, done.\e[K\n"]].concat(lines)
+        lines = lines.concat([[17, 'Something else.']])
 
-      expect(@render lines).toBe html
+        expect(@render lines).toBe html
 
   it 'random part sizes w/ dot output', ->
     html = strip '''
@@ -806,3 +795,4 @@ describe 'Log.Dom', ->
       <div id="fold-end-install" class="fold-end"></div>
     '''
     expect(@render [[3, 'travis_fold:end:install\r'], [0, 'travis_fold:start:install\r\n'], [1, '.'], [2, 'end\n']]).toBe html
+

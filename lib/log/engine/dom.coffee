@@ -115,9 +115,8 @@ Log.Dom.Line = (part, num, line) ->
   @part   = part
   @num    = num
   @id     = "#{@part.num}-#{@num}"
-  @ends   = !!line[line.length - 1]?.match(/\r|\n/)
-  @hidden = !!line.match(/\r/)
-  @chunks = new Log.Dom.Chunks(@, line.replace(/\n$/, '').replace(/\r/g, ''))
+  @ends   = !!line[line.length - 1]?.match(/\n/)
+  @chunks = new Log.Dom.Chunks(@, line.replace(/\n$/, ''))
   @data   = { type: 'paragraph', num: @part.num, hidden: @hidden, nodes: (chunk.data for chunk in @chunks) }
   @
 Log.Dom.Line.prototype = $.extend new Log.Dom.Node,

@@ -12,16 +12,27 @@ Log.Deansi =
     nodes
 
   node: (part) ->
-    if classes = @classes(part)
-      { type: 'span', class: classes, text: part.text }
-    else
-      { type: 'span', text: part.text }
+    { type: 'span', class: @classes(part), text: part.text }
 
   classes: (part) ->
     result = []
-    result.push(part.foreground)         if part.foreground
-    result.push("bg-#{part.background}") if part.background
-    result.push('bold')                  if part.bold
-    result.push('italic')                if part.italic
+    result = result.concat(@colors(part))
+    result = result.concat(@hidden(part))
     result if result.length > 0
+
+  colors: (part) ->
+    colors = []
+    colors.push(part.foreground)         if part.foreground
+    colors.push("bg-#{part.background}") if part.background
+    colors.push('bold')                  if part.bold
+    colors.push('italic')                if part.italic
+    colors
+
+  hidden: (part) ->
+    if part.text.match(/\r/)
+      part.text = part.text.replace(/\r/g, '')
+      ['hidden']
+    else
+      []
+
 
