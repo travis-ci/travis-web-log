@@ -64,7 +64,6 @@ Log.Dom.Nodes::__defineGetter__ 'length', -> @nodes.length
 Log.Dom.Nodes::__defineGetter__ 'first',  -> @nodes[0]
 Log.Dom.Nodes::__defineGetter__ 'last',   -> @nodes[@length - 1]
 
-
 Log.Dom.Node = ->
 $.extend Log.Dom.Node,
   FOLDS_PATTERN:
@@ -73,7 +72,7 @@ $.extend Log.Dom.Node,
     if fold = string.match(@FOLDS_PATTERN)
       new Log.Dom.Fold(part, num, fold[1], fold[2])
     else
-      new Log.Dom.Line(part, num, string)
+      new Log.Dom.Paragraph(part, num, string)
   reinsert: (nodes) ->
     # console.log "reinsert: #{nodes.map((node) -> node.id).join(', ')}"
     node.remove() for node in nodes
@@ -111,15 +110,15 @@ Log.Dom.Fold.prototype = $.extend new Log.Dom.Node,
   trigger: () ->
     @part.trigger.apply(@part, arguments)
 
-Log.Dom.Line = (part, num, line) ->
+Log.Dom.Paragraph = (part, num, line) ->
   @part   = part
   @num    = num
   @id     = "#{@part.num}-#{@num}"
   @ends   = !!line[line.length - 1]?.match(/\n/)
-  @chunks = new Log.Dom.Chunks(@, line.replace(/\n$/, ''))
+  @chunks = new Log.Dom.Spans(@, line.replace(/\n$/, ''))
   @data   = { type: 'paragraph', num: @part.num, hidden: @hidden, nodes: (chunk.data for chunk in @chunks) }
   @
-Log.Dom.Line.prototype = $.extend new Log.Dom.Node,
+Log.Dom.Paragraph.prototype = $.extend new Log.Dom.Node,
   # 1 - The previous line does not have a line ending, so the current line's chunks are
   #     injected into that (previous) paragraph. If the current line has a line ending and
   #     there's a next line then we need to re-insert that next line so it gets split out
@@ -165,12 +164,12 @@ Log.Dom.Line.prototype = $.extend new Log.Dom.Node,
     @part.trigger.apply(@part, arguments)
 
 
-Log.Dom.Line::__defineSetter__ 'element', (element) ->
+Log.Dom.Paragraph::__defineSetter__ 'element', (element) ->
   child = element.firstChild
   (chunk.element = child = child.nextSibling) for chunk in @chunks
-Log.Dom.Line::__defineGetter__ 'element', ->
+Log.Dom.Paragraph::__defineGetter__ 'element', ->
   @chunks.first.element.parentNode
-Log.Dom.Line::__defineGetter__ 'tail', ->
+Log.Dom.Paragraph::__defineGetter__ 'tail', ->
   parent = @element.parentNode
   next = @
   tail = []
@@ -178,23 +177,23 @@ Log.Dom.Line::__defineGetter__ 'tail', ->
   tail
 
 
-Log.Dom.Chunks = (parent, line) ->
+Log.Dom.Spans = (parent, line) ->
   @push.apply(@, @parse(parent, line))
-Log.Dom.Chunks.prototype = $.extend new Array,
+Log.Dom.Spans.prototype = $.extend new Array,
   parse: (parent, string) ->
-    new Log.Dom.Chunk(parent, ix, chunk) for chunk, ix in Log.Deansi.apply(string)
+    new Log.Dom.Span(parent, ix, chunk) for chunk, ix in Log.Deansi.apply(string)
 
-Log.Dom.Chunks::__defineGetter__ 'first', -> @[0]
-Log.Dom.Chunks::__defineGetter__ 'last',  -> @[@.length - 1]
+Log.Dom.Spans::__defineGetter__ 'first', -> @[0]
+Log.Dom.Spans::__defineGetter__ 'last',  -> @[@.length - 1]
 
 
-Log.Dom.Chunk = (line, num, data) ->
+Log.Dom.Span = (line, num, data) ->
   @line = line
   @num  = num
   @id   = "#{line.part.num}-#{line.num}-#{num}"
   @data = $.extend(data, id: @id)
   @
-$.extend Log.Dom.Chunk.prototype,
+$.extend Log.Dom.Span.prototype,
   prev: ->
     chunk = @line.chunks[@num - 1]
     chunk || @line.prev()?.chunks.slice(-1)[0]
