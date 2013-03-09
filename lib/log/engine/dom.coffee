@@ -78,7 +78,7 @@ $.extend Log.Dom.Node,
     # console.log "reinsert: #{nodes.map((node) -> node.id).join(', ')}"
     node.remove() for node in nodes
     node.part.nodes.insert(node) for node in nodes
-    # console.log document.firstChild.innerHTML.replace(/<\/p>/gm, '</p>\n')
+    # console.log document.firstChild.innerHTML.replace(/<\/p>/gm, '</p>\n') + '\n'
 Log.Dom.Node::__defineGetter__ 'prev', ->
   num = @num
   prev = @part.nodes.at(num -= 1) until prev || num < 0
@@ -137,25 +137,25 @@ Log.Dom.Line.prototype = $.extend new Log.Dom.Node,
       after = prev.chunks.last.element
       console.log "1 - insert #{@id}'s chunks after the last node of prev, id #{after.id}" if Log.DEBUG
       chunk.element = @trigger('insert', chunk.data, after: after) for chunk in @chunks.slice().reverse()
-      # console.log document.firstChild.innerHTML.replace(/<\/p>/gm, '</p>\n')
+      # console.log document.firstChild.innerHTML.replace(/<\/p>/gm, '</p>\n') + '\n'
       Log.Dom.Node.reinsert(@tail) if @ends
     else if (next = @next) && !@ends && !next.fold
       before = next.chunks.first.element
       console.log "2 - insert #{@id}'s chunks before the first node of next, id #{before.id}" if Log.DEBUG
       chunk.element = @trigger('insert', chunk.data, before: before) for chunk in @chunks
-      # console.log document.firstChild.innerHTML.replace(/<\/p>/gm, '</p>\n')
+      # console.log document.firstChild.innerHTML.replace(/<\/p>/gm, '</p>\n') + '\n'
     else if prev
       console.log "3 - insert #{@id} after the parentNode of the last node of prev, id #{prev.id}" if Log.DEBUG
       @element = @trigger 'insert', @data, after: prev.element
-      # console.log document.firstChild.innerHTML.replace(/<\/p>/gm, '</p>\n')
+      # console.log document.firstChild.innerHTML.replace(/<\/p>/gm, '</p>\n') + '\n'
     else if next
       console.log "4 - insert #{@id} before the parentNode of the first node of next, id #{next.id}" if Log.DEBUG
       @element = @trigger 'insert', @data, before: next.element
-      # console.log document.firstChild.innerHTML.replace(/<\/p>/gm, '</p>\n')
+      # console.log document.firstChild.innerHTML.replace(/<\/p>/gm, '</p>\n') + '\n'
     else
       console.log "5 - insert #{@id} at the beginning of #log" if Log.DEBUG
       @element = @trigger 'insert', @data
-      # console.log document.firstChild.innerHTML.replace(/<\/p>/gm, '</p>\n')
+      # console.log document.firstChild.innerHTML.replace(/<\/p>/gm, '</p>\n') + '\n'
 
   remove: ->
     element = @element
@@ -175,7 +175,7 @@ Log.Dom.Line::__defineGetter__ 'tail', ->
   parent = @element.parentNode
   next = @
   tail = []
-  tail.push(next) while (next = next.next) && next.element?.parentNode == parent #!next.ends
+  tail.push(next) while (next = next.next) && !next.fold && next.element?.parentNode == parent
   tail
 
 

@@ -654,10 +654,15 @@
       html = strip('<p><span id="1-0-0">bar</span></p>\n<div id="fold-start-before_script.1" class="fold-start"><span class="fold-name">before_script.1</span></div>\n<p><span id="2-1-0">$ ./before_script</span></p>\n<div id="fold-end-before_script.1" class="fold-end"></div>');
       return expect(this.render(parts)).toBe(html);
     });
-    return it('inserting a terminated line after a number of unterminated parts', function() {
+    it('inserting a terminated line after a number of unterminated parts', function() {
       var html;
       html = strip('<p><span id="1-0-0">.</span><span id="2-0-0">end</span></p>\n<p><span id="3-0-0">end</span></p>\n<p><span id="4-0-0">.</span><span id="5-0-0">.</span><span id="7-0-0">.</span><span id="8-0-0">end</span></p>');
       return expect(this.render([[5, '.'], [4, '.'], [1, '.'], [2, 'end\n'], [3, 'end\n'], [7, '.'], [8, 'end\n']])).toBe(html);
+    });
+    return it('inserting a terminated line after a number of unterminated parts', function() {
+      var html;
+      html = strip('<div id="fold-start-install" class="fold-start"><span class="fold-name">install</span></div>\n<p><a></a><span id="1-0-0">.</span><span id="2-0-0">end</span></p>\n<div id="fold-end-install" class="fold-end"></div>');
+      return expect(this.render([[3, 'travis_fold:end:install\r'], [0, 'travis_fold:start:install\r\n'], [1, '.'], [2, 'end\n']])).toBe(html);
     });
   });
 

@@ -798,3 +798,11 @@ describe 'Log.Dom', ->
       <p><span id="4-0-0">.</span><span id="5-0-0">.</span><span id="7-0-0">.</span><span id="8-0-0">end</span></p>
     '''
     expect(@render [[5,'.'], [4,'.'], [1,'.'], [2,'end\n'], [3,'end\n'], [7,'.'], [8,'end\n']]).toBe html
+
+  it 'inserting a terminated line after a number of unterminated parts', ->
+    html = strip '''
+      <div id="fold-start-install" class="fold-start"><span class="fold-name">install</span></div>
+      <p><a></a><span id="1-0-0">.</span><span id="2-0-0">end</span></p>
+      <div id="fold-end-install" class="fold-end"></div>
+    '''
+    expect(@render [[3, 'travis_fold:end:install\r'], [0, 'travis_fold:start:install\r\n'], [1, '.'], [2, 'end\n']]).toBe html
