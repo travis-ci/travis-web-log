@@ -703,28 +703,49 @@ describe 'Log.Dom', ->
     result
 
   describe 'deansi', ->
+    beforeEach ->
+      @html = strip '''
+        <p>
+          <span id="0-0-0" class="hidden"></span>
+          <span id="0-1-0" class="hidden">1%</span>
+          <span id="1-0-0" class="hidden"></span>
+          <span id="1-1-0" class="hidden"></span>
+          <span id="2-0-0" class="hidden"></span>
+          <span id="2-1-0">Done.</span>
+        </p>
+      '''
+
+    it 'clears the line if the carriage return sits on the next part (ordered)', ->
+      expect(@render [[0, '0%\r1%'], [1, '\r2%\r'], [2, '\rDone.']]).toBe @html
+
+    it 'clears the line if the carriage return sits on the next part (unordered, 1)', ->
+      expect(@render [[1, '\r2%\r'], [2, '\rDone.'], [0, '0%\r1%']]).toBe @html
+
+    it 'clears the line if the carriage return sits on the next part (unordered, 3)', ->
+      expect(@render [[2, '\rDone.'], [1, '\r2%\r'], [0, '0%\r1%']]).toBe @html
+
     it 'simulating git clone', ->
       rescueing @, ->
         html = strip '''
           <p><span id="0-0-0">Cloning into 'jsdom'...</span></p>
           <p><span id="1-0-0">remote: Counting objects: 13358, done.</span></p>
           <p>
-            <span id="2-0-0" class="hidden">remote: Compressing objects   1% (1/4)   </span>
-            <span id="3-0-0" class="hidden">remote: Compressing objects  26% (2/4)   </span>
-            <span id="4-0-0" class="hidden">remote: Compressing objects  51% (3/4)   </span>
-            <span id="5-0-0" class="hidden">remote: Compressing objects  76% (4/4)   </span>
+            <span id="2-0-0" class="hidden"></span>
+            <span id="3-0-0" class="hidden"></span>
+            <span id="4-0-0" class="hidden"></span>
+            <span id="5-0-0" class="hidden"></span>
             <span id="6-0-0">remote: Compressing objects 100% (5/5), done.</span></p>
           <p>
-            <span id="7-0-0" class="hidden">Receiving objects   1% (1/4)   </span>
-            <span id="8-0-0" class="hidden">Receiving objects  26% (2/4)   </span>
-            <span id="9-0-0" class="hidden">Receiving objects  51% (3/4)   </span>
-            <span id="10-0-0" class="hidden">Receiving objects  76% (4/4)   </span>
+            <span id="7-0-0" class="hidden"></span>
+            <span id="8-0-0" class="hidden"></span>
+            <span id="9-0-0" class="hidden"></span>
+            <span id="10-0-0" class="hidden"></span>
             <span id="11-0-0">Receiving objects 100% (5/5), done.</span></p>
           <p>
-            <span id="12-0-0" class="hidden">Resolving deltas:   1% (1/4)   </span>
-            <span id="13-0-0" class="hidden">Resolving deltas:  26% (2/4)   </span>
-            <span id="14-0-0" class="hidden">Resolving deltas:  51% (3/4)   </span>
-            <span id="15-0-0" class="hidden">Resolving deltas:  76% (4/4)   </span>
+            <span id="12-0-0" class="hidden"></span>
+            <span id="13-0-0" class="hidden"></span>
+            <span id="14-0-0" class="hidden"></span>
+            <span id="15-0-0" class="hidden"></span>
             <span id="16-0-0">Resolving deltas: 100% (5/5), done.</span>
           </p>
           <p><span id="17-0-0">Something else.</span></p>

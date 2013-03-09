@@ -12,12 +12,14 @@ Log.Deansi =
     nodes
 
   node: (part) ->
-    { type: 'span', class: @classes(part), text: part.text }
+    node = { type: 'span', text: part.text }
+    node.class = classes if classes = @classes(part)
+    node.hidden = true   if @hidden(part)
+    node
 
   classes: (part) ->
     result = []
     result = result.concat(@colors(part))
-    result = result.concat(@hidden(part))
     result if result.length > 0
 
   colors: (part) ->
@@ -30,9 +32,7 @@ Log.Deansi =
 
   hidden: (part) ->
     if part.text.match(/\r/)
-      part.text = part.text.replace(/\r/g, '')
-      ['hidden']
-    else
-      []
+      part.text = part.text.replace(/^.*\r/gm, '')
+      true
 
 

@@ -41,12 +41,13 @@ describe 'foo', ->
       @log = Log.create(engine: Log.Dom, listeners: [new Log.FragmentRenderer])
       @render = (parts) -> render(@, parts)
 
-  it 'bar', ->
-    parts = eval require('fs').readFileSync('./log.parts.js', 'utf-8')
-    console.log format @render [[6,"0% \r 1% "], [7,"\r"]]
+  # it 'bar', ->
+  #   parts = eval require('fs').readFileSync('./log.parts.js', 'utf-8')
+  #   html = @render parts
+  #   console.log format html
 
 eval require('fs').readFileSync('./spec/engine/dom.js', 'utf-8')
-eval require('fs').readFileSync('./spec/limit.js', 'utf-8')
+# eval require('fs').readFileSync('./spec/limit.js', 'utf-8')
 
 env = jasmine.getEnv()
 env.addReporter(new ConsoleReporter(jasmine))

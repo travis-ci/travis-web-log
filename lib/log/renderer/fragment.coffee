@@ -22,6 +22,11 @@ Log.FragmentRenderer.prototype = $.extend new Log.Listener,
       @insertBefore(node)
     node
 
+  hide: (log, id) ->
+    node = document.getElementById(id)
+    node.setAttribute('class', @addClass(node.getAttribute('class'), 'hidden'))
+    node
+
   render: (data) ->
     if data instanceof Array
       frag = @frag.cloneNode(true)
@@ -94,4 +99,8 @@ Log.FragmentRenderer.prototype = $.extend new Log.Listener,
       @insertBefore(node, other.nextSibling)
     else
       other.parentNode.appendChild(node)
+
+  addClass: (classes, string) ->
+    return if classes?.indexOf(string)
+    if classes then "#{classes} #{string}" else string
 

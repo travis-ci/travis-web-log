@@ -69,7 +69,7 @@
   };
 
   describe('foo', function() {
-    beforeEach(function() {
+    return beforeEach(function() {
       return rescueing(this, function() {
         while (log.firstChild) {
           log.removeChild(log.firstChild);
@@ -83,16 +83,9 @@
         };
       });
     });
-    return it('bar', function() {
-      var parts;
-      parts = eval(require('fs').readFileSync('./log.parts.js', 'utf-8'));
-      return console.log(format(this.render([[6, "0% \r 1% "], [7, "\r"]])));
-    });
   });
 
   eval(require('fs').readFileSync('./spec/engine/dom.js', 'utf-8'));
-
-  eval(require('fs').readFileSync('./spec/limit.js', 'utf-8'));
 
   env = jasmine.getEnv();
 

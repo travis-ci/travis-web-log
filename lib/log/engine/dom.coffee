@@ -110,21 +110,21 @@ Log.Dom.Fold.prototype = $.extend new Log.Dom.Node,
   trigger: () ->
     @part.trigger.apply(@part, arguments)
 
-Log.Dom.Paragraph = (part, num, line) ->
-  @part   = part
-  @num    = num
-  @id     = "#{@part.num}-#{@num}"
-  @ends   = !!line[line.length - 1]?.match(/\n/)
-  @chunks = new Log.Dom.Spans(@, line.replace(/\n$/, ''))
-  @data   = { type: 'paragraph', num: @part.num, hidden: @hidden, nodes: (chunk.data for chunk in @chunks) }
+Log.Dom.Paragraph = (part, num, string) ->
+  @part  = part
+  @num   = num
+  @id    = "#{@part.num}-#{@num}"
+  @ends  = !!string[string.length - 1]?.match(/\n/)
+  @spans = new Log.Dom.Spans(@, string.replace(/\n$/, ''))
+  @data  = { type: 'paragraph', num: @part.num, hidden: @hidden, nodes: (span.data for span in @spans) }
   @
 Log.Dom.Paragraph.prototype = $.extend new Log.Dom.Node,
-  # 1 - The previous line does not have a line ending, so the current line's chunks are
+  # 1 - The previous line does not have a line ending, so the current line's spans are
   #     injected into that (previous) paragraph. If the current line has a line ending and
   #     there's a next line then we need to re-insert that next line so it gets split out
   #     of the current one.
   # 2 - The current line does not have a line ending and there's a next line, so the current
-  #     line's chunks are injected into that (next) paragraph.
+  #     line's spans are injected into that (next) paragraph.
   # 3 - There's a previous line which has a line ending, so we're going to insert the current
   #     line after the previous one.
   # 4 - There's a next line and the current line has a line ending, so we're going to insert
@@ -132,15 +132,15 @@ Log.Dom.Paragraph.prototype = $.extend new Log.Dom.Node,
   # 5 - There are neither previous nor next lines.
   insert: ->
     if (prev = @prev) && !prev.ends && !prev.fold
-      after = prev.chunks.last.element
-      console.log "1 - insert #{@id}'s chunks after the last node of prev, id #{after.id}" if Log.DEBUG
-      chunk.element = @trigger('insert', chunk.data, after: after) for chunk in @chunks.slice().reverse()
+      after = prev.spans.last.element
+      console.log "1 - insert #{@id}'s spans after the last node of prev, id #{after.id}" if Log.DEBUG
+      span.insert(after: after) for span in @spans.slice().reverse()
       # console.log document.firstChild.innerHTML.replace(/<\/p>/gm, '</p>\n') + '\n'
       Log.Dom.Node.reinsert(@tail) if @ends
     else if (next = @next) && !@ends && !next.fold
-      before = next.chunks.first.element
-      console.log "2 - insert #{@id}'s chunks before the first node of next, id #{before.id}" if Log.DEBUG
-      chunk.element = @trigger('insert', chunk.data, before: before) for chunk in @chunks
+      before = next.spans.first.element
+      console.log "2 - insert #{@id}'s spans before the first node of next, id #{before.id}" if Log.DEBUG
+      span.insert(before: before) for span in @spans
       # console.log document.firstChild.innerHTML.replace(/<\/p>/gm, '</p>\n') + '\n'
     else if prev
       console.log "3 - insert #{@id} after the parentNode of the last node of prev, id #{prev.id}" if Log.DEBUG
@@ -157,18 +157,17 @@ Log.Dom.Paragraph.prototype = $.extend new Log.Dom.Node,
 
   remove: ->
     element = @element
-    @trigger 'remove', chunk.element for chunk in @chunks
+    @trigger 'remove', span.element for span in @spans
     @trigger 'remove', element unless element.childNodes.length > 1
     @part.nodes.remove(@)
-  trigger: () ->
+  trigger: ->
     @part.trigger.apply(@part, arguments)
-
 
 Log.Dom.Paragraph::__defineSetter__ 'element', (element) ->
   child = element.firstChild
-  (chunk.element = child = child.nextSibling) for chunk in @chunks
+  (span.element = child = child.nextSibling) for span in @spans
 Log.Dom.Paragraph::__defineGetter__ 'element', ->
-  @chunks.first.element.parentNode
+  @spans.first.element.parentNode
 Log.Dom.Paragraph::__defineGetter__ 'tail', ->
   parent = @element.parentNode
   next = @
@@ -177,27 +176,49 @@ Log.Dom.Paragraph::__defineGetter__ 'tail', ->
   tail
 
 
-Log.Dom.Spans = (parent, line) ->
-  @push.apply(@, @parse(parent, line))
+Log.Dom.Spans = (parent, string) ->
+  @push.apply(@, @parse(parent, string))
 Log.Dom.Spans.prototype = $.extend new Array,
   parse: (parent, string) ->
-    new Log.Dom.Span(parent, ix, chunk) for chunk, ix in Log.Deansi.apply(string)
+    new Log.Dom.Span(parent, ix, span) for span, ix in Log.Deansi.apply(string)
 
 Log.Dom.Spans::__defineGetter__ 'first', -> @[0]
 Log.Dom.Spans::__defineGetter__ 'last',  -> @[@.length - 1]
 
 
-Log.Dom.Span = (line, num, data) ->
-  @line = line
-  @num  = num
-  @id   = "#{line.part.num}-#{line.num}-#{num}"
-  @data = $.extend(data, id: @id)
+Log.Dom.Span = (parent, num, data) ->
+  @parent   = parent
+  @num    = num
+  @id     = "#{parent.part.num}-#{parent.num}-#{num}"
+  @data   = $.extend(data, id: @id)
+  @hidden = true if data.text.match(/\r/)
+  @data.text = data.text.replace(/^.*\r/gm, '')
+  @data.class = ['hidden'] if @hidden
   @
 $.extend Log.Dom.Span.prototype,
-  prev: ->
-    chunk = @line.chunks[@num - 1]
-    chunk || @line.prev()?.chunks.slice(-1)[0]
-  next: ->
-    chunk = @line.chunks[@num + 1]
-    chunk || @line.next()?.chunks[0]
-
+  insert: (pos) ->
+    @element = @trigger('insert', @data, pos)
+    if @hidden
+      span.hide() for span in @head
+    else
+      @hide() if @tail.some (span) -> span.hidden
+  hide: ->
+    @trigger('hide', @id) unless @hidden
+    @hidden = true
+  siblings: (direction) ->
+    siblings = []
+    span = @
+    siblings.unshift(span) while (span = span[direction]) && span.element?.parentNode == @element.parentNode
+    siblings
+  trigger: ->
+    @parent.trigger.apply(@parent, arguments)
+Log.Dom.Span::__defineGetter__ 'head', ->
+  @siblings('prev')
+Log.Dom.Span::__defineGetter__ 'tail', ->
+  @siblings('next')
+Log.Dom.Span::__defineGetter__ 'prev', ->
+  span = @parent.spans[@num - 1]
+  span || @parent.prev?.spans?.last
+Log.Dom.Span::__defineGetter__ 'next', ->
+  span = @parent.spans[@num + 1]
+  span || @parent.next?.spans?.first
