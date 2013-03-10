@@ -15,11 +15,18 @@ $.extend Log.Folds.Fold.prototype,
     @[data.event] = data.id
     @activate() if @start && @end && !@active
   activate: ->
-    fold = node = document.getElementById(@start)
-    next = node.nextSibling
-    unless next?.id == @end || next?.nextSibling?.id == @end
-      nodes = []
-      nodes.push(node) while (node = node.nextSibling) && node.id != @end
-      fold.appendChild(node) for node in nodes
-      fold.setAttribute('class', fold.getAttribute('class') + ' fold')
+    console.log "F - activate #{@start}"
+    console.log document.firstChild.innerHTML.replace(/<p/gm, '\n<p').replace(/<div/gm, '\n<div') + '\n'
+    console.log @
+    console.log @nodes.map (node) -> [node.tagName, node.getAttribute('id'), node.getAttribute('class')]
+    @fold.appendChild(node) for node in @nodes
+    # add a class that adds the fold expand/collapse icon only if we have children
+    @fold.setAttribute('class', @fold.getAttribute('class') + ' fold')
     @active = true
+Log.Folds.Fold::__defineGetter__ 'fold', ->
+  @_fold ||= document.getElementById(@start)
+Log.Folds.Fold::__defineGetter__ 'nodes', ->
+  node = @fold
+  nodes = []
+  nodes.push(node) while (node = node.nextSibling) && node.id != @end
+  nodes

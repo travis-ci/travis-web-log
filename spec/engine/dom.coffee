@@ -677,7 +677,6 @@ describe 'Log.Dom', ->
       it 'unordered (3)', ->
         expect(@render [[6, 'bum\n'], [5, FOLD_END], [4, 'buz\n'], [3, 'baz\n'], [2, 'bar\n'], [1, FOLD_START], [0, 'foo\n']]).toBe @html
 
-
   describe 'escaping', ->
     it 'escapes a script tag', ->
       html = strip '''

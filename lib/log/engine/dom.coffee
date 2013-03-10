@@ -74,10 +74,10 @@ $.extend Log.Dom.Node,
     else
       new Log.Dom.Paragraph(part, num, string)
   reinsert: (nodes) ->
-    # console.log "reinsert: #{nodes.map((node) -> node.id).join(', ')}"
+    console.log "reinsert: #{nodes.map((node) -> node.id).join(', ')}"
     node.remove() for node in nodes
     node.part.nodes.insert(node) for node in nodes
-    # console.log document.firstChild.innerHTML.replace(/<\/p>/gm, '</p>\n') + '\n'
+    console.log document.firstChild.innerHTML.replace(/<\/p>/gm, '</p>\n') + '\n'
 Log.Dom.Node::__defineGetter__ 'prev', ->
   num = @num
   prev = @part.nodes.at(num -= 1) until prev || num < 0
@@ -98,14 +98,22 @@ Log.Dom.Fold = (part, num, event, name) ->
   @
 Log.Dom.Fold.prototype = $.extend new Log.Dom.Node,
   insert: ->
-    @element = if prev = @prev
-      console.log "F - insert #{@id} after #{prev.element.id}" if Log.DEBUG
+    @element = if (prev = @prev) && !@prev.element.parentNode.getAttribute('class')?.match('fold')
+      console.log "F.1 - insert #{@id} (#{@part.num}-#{@num}) after #{prev.id}" if Log.DEBUG
       @trigger 'insert', @data, after: prev.element
-    else if next = @next
-      console.log "F - insert #{@id} before #{next.element.id}" if Log.DEBUG
+    else if (next = @next) && !@next.element.parentNode.getAttribute('class')?.match('fold')
+      console.log "F.2 - insert #{@id} (#{@part.num}-#{@num}) before #{next.id}" if Log.DEBUG
       @trigger 'insert', @data, before: next.element
+    else if prev && prev.element.parentNode.id?.match('fold')
+      console.log "F.3 - insert #{@id} (#{@part.num}-#{@num}) after #{prev.element.parentNode.id}" if Log.DEBUG
+      @trigger 'insert', @data, after: prev.element.parentNode
+    else if prev && prev.element.id?.match('fold')
+      console.log "F.4 - insert #{@id} (#{@part.num}-#{@num}) after #{prev.element.id}" if Log.DEBUG
+      @trigger 'insert', @data, after: prev.element.parentNode
     else
-      console.log "F - insert #{@id}" if Log.DEBUG
+      console.log prev
+      console.log document.firstChild.innerHTML.replace(/<p/gm, '\n<p').replace(/<div/gm, '\n<div') + '\n'
+      console.log "F.5 - insert #{@id} (#{@part.num}-#{@num})" if Log.DEBUG
       @trigger 'insert', @data
   trigger: () ->
     @part.trigger.apply(@part, arguments)
@@ -133,25 +141,29 @@ Log.Dom.Paragraph.prototype = $.extend new Log.Dom.Node,
   insert: ->
     if (prev = @prev) && !prev.ends && !prev.fold
       after = prev.spans.last.element
-      console.log "1 - insert #{@id}'s spans after the last node of prev, id #{after.id}" if Log.DEBUG
+      console.log "P.1 - insert #{@id}'s spans after the last node of prev, id #{after.id}" if Log.DEBUG
       span.insert(after: after) for span in @spans.slice().reverse()
       # console.log document.firstChild.innerHTML.replace(/<\/p>/gm, '</p>\n') + '\n'
       Log.Dom.Node.reinsert(@tail) if @ends
     else if (next = @next) && !@ends && !next.fold
       before = next.spans.first.element
-      console.log "2 - insert #{@id}'s spans before the first node of next, id #{before.id}" if Log.DEBUG
+      console.log "P.2 - insert #{@id}'s spans before the first node of next, id #{before.id}" if Log.DEBUG
       span.insert(before: before) for span in @spans
       # console.log document.firstChild.innerHTML.replace(/<\/p>/gm, '</p>\n') + '\n'
+    else if prev?.fold && prev?.element.getAttribute('class')?.match(' fold')
+      console.log "P.3 - append #{@id} to fold #{prev.id}" if Log.DEBUG
+      @element = @trigger 'insert', @data, after: prev.element.firstChild
+      # console.log document.firstChild.innerHTML.replace(/<\/p>/gm, '</p>\n') + '\n'
     else if prev
-      console.log "3 - insert #{@id} after the parentNode of the last node of prev, id #{prev.id}" if Log.DEBUG
+      console.log "P.4 - insert #{@id} after the parentNode of the last node of prev, id #{prev.id}" if Log.DEBUG
       @element = @trigger 'insert', @data, after: prev.element
       # console.log document.firstChild.innerHTML.replace(/<\/p>/gm, '</p>\n') + '\n'
     else if next
-      console.log "4 - insert #{@id} before the parentNode of the first node of next, id #{next.id}" if Log.DEBUG
+      console.log "P.5 - insert #{@id} before the parentNode of the first node of next, id #{next.id}" if Log.DEBUG
       @element = @trigger 'insert', @data, before: next.element
       # console.log document.firstChild.innerHTML.replace(/<\/p>/gm, '</p>\n') + '\n'
     else
-      console.log "5 - insert #{@id} at the beginning of #log" if Log.DEBUG
+      console.log "P.6 - insert #{@id} at the beginning of #log" if Log.DEBUG
       @element = @trigger 'insert', @data
       # console.log document.firstChild.innerHTML.replace(/<\/p>/gm, '</p>\n') + '\n'
 

@@ -22,7 +22,7 @@ strip = (string) ->
 
 format = (html) ->
   # html.replace(/<div/gm, '\n<div').replace(/<p>/gm, '\n<p>').replace(/<\/p>/gm, '\n</p>').replace(/<span/gm, '\n  <span')
-  html.replace(/<\/p>/gm, '</p>\n').replace(/<\/div>/gm, '</div>\n')
+  html.replace(/<p/gm, '\n<p').replace(/<div/gm, '\n<div')
 
 rescueing = (context, block) ->
   try
@@ -41,13 +41,73 @@ describe 'foo', ->
       @log = Log.create(engine: Log.Dom, listeners: [new Log.FragmentRenderer])
       @render = (parts) -> render(@, parts)
 
-  # it 'bar', ->
-  #   parts = eval require('fs').readFileSync('./log.parts.js', 'utf-8')
-  #   html = @render parts
-  #   console.log format html
+  it 'bar', ->
+    # @log.listeners.push(new Log.Folds)
+    # parts = eval require('fs').readFileSync('./log.parts.js', 'utf-8')
+    # html = @render parts
+    # console.log format html
+
+describe 'folds with multiple folds and strings on the same part', ->
+  beforeEach ->
+    rescueing @, ->
+      log.removeChild(log.firstChild) while log.firstChild
+      @log = Log.create(engine: Log.Dom, listeners: [new Log.FragmentRenderer])
+      @render = (parts) -> render(@, parts)
+    @log.listeners.push(new Log.Folds)
+    @html = strip '''
+      <div id="fold-start-install.1" class="fold-start fold">
+        <span class="fold-name">install.1</span>
+        <p><span id="0-1-0">$ install-1</span></p>
+        <p><span id="1-0-0">foo</span></p>
+      </div>
+      <div id="fold-end-install.1" class="fold-end"></div>
+      <div id="fold-start-install.2" class="fold-start fold">
+        <span class="fold-name">install.2</span>
+        <p><span id="1-3-0">$ install-2</span></p>
+        <p><span id="1-4-0">bar</span></p>
+      </div>
+      <div id="fold-end-install.2" class="fold-end"></div>
+    '''
+
+  it 'ordered', ->
+    parts = [
+      [0, 'fold:start:install.1\r$ install-1\r\n'],
+      [1, 'foo\nfold:end:install.1\rfold:start:install.2\r$ install-2\nbar\n'],
+      [2, 'fold:end:install.2\r\n'],
+    ]
+    expect(@render parts).toBe @html
+
+  it 'unordered 1', ->
+    rescueing @, ->
+      parts = [
+        [1, 'foo\nfold:end:install.1\rfold:start:install.2\r$ install-2\nbar\n'],
+        [0, 'fold:start:install.1\r$ install-1\r\n'],
+        [2, 'fold:end:install.2\r\n'],
+      ]
+      expect(@render parts).toBe @html
+
+  it 'unordered 2', ->
+    rescueing @, ->
+      parts = [
+        [2, 'fold:end:install.2\r\n'],
+        [0, 'fold:start:install.1\r$ install-1\r\n'],
+        [1, 'foo\nfold:end:install.1\rfold:start:install.2\r$ install-2\nbar\n'],
+      ]
+      expect(@render parts).toBe @html
+
+  it 'unordered 3', ->
+    parts = [
+      [2, 'fold:end:install.2\r\n'],
+      [1, 'foo\nfold:end:install.1\rfold:start:install.2\r$ install-2\nbar\n'],
+      [0, 'fold:start:install.1\r$ install-1\r\n'],
+    ]
+    actual = @render parts
+    console.log format @html
+    console.log format actual
+
 
 eval require('fs').readFileSync('./spec/engine/dom.js', 'utf-8')
-# eval require('fs').readFileSync('./spec/limit.js', 'utf-8')
+eval require('fs').readFileSync('./spec/limit.js', 'utf-8')
 
 env = jasmine.getEnv()
 env.addReporter(new ConsoleReporter(jasmine))
