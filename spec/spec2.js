@@ -1,5 +1,5 @@
 (function() {
-  var $, ConsoleReporter, beforeEach, describe, document, env, expect, format, it, jasmine, log, render, rescueing, strip, window, _ref;
+  var $, ConsoleReporter, beforeEach, describe, document, dump, env, expect, format, it, jasmine, log, render, rescueing, strip, window, _ref;
 
   $ = require('./../vendor/jquery.fake.js').$;
 
@@ -68,29 +68,18 @@
     return strip(document.firstChild.innerHTML);
   };
 
-  describe('foo', function() {
-    beforeEach(function() {
-      return rescueing(this, function() {
-        while (log.firstChild) {
-          log.removeChild(log.firstChild);
-        }
-        this.log = Log.create({
-          engine: Log.Dom,
-          listeners: [new Log.FragmentRenderer]
-        });
-        return this.render = function(parts) {
-          return render(this, parts);
-        };
+  dump = function(log) {
+    console.log('');
+    log.lines.each(function(line) {
+      console.log("L." + line.id);
+      return line.children.each(function(span) {
+        return console.log("  S." + span.id + " " + (span.data.text && JSON.stringify(span.data.text) || '') + (span.ends && ' ends' || ''));
       });
     });
-    return it('foo', function() {
-      return rescueing(this, function() {
-        var html;
-        html = this.render([[0, '.'], [1, '.'], [3, '.'], [2, '.']]);
-        return console.log(format(html));
-      });
-    });
-  });
+    return console.log('');
+  };
+
+  eval(require('fs').readFileSync('./spec/log.js', 'utf-8'));
 
   env = jasmine.getEnv();
 

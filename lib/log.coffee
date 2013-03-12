@@ -1,39 +1,31 @@
-@Log = (engine)->
-  @listeners = []
-  @engine = new (engine || Log.Dom)(@)
+@Log = ->
+  @renderer = new Log.Renderer
+  @lines = new Log.Nodes(@)
+  @parts = {}
   @
 $.extend Log,
   DEBUG: true
-  create: (options) ->
-    log = new Log(options.engine)
-    log.listeners.push(log.limit = new Log.Limit(options.limit)) if options.limit
-    log.listeners.push(listener) for listener in options.listeners || []
-    log
+  SLICE: 500
 $.extend Log.prototype,
-  trigger: () ->
-    args = Array::slice.apply(arguments)
-    event = args[0]
-    for listener, ix in @listeners
-      result = listener.notify.apply(listener, [@].concat(args))
-      element = result if result?.hasChildNodes # ugh.
-    element
   set: (num, string) ->
-    @engine.set(num, string)
+    if @parts[num]
+      console.log "part #{num} exists"
+    else
+      @parts[num] = true
+      lines  = string.split(/^/gm) || [] # hu?
+      slices = (lines.splice(0, Log.SLICE) while lines.length > 0)
+      ix = -1
+      next = =>
+        @setSlice(num, slices.shift(), ix += 1)
+        setTimeout(next, 50) unless slices.length == 0
+      next()
+  setSlice: (num, lines, start) ->
+    for line, ix in lines || []
+      # break if @limit?.limited # hrm ...
+      line = Log.Node.create("#{num}-#{start * Log.SLICE + ix}", line)
+      @lines.add(line)
+      # line.render()
 
-Log.Listener = ->
-$.extend Log.Listener.prototype,
-  notify: (log, event, num) ->
-    @[event].apply(@, [log].concat(Array::slice.call(arguments, 2))) if @[event]
-
-# require 'log/buffer'
 require 'log/deansi'
-require 'log/engine/dom'
-# require 'log/engine/chunks'
-# require 'log/engine/live'
-require 'log/folds'
-require 'log/instrument'
-require 'log/limit'
-require 'log/renderer/fragment'
-# require 'log/renderer/inner_html'
-# require 'log/renderer/jquery'
-
+require 'log/nodes'
+require 'log/renderer'

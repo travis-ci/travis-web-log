@@ -1,4 +1,4 @@
-Log.FragmentRenderer = ->
+Log.Renderer = ->
   @frag = document.createDocumentFragment()
   @para = @createParagraph()
   @span = @createSpan()
@@ -6,11 +6,11 @@ Log.FragmentRenderer = ->
   @fold = @createFold()
   @
 
-Log.FragmentRenderer.prototype = $.extend new Log.Listener,
-  remove: (log, node) ->
+$.extend Log.Renderer.prototype,
+  remove: (node) ->
     node.parentNode.removeChild(node) if node
 
-  insert: (log, data, pos) ->
+  insert: (data, pos) ->
     node = @render(data)
     if after = pos?.after
       after = document.getElementById(pos) if typeof after == 'String'
@@ -22,7 +22,7 @@ Log.FragmentRenderer.prototype = $.extend new Log.Listener,
       @insertBefore(node)
     node
 
-  hide: (log, id) ->
+  hide: (id) ->
     node = document.getElementById(id)
     node.setAttribute('class', @addClass(node.getAttribute('class'), 'hidden'))
     node
@@ -41,6 +41,7 @@ Log.FragmentRenderer.prototype = $.extend new Log.Listener,
 
   renderParagraph: (data) ->
     para = @para.cloneNode(true)
+    para.setAttribute('id', data.id)
     para.setAttribute('style', 'display: none;') if data.hidden
     for node in data.nodes
       type = node.type[0].toUpperCase() + node.type.slice(1)
