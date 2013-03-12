@@ -41,7 +41,7 @@ $.extend Log.Renderer.prototype,
 
   renderParagraph: (data) ->
     para = @para.cloneNode(true)
-    para.setAttribute('id', data.id)
+    para.setAttribute('id', data.id) if data.id
     para.setAttribute('style', 'display: none;') if data.hidden
     for node in data.nodes
       type = node.type[0].toUpperCase() + node.type.slice(1)

@@ -55,4 +55,48 @@ P:1            P:1
 
 
 
+Nested structure that is mostly used for looking up spans
+
+P:0
+  L:0-0
+    S:0-0-0
+    S:0-0-1
+  L:1-0
+    S:0-1-0
+    S:0-1-1
+  L:2-0
+    S:0-2-0
+    S:0-2-1
+P:1
+  L:1-0
+    S:1-0-0
+    S:1-0-1
+
+Only spans are inserted to the document. When it is inserted before/after a paragraph it
+will be wrapped into a paragraph, too.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

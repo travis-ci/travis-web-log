@@ -6,6 +6,7 @@
 
 Log.Deansi =
   apply: (string) ->
+    return [] unless string
     string = string.replace(/\e\[K/g, '')
     nodes = ansiparse(string).map (part) => @node(part)
     nodes.push(@node(text: '')) if nodes.length == 0

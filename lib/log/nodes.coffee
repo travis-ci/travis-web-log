@@ -3,59 +3,34 @@ Log.Node = (id) ->
   @children = new Log.Nodes(@)
   @
 $.extend Log.Node,
-  FOLDS_PATTERN:
-    /fold:(start|end):([\w_\-\.]+)/
-  create: (id, string) ->
-    if fold = string.match(@FOLDS_PATTERN)
-      new Log.Fold(id, fold[1], fold[2])
-    else
-      new Log.Line(id, string)
-$.extend Log.Node,
-  reinsert: (lines, spans) ->
-    console.log "reinsert: #{spans.map((span) -> span.id).join(', ')}"
-    span.remove() for span in spans
-    line = new Log.Line(spans[spans.length - 1].id.replace(/-[\d]+$/, ''))
-    lines.add(line)
-    line.render()
-    line.addChild(span) for span in spans
-    dump(@log)
-    # console.log document.firstChild.innerHTML.replace(/<\/p>/gm, '</p>\n') + '\n'
+  key: (id) ->
+    id.split('-').map((i) -> '000000'.concat(i).slice(-6)).join('')
 $.extend Log.Node.prototype,
   addChild: (node) ->
     @children.add(node)
-Log.Node::__defineGetter__ 'log',      -> @parent.log || @parent
-Log.Node::__defineGetter__ 'renderer', -> @parent.renderer
-Log.Node::__defineGetter__ 'isFirst',  -> @id == @parent.children.first?.id
-Log.Node::__defineGetter__ 'isLast',   -> @id == @parent.children.last?.id
+Log.Node::__defineGetter__ 'key',        -> @_key ||= Log.Node.key(@id)
+Log.Node::__defineGetter__ 'log',        -> @_log ||= @parent?.log || @parent
+Log.Node::__defineGetter__ 'renderer',   -> @log._renderer
+Log.Node::__defineGetter__ 'firstChild', -> @children.first
+Log.Node::__defineGetter__ 'lastChild',  -> @children.last
+
 
 Log.Nodes = (parent) ->
   @parent = parent if parent
   @items  = []
+  @index  = {}
   @
 $.extend Log.Nodes.prototype,
   add: (item) ->
-    ix = (@prevIndex(item.id) || 0) + 1
+    ix = @position(item) || 0
     @items.splice(ix, 0, item)
     item.parent = @parent if @parent
     item.prev.next = item if item.prev = @items[ix - 1] || @parent?.prev?.children.last
     item.next.prev = item if item.next = @items[ix + 1] || @parent?.next?.children.first
-    item.added()
     item
-  remove: (item) ->
-    item.next.prev = item.prev if item.next
-    item.prev.next = item.next if item.prev
-    @items.splice(@items.indexOf(item), 1)
-    @parent.remove() if @items.length == 0
-  prev: (id) ->
-    @items[@prevIndex(id)]
-  prevIndex: (id) ->
+  position: (item) ->
     for ix in [@items.length - 1..0] by -1
-      return ix if @items[ix].id < id
-  at: (ix) ->
-    @items[ix]
-  find: (id) ->
-    for item in @items
-      return item if item.id == id
+      return ix + 1 if @items[ix].key < item.key
   each: (func) ->
     @items.slice().forEach(func)
   map: (func) ->
@@ -65,106 +40,127 @@ Log.Nodes::__defineGetter__ 'last',   -> @items[@length - 1]
 Log.Nodes::__defineGetter__ 'length', -> @items.length
 
 
+Log.Part = (id, string) ->
+  Log.Node.apply(@, arguments)
+  @string = string
+  @
+$.extend Log.Part,
+  create: (parent, id, string) ->
+    part = new Log.Part(id, string)
+    parent.addChild(part)
+    for line, ix in (string.replace('\r\n', '\n').split(/^/gm) || [])
+      if fold = line.match(Log.Fold.PATTERN)
+        Log.Fold.create(part, "#{id}-#{ix}", fold[1], fold[2])
+      else
+        Log.Line.create(part, "#{id}-#{ix}", line)
+Log.Part.prototype = $.extend new Log.Node
+
+
+Log.Fold = (id, event, name) ->
+  Log.Node.apply(@, arguments)
+  @fold = true
+  @id   = id
+  @data = { type: 'fold', id: id, event: event, name: name }
+  @
+$.extend Log.Fold,
+  PATTERN:
+    /fold:(start|end):([\w_\-\.]+)/
+  create: (parent, id, event, name) ->
+    fold = new Log.Fold(id, event, name)
+    parent.addChild(fold)
+    fold.render()
+    parent.log.folds.add(fold.data)
+Log.Fold.prototype = $.extend new Log.Node,
+  render: ->
+    if @prev
+      console.log "F.1 insert #{@id} after prev #{@prev.id}" if Log.DEBUG
+      @renderer.insert(@data, after: @prev.element)
+    else if @next
+      console.log "F.2 insert #{@id} before next #{@next.id}" if Log.DEBUG
+      @renderer.insert(@data, before: @next.element)
+    else
+      console.log "F.3 insert #{@id}" if Log.DEBUG
+      @renderer.insert(@data)
+    console.log format document.firstChild.innerHTML + '\n'
+Log.Fold::__defineGetter__ 'element', ->
+  document.getElementById(@id)
+
 Log.Line = (id, string) ->
   Log.Node.apply(@, arguments)
   @string = string
-  @ends = !!string[string.length - 1]?.match(/\n/) if string
   @
+$.extend Log.Line,
+  create: (parent, id, string) ->
+    line = new Log.Line(id, string)
+    parent.addChild(line)
+    Log.Span.create(line, "#{id}-#{ix}", span) for span, ix in Log.Deansi.apply(string) if string
 Log.Line.prototype = $.extend new Log.Node,
-  added: ->
-    if @string
-      @addChild(new Log.Span("#{@id}-#{ix}", span)) for span, ix in Log.Deansi.apply(@string)
-    # if (prev = @prev) && !prev.ends && !prev.fold
-    #   console.log "P.1 - move #{@id}'s spans into prev (#{prev.id})" if Log.DEBUG
-    #   last = @children.last
-    #   @prev.join(@)
-    #   dump(@log)
-    #   # console.log document.firstChild.innerHTML.replace(/<\/p>/gm, '</p>\n') + '\n'
-    #   Log.Node.reinsert(@parent.lines, last.tail) if @ends
-    # else if (next = @next) && !@ends && !next.fold
-    #   console.log "P.2 - move next's #{next.id} spans into self (#{@id})" if Log.DEBUG
-    #   @element = @renderer.insert(@data, before: next.element)
-    #   last = @children.last
-    #   dump(@log)
-    #   @join(next)
-    #   dump(@log)
-    #   # console.log document.firstChild.innerHTML.replace(/<\/p>/gm, '</p>\n') + '\n'
-    #   # Log.Node.reinsert(@parent.lines, last.tail) if @ends
-    # else if prev = @prev
-    #   console.log "P.4 - insert #{@id} after prev (#{prev.id})" if Log.DEBUG
-    #   @element = @renderer.insert(@data, after: prev.element)
-    #   dump(@log)
-    #   # console.log document.firstChild.innerHTML.replace(/<\/p>/gm, '</p>\n') + '\n'
-    # else if next = @next
-    #   console.log "P.5 - insert #{@id} before next (#{next.id})" if Log.DEBUG
-    #   @element = @renderer.insert(@data, before: next.element)
-    #   dump(@log)
-    #   # console.log document.firstChild.innerHTML.replace(/<\/p>/gm, '</p>\n') + '\n'
-    # else
-    #   console.log "P.6 - insert #{@id} at the beginning of #log" if Log.DEBUG
-    #   @element = @renderer.insert(@data)
-    #   dump(@log)
-    #   # console.log document.firstChild.innerHTML.replace(/<\/p>/gm, '</p>\n') + '\n'
-  join: (other) ->
-    other.children.map (span) =>
-      span.remove()
-      @ends = true if span.ends
-      @addChild(span)
-      span.render()
-      span
-  remove: ->
-    @renderer.remove(@element)
-    @parent.lines.remove(@)
-# Log.Line::__defineGetter__ 'ends', ->
-#   @children.items.some (span) -> span.ends
+  render: ->
+    if @prev
+      console.log "P.1 insert #{@id} after prev #{@prev.id}" if Log.DEBUG
+      @renderer.insert(@data, after: @prev.element)
+    else if @next
+      console.log "P.2 insert #{@id} before next #{@next.id}" if Log.DEBUG
+      @renderer.insert(@data, before: @next.element)
+    else
+      console.log "P.3 insert #{@id}" if Log.DEBUG
+      @renderer.insert(@data)
 Log.Line::__defineGetter__ 'data', ->
-  { type: 'paragraph', id: @id, nodes: @children.map (node) -> node.data } # , hidden: @hidden
-Log.Line::__defineGetter__ 'tail', ->
-  parent = @element.parentNode
-  next = @
-  tail = []
-  tail.push(next) while (next = next.next) && !next.fold && next.element?.parentNode == parent
-  tail
+  { type: 'paragraph', nodes: @children.map (node) -> node.data } #, id: @id, hidden: @hidden
+Log.Line::__defineGetter__ 'element', ->
+  @children.first.element.parentNode
 
 
 Log.Span = (id, data) ->
   Log.Node.apply(@, arguments)
   @data = $.extend(data, id: id)
   @ends = !!data.text[data.text.length - 1]?.match(/\n/)
-  @data.text = data.text.replace(/\n$/, '')
-  @data.class = ['ends'] if @ends
+  @hidden = !!data.text.match(/\r/)
+  @data.text = data.text.replace(/^.*\r/gm, '').replace(/\n$/, '')
+  # @data.class = ['ends'] if @ends
+  @data.class = ['hidden'] if @hidden
   @
+$.extend Log.Span,
+  create: (parent, id, data) ->
+    span = new Log.Span(id, data)
+    parent.addChild(span)
+    span.render()
 Log.Span.prototype = $.extend new Log.Node,
-  added: ->
-    # if @ends && (tail = @tail) && tail.length > 0
-    #   # reinsert tail
-    if @isFirst && (prev = @parent.prev?.children.prev(@id)) #&& !prev.ends
-      @parent.children.remove(@)
-      prev.parent.addChild(@)
-    # if prev = @prev
-    #   console.log "S.1 - insert #{@id} after prev #{prev.id}" if Log.DEBUG
-    #   @renderer.insert(@data, after: prev.element)
-    # else if next = @next
-    #   console.log "S.2 - insert #{@id} before next #{next.id}" if Log.DEBUG
-    #   @renderer.insert(@data, before: next.element)
-    # else
-    #   console.log "S.3 - insert #{@id} into parent #{@parent.id}" if Log.DEBUG
-    #   @renderer.insert(@data, into: @parent.element)
-  # if @hidden
-  #   span.hide() for span in @head
-  # else
-  #   @hide() if @tail.some (span) -> span.hidden
-  remove: ->
-    @renderer.remove(@element)
-    @parent.children.remove(@)
-  siblings: (direction) ->
+  render: ->
+    if @prev && !@prev.ends
+      console.log "S.1 insert #{@id} after prev #{@prev.id}" if Log.DEBUG
+      @renderer.insert(@data, after: @prev.element)
+    else if @next && !@ends
+      console.log "S.2 insert #{@id} before next #{@next.id}" if Log.DEBUG
+      @renderer.insert(@data, before: @next.element)
+    else
+      @parent.render()
+    console.log format document.firstChild.innerHTML + '\n'
+
+    @split(tail) if @ends && (tail = @tail).length > 0
+
+    if @hidden
+      span.hide() for span in @head
+    else if @tail.some((span) -> span.hidden)
+      @hide()
+  hide: ->
+    @renderer.hide(@id) unless @hidden
+    @hidden = true
+  split: (spans) ->
+    console.log "S.3 split #{spans.map((span) -> span.id).join(', ')}"
+    @renderer.remove(span.element) for span in spans
+    first.parent.render() if first = spans.shift()
+    span.render() for span in spans
+  isSibling: (other) ->
+    @element.parentNode == other.element.parentNode
+  siblings: (type) ->
     siblings = []
     span = @
-    siblings.unshift(span) while (span = span[direction]) && span.element?.parentNode == @element.parentNode
+    siblings.push(span) while (span = span[type]) && @isSibling(span)
     siblings
 Log.Span::__defineGetter__ 'element', ->
   document.getElementById(@id)
 Log.Span::__defineGetter__ 'head', ->
-  @siblings('prev')
+  @siblings('prev').reverse()
 Log.Span::__defineGetter__ 'tail', ->
   @siblings('next')

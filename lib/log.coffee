@@ -1,31 +1,25 @@
 @Log = ->
-  @renderer = new Log.Renderer
-  @lines = new Log.Nodes(@)
+  @_renderer = new Log.Renderer
+  @children = new Log.Nodes(@)
   @parts = {}
+  @folds = new Log.Folds
   @
 $.extend Log,
   DEBUG: true
   SLICE: 500
-$.extend Log.prototype,
+
+require 'log/nodes'
+
+Log.prototype = $.extend new Log.Node,
   set: (num, string) ->
     if @parts[num]
       console.log "part #{num} exists"
     else
       @parts[num] = true
-      lines  = string.split(/^/gm) || [] # hu?
-      slices = (lines.splice(0, Log.SLICE) while lines.length > 0)
-      ix = -1
-      next = =>
-        @setSlice(num, slices.shift(), ix += 1)
-        setTimeout(next, 50) unless slices.length == 0
-      next()
-  setSlice: (num, lines, start) ->
-    for line, ix in lines || []
-      # break if @limit?.limited # hrm ...
-      line = Log.Node.create("#{num}-#{start * Log.SLICE + ix}", line)
-      @lines.add(line)
-      # line.render()
+      Log.Part.create(@, num.toString(), string)
 
+require 'log/folds'
 require 'log/deansi'
-require 'log/nodes'
 require 'log/renderer'
+
+

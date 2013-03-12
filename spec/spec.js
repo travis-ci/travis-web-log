@@ -1,5 +1,5 @@
 (function() {
-  var $, ConsoleReporter, beforeEach, describe, document, env, expect, format, it, jasmine, log, render, rescueing, strip, window, _ref;
+  var $, ConsoleReporter, beforeEach, describe, document, dump, env, expect, format, it, jasmine, log, render, rescueing, strip, window, _ref;
 
   $ = require('./../vendor/jquery.fake.js').$;
 
@@ -22,7 +22,7 @@
 
   eval(require('fs').readFileSync('vendor/ansiparse.js', 'utf-8'));
 
-  eval(require('fs').readFileSync('spec/jsdom.js', 'utf-8'));
+  eval(require('fs').readFileSync('spec/helpers/jsdom.js', 'utf-8'));
 
   document = new exports.Document;
 
@@ -68,29 +68,29 @@
     return strip(document.firstChild.innerHTML);
   };
 
-  describe('foo', function() {
-    beforeEach(function() {
-      return rescueing(this, function() {
-        while (log.firstChild) {
-          log.removeChild(log.firstChild);
-        }
-        this.log = Log.create({
-          engine: Log.Dom,
-          listeners: [new Log.FragmentRenderer]
+  dump = function(log) {
+    console.log('');
+    log.children.each(function(part) {
+      console.log("P." + part.id);
+      return part.children.each(function(line) {
+        console.log("  L." + line.id);
+        return line.children.each(function(span) {
+          return console.log("    S." + span.id + " " + (span.data.text && JSON.stringify(span.data.text) || '') + (span.ends && ' ends' || ''));
         });
-        return this.render = function(parts) {
-          return render(this, parts);
-        };
       });
     });
-    return it('foo', function() {
-      return rescueing(this, function() {
-        var html;
-        html = this.render([[0, '.'], [1, '.'], [3, '.'], [2, '.']]);
-        return console.log(format(html));
-      });
-    });
-  });
+    return console.log('');
+  };
+
+  eval(require('fs').readFileSync('./spec/log/deansi.js', 'utf-8'));
+
+  eval(require('fs').readFileSync('./spec/log/dots.js', 'utf-8'));
+
+  eval(require('fs').readFileSync('./spec/log/folds.js', 'utf-8'));
+
+  eval(require('fs').readFileSync('./spec/log/nodes.js', 'utf-8'));
+
+  eval(require('fs').readFileSync('./spec/log.js', 'utf-8'));
 
   env = jasmine.getEnv();
 
