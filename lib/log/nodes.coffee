@@ -10,7 +10,6 @@ Log.extend Log.Node.prototype,
   addChild: (node) ->
     @children.add(node)
 Log.Node::__defineGetter__ 'log',        -> @_log ||= @parent?.log || @parent
-Log.Node::__defineGetter__ 'renderer',   -> @log._renderer if @log
 Log.Node::__defineGetter__ 'firstChild', -> @children.first
 Log.Node::__defineGetter__ 'lastChild',  -> @children.last
 
@@ -42,19 +41,25 @@ Log.Nodes::__defineGetter__ 'length', -> @items.length
 
 Log.Part = (id, string) ->
   Log.Node.apply(@, arguments)
-  @string = string
+  @string = string || ''
+  lines = @string.replace(/\r\n/gm, '\n').split(/^/gm) || []
+  @slices = (lines.splice(0, Log.SLICE) while lines.length > 0)
   @
 Log.extend Log.Part,
   create: (parent, id, string) ->
     part = new Log.Part(id, string)
     parent.addChild(part)
-    for line, ix in (string.replace(/\r\n/gm, '\n').split(/^/gm) || [])
+    part.process(0)
+Log.Part.prototype = Log.extend new Log.Node,
+  process: (slice) ->
+    for line, ix in @slices[slice]
+      return if @log.limit?.limited
+      ix = slice * Log.SLICE + ix
       if fold = line.match(Log.Fold.PATTERN)
-        Log.Fold.create(part, "#{id}-#{ix}", fold[1], fold[2])
+        Log.Fold.create(@, "#{@id}-#{ix}", fold[1], fold[2])
       else
-        Log.Line.create(part, "#{id}-#{ix}", line)
-Log.Part.prototype = Log.extend new Log.Node
-
+        Log.Line.create(@, "#{@id}-#{ix}", line)
+    setTimeout((=> @process(slice + 1)), Log.TIMEOUT) unless slice == @slices.length - 1
 
 Log.Fold = (id, event, name) ->
   Log.Node.apply(@, arguments)
@@ -74,13 +79,13 @@ Log.Fold.prototype = Log.extend new Log.Node,
   render: ->
     if @prev
       console.log "F.1 insert #{@id} after prev #{@prev.id}" if Log.DEBUG
-      @renderer.insert(@data, after: @prev.element)
+      @log.insert(@data, after: @prev.element)
     else if @next
       console.log "F.2 insert #{@id} before next #{@next.id}" if Log.DEBUG
-      @renderer.insert(@data, before: @next.element)
+      @log.insert(@data, before: @next.element)
     else
       console.log "F.3 insert #{@id}" if Log.DEBUG
-      @renderer.insert(@data)
+      @log.insert(@data)
     # console.log format document.firstChild.innerHTML + '\n'
 Log.Fold::__defineGetter__ 'element', ->
   document.getElementById(@id)
@@ -98,13 +103,13 @@ Log.Line.prototype = Log.extend new Log.Node,
   render: ->
     if @prev
       console.log "P.1 insert #{@id} after prev #{@prev.id}" if Log.DEBUG
-      @renderer.insert(@data, after: @prev.element)
+      @log.insert(@data, after: @prev.element)
     else if @next
       console.log "P.2 insert #{@id} before next #{@next.id}" if Log.DEBUG
-      @renderer.insert(@data, before: @next.element)
+      @log.insert(@data, before: @next.element)
     else
       console.log "P.3 insert #{@id}" if Log.DEBUG
-      @renderer.insert(@data)
+      @log.insert(@data)
 Log.Line::__defineGetter__ 'data', ->
   { type: 'paragraph', nodes: @children.map (node) -> node.data }
 Log.Line::__defineGetter__ 'element', ->
@@ -116,7 +121,7 @@ Log.Span = (id, data) ->
   @data = $.extend(data, id: id)
   @ends = !!data.text[data.text.length - 1]?.match(/\n/)
   @hidden = !!data.text.match(/\r/)
-  @data.text = data.text.replace(/\r/gm, '').replace(/\n$/, '')
+  @data.text = data.text.replace(/.*\r/gm, '').replace(/\n$/, '')
   @data.class = ['hidden'] if @hidden
   @
 Log.extend Log.Span,
@@ -128,10 +133,10 @@ Log.Span.prototype = Log.extend new Log.Node,
   render: ->
     if @prev && !@prev.ends
       console.log "S.1 insert #{@id} after prev #{@prev.id}" if Log.DEBUG
-      @renderer.insert(@data, after: @prev.element)
+      @log.insert(@data, after: @prev.element)
     else if @next && !@ends
       console.log "S.2 insert #{@id} before next #{@next.id}" if Log.DEBUG
-      @renderer.insert(@data, before: @next.element)
+      @log.insert(@data, before: @next.element)
     else
       @parent.render()
     # console.log format document.firstChild.innerHTML + '\n'
@@ -144,11 +149,11 @@ Log.Span.prototype = Log.extend new Log.Node,
     else if @tail.some((span) -> span.hidden)
       @hide()
   hide: ->
-    @renderer.hide(@id) unless @hidden
+    @log.hide(@element) unless @hidden
     @hidden = true
   split: (spans) ->
     console.log "S.3 split #{spans.map((span) -> span.id).join(', ')}"
-    @renderer.remove(span.element) for span in spans
+    @log.remove(span.element) for span in spans
     first.parent.render() if first = spans.shift()
     span.render() for span in spans
   isSibling: (other) ->

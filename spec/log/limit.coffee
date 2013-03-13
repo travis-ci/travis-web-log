@@ -14,7 +14,7 @@ describe 'Log.Limit', ->
   beforeEach ->
     rescueing @, ->
       log.removeChild(log.firstChild) while log.firstChild
-      @log = Log.create(engine: Log.Dom, limit: 2, listeners: [new Log.FragmentRenderer])
+      @log = Log.create(engine: Log.Dom, limit: 2)
       @render = (data) ->
         rescueing @, ->
           @log.set(num, string) for [num, string] in data

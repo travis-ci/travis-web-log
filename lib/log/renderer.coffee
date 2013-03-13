@@ -7,9 +7,6 @@ Log.Renderer = ->
   @
 
 Log.extend Log.Renderer.prototype,
-  remove: (node) ->
-    node.parentNode.removeChild(node) if node
-
   insert: (data, pos) ->
     node = @render(data)
     if after = pos?.after
@@ -22,9 +19,12 @@ Log.extend Log.Renderer.prototype,
       @insertBefore(node)
     node
 
-  hide: (id) ->
-    node = document.getElementById(id)
+  hide: (node) ->
     node.setAttribute('class', @addClass(node.getAttribute('class'), 'hidden'))
+    node
+
+  remove: (node) ->
+    node.parentNode.removeChild(node) if node
     node
 
   render: (data) ->

@@ -13,7 +13,7 @@ Log.extend Log.Folds.Fold.prototype,
     @[data.event] = data.id
     @activate() if @start && @end && !@active
   activate: ->
-    console.log "F - activate #{@start}"
+    console.log "F - activate #{@start}" if Log.DEBUG
     @fold.appendChild(node) for node in @nodes
     # add a class that adds the fold expand/collapse icon only if we have children
     @fold.setAttribute('class', @fold.getAttribute('class') + ' fold')

@@ -29,8 +29,7 @@
         }
         this.log = Log.create({
           engine: Log.Dom,
-          limit: 2,
-          listeners: [new Log.FragmentRenderer]
+          limit: 2
         });
         return this.render = function(data) {
           return rescueing(this, function() {
