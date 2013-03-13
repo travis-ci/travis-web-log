@@ -4,13 +4,16 @@
   @parts = {}
   @folds = new Log.Folds
   @
-$.extend Log,
+Log.extend = (one, other) ->
+  one[name] = other[name] for name of other
+  one
+Log.extend Log,
   DEBUG: true
   SLICE: 500
 
 require 'log/nodes'
 
-Log.prototype = $.extend new Log.Node,
+Log.prototype = Log.extend new Log.Node,
   set: (num, string) ->
     if @parts[num]
       console.log "part #{num} exists"

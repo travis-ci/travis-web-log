@@ -6,7 +6,7 @@ Log.Renderer = ->
   @fold = @createFold()
   @
 
-$.extend Log.Renderer.prototype,
+Log.extend Log.Renderer.prototype,
   remove: (node) ->
     node.parentNode.removeChild(node) if node
 

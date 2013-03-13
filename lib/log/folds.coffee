@@ -1,14 +1,14 @@
 Log.Folds = ->
   @folds = {}
   @
-$.extend Log.Folds.prototype,
+Log.extend Log.Folds.prototype,
   add: (data) ->
     fold = @folds[data.name] ||= new Log.Folds.Fold
     fold.receive(data)
 
 Log.Folds.Fold = ->
   @
-$.extend Log.Folds.Fold.prototype,
+Log.extend Log.Folds.Fold.prototype,
   receive: (data) ->
     @[data.event] = data.id
     @activate() if @start && @end && !@active
