@@ -29,19 +29,49 @@
         log.removeChild(log.firstChild);
       }
       this.log = new Log();
-      this.render = function(parts) {
+      return this.render = function(parts) {
         return render(this, parts);
       };
-      return this.html = strip('<p>\n  <span id="0-0-0" class="hidden"></span>\n  <span id="0-1-0" class="hidden">1%</span>\n  <span id="1-0-0" class="hidden"></span>\n  <span id="1-1-0" class="hidden"></span>\n  <span id="2-0-0" class="hidden"></span>\n  <span id="2-1-0">Done.</span>\n</p>');
     });
-    it('clears the line if the carriage return sits on the next part (ordered)', function() {
-      return expect(this.render([[0, '0%\r1%'], [1, '\r2%\r'], [2, '\rDone.']])).toBe(this.html);
+    describe('carriage returns and newlines', function() {
+      it('nl', function() {
+        var html;
+        html = this.render([[0, 'foo\n']]);
+        console.log(html);
+        return expect(html).toBe('<p><span id="0-0-0">foo</span></p>');
+      });
+      it('cr nl', function() {
+        var html;
+        html = this.render([[0, 'foo\r\n']]);
+        console.log(html);
+        return expect(html).toBe('<p><span id="0-0-0">foo</span></p>');
+      });
+      it('cr cr nl', function() {
+        var html;
+        html = this.render([[0, 'foo\r\r\n']]);
+        console.log(html);
+        return expect(html).toBe('<p><span id="0-0-0">foo</span></p>');
+      });
+      return it('cr', function() {
+        var html;
+        html = this.render([[0, 'foo\r']]);
+        console.log(html);
+        return expect(html).toBe('<p><span id="0-0-0" class="hidden"></span></p>');
+      });
     });
-    it('clears the line if the carriage return sits on the next part (unordered, 1)', function() {
-      return expect(this.render([[1, '\r2%\r'], [2, '\rDone.'], [0, '0%\r1%']])).toBe(this.html);
-    });
-    it('clears the line if the carriage return sits on the next part (unordered, 3)', function() {
-      return expect(this.render([[2, '\rDone.'], [1, '\r2%\r'], [0, '0%\r1%']])).toBe(this.html);
+    describe('progress', function() {
+      beforeEach(function() {
+        return this.html = strip('<p>\n  <span id="0-0-0" class="hidden"></span>\n  <span id="0-1-0" class="hidden">1%</span>\n  <span id="1-0-0" class="hidden"></span>\n  <span id="1-1-0" class="hidden"></span>\n  <span id="2-0-0" class="hidden"></span>\n  <span id="2-1-0">Done.</span>\n</p>');
+      });
+      it('clears the line if the carriage return sits on the next part (ordered)', function() {
+        return expect(this.render([[0, '0%\r1%'], [1, '\r2%\r'], [2, '\rDone.']])).toBe(this.html);
+      });
+      it('clears the line if the carriage return sits on the next part (unordered, 1)', function() {
+        return expect(this.render([[1, '\r2%\r'], [2, '\rDone.'], [0, '0%\r1%']])).toBe(this.html);
+      });
+      return it('clears the line if the carriage return sits on the next part (unordered, 3)', function() {
+        return expect(this.render([[2, '\rDone.'], [1, '\r2%\r'], [0, '0%\r1%']])).toBe(this.html);
+      });
     });
     it('simulating git clone', function() {
       return rescueing(this, function() {

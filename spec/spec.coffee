@@ -47,10 +47,21 @@ dump = (log) ->
 
 # eval require('fs').readFileSync('./spec/log/deansi.js', 'utf-8')
 # eval require('fs').readFileSync('./spec/log/dots.js', 'utf-8')
-eval require('fs').readFileSync('./spec/log/folds.js', 'utf-8')
+# eval require('fs').readFileSync('./spec/log/folds.js', 'utf-8')
 # eval require('fs').readFileSync('./spec/log/limit.js', 'utf-8')
 # eval require('fs').readFileSync('./spec/log/nodes.js', 'utf-8')
 # eval require('fs').readFileSync('./spec/log.js', 'utf-8')
+
+describe 'foo', ->
+  beforeEach ->
+    log.removeChild(log.firstChild) while log.firstChild
+    @log = new Log()
+    @render = (parts) -> render(@, parts)
+
+  it 'foo', ->
+    parts = eval require('fs').readFileSync('log.parts.1.js', 'utf-8')
+    console.log format @render parts
+
 
 
 env = jasmine.getEnv()

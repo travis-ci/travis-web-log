@@ -82,7 +82,22 @@
     return console.log('');
   };
 
-  eval(require('fs').readFileSync('./spec/log/folds.js', 'utf-8'));
+  describe('foo', function() {
+    beforeEach(function() {
+      while (log.firstChild) {
+        log.removeChild(log.firstChild);
+      }
+      this.log = new Log();
+      return this.render = function(parts) {
+        return render(this, parts);
+      };
+    });
+    return it('foo', function() {
+      var parts;
+      parts = eval(require('fs').readFileSync('log.parts.1.js', 'utf-8'));
+      return console.log(format(this.render(parts)));
+    });
+  });
 
   env = jasmine.getEnv();
 
