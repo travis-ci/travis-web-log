@@ -20,25 +20,62 @@ describe 'deansi', ->
     log.removeChild(log.firstChild) while log.firstChild
     @log = new Log()
     @render = (parts) -> render(@, parts)
-    @html = strip '''
-      <p>
-        <span id="0-0-0" class="hidden"></span>
-        <span id="0-1-0" class="hidden">1%</span>
-        <span id="1-0-0" class="hidden"></span>
-        <span id="1-1-0" class="hidden"></span>
-        <span id="2-0-0" class="hidden"></span>
-        <span id="2-1-0">Done.</span>
-      </p>
-    '''
 
-  it 'clears the line if the carriage return sits on the next part (ordered)', ->
-    expect(@render [[0, '0%\r1%'], [1, '\r2%\r'], [2, '\rDone.']]).toBe @html
+  describe 'carriage returns and newlines', ->
+    it 'nl', ->
+      html = @render [[0, 'foo\n']]
+      console.log html
+      expect(html).toBe '<p><span id="0-0-0">foo</span></p>'
 
-  it 'clears the line if the carriage return sits on the next part (unordered, 1)', ->
-    expect(@render [[1, '\r2%\r'], [2, '\rDone.'], [0, '0%\r1%']]).toBe @html
+    it 'cr nl', ->
+      html = @render [[0, 'foo\r\n']]
+      console.log html
+      expect(html).toBe '<p><span id="0-0-0">foo</span></p>'
 
-  it 'clears the line if the carriage return sits on the next part (unordered, 3)', ->
-    expect(@render [[2, '\rDone.'], [1, '\r2%\r'], [0, '0%\r1%']]).toBe @html
+    it 'cr cr nl', ->
+      html = @render [[0, 'foo\r\r\n']]
+      console.log html
+      expect(html).toBe '<p><span id="0-0-0">foo</span></p>'
+
+    it 'cr', ->
+      html = @render [[0, 'foo\r']]
+      console.log html
+      expect(html).toBe '<p><span id="0-0-0" class="hidden"></span></p>'
+
+  format = (html) ->
+    html.replace(/<p>/gm, '\n<p>').replace(/<\/p>/gm, '\n</p>').replace(/<span/gm, '\n  <span')
+
+  it 'foo', ->
+    rescueing @, ->
+      console.log format @render [
+        [0, 'foo'],
+        [3, 'baz'],
+        [2, '\r'],
+        [1, 'bar'],
+      ]
+
+
+  describe 'progress', ->
+    beforeEach ->
+      @html = strip '''
+        <p>
+          <span id="0-0-0" class="hidden"></span>
+          <span id="0-1-0" class="hidden">1%</span>
+          <span id="1-0-0" class="hidden"></span>
+          <span id="1-1-0" class="hidden"></span>
+          <span id="2-0-0" class="hidden"></span>
+          <span id="2-1-0">Done.</span>
+        </p>
+      '''
+
+    it 'clears the line if the carriage return sits on the next part (ordered)', ->
+      expect(@render [[0, '0%\r1%'], [1, '\r2%\r'], [2, '\rDone.']]).toBe @html
+
+    it 'clears the line if the carriage return sits on the next part (unordered, 1)', ->
+      expect(@render [[1, '\r2%\r'], [2, '\rDone.'], [0, '0%\r1%']]).toBe @html
+
+    it 'clears the line if the carriage return sits on the next part (unordered, 3)', ->
+      expect(@render [[2, '\rDone.'], [1, '\r2%\r'], [0, '0%\r1%']]).toBe @html
 
   it 'simulating git clone', ->
     rescueing @, ->

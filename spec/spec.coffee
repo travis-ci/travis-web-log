@@ -39,18 +39,34 @@ dump = (log) ->
   log.children.each (part) ->
     console.log "P.#{part.id}"
     part.children.each (line) ->
-      console.log "  L.#{line.id}"
+      prev = line.prev && " prev: #{line.prev.id}" || ''
+      next = line.next && " next: #{line.next.id}" || ''
+      console.log "  L.#{line.id}#{prev}#{next}"
       line.children.each (span) ->
-        console.log "    S.#{span.id} #{span.data.text && JSON.stringify(span.data.text) || ''}#{span.ends && ' ends' || ''}"
+        prev = span.prev && " prev: #{span.prev.id}" || ''
+        next = span.next && " next: #{span.next.id}" || ''
+        ends = span.ends && ' ends' || ''
+        console.log "    S.#{span.id} #{span.data.text && JSON.stringify(span.data.text) || ''}#{prev}#{next}#{ends}"
   console.log ''
 
 
-# eval require('fs').readFileSync('./spec/log/deansi.js', 'utf-8')
+eval require('fs').readFileSync('./spec/log/deansi.js', 'utf-8')
 # eval require('fs').readFileSync('./spec/log/dots.js', 'utf-8')
-eval require('fs').readFileSync('./spec/log/folds.js', 'utf-8')
+# eval require('fs').readFileSync('./spec/log/folds.js', 'utf-8')
 # eval require('fs').readFileSync('./spec/log/limit.js', 'utf-8')
 # eval require('fs').readFileSync('./spec/log/nodes.js', 'utf-8')
 # eval require('fs').readFileSync('./spec/log.js', 'utf-8')
+
+# describe 'foo', ->
+#   beforeEach ->
+#     log.removeChild(log.firstChild) while log.firstChild
+#     @log = new Log()
+#     @render = (parts) -> render(@, parts)
+#
+#   it 'foo', ->
+#     parts = eval require('fs').readFileSync('log.parts.1.js', 'utf-8')
+#     console.log format @render parts
+
 
 
 env = jasmine.getEnv()

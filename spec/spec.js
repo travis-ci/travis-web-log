@@ -73,16 +73,23 @@
     log.children.each(function(part) {
       console.log("P." + part.id);
       return part.children.each(function(line) {
-        console.log("  L." + line.id);
+        var next, prev;
+        prev = line.prev && (" prev: " + line.prev.id) || '';
+        next = line.next && (" next: " + line.next.id) || '';
+        console.log("  L." + line.id + prev + next);
         return line.children.each(function(span) {
-          return console.log("    S." + span.id + " " + (span.data.text && JSON.stringify(span.data.text) || '') + (span.ends && ' ends' || ''));
+          var ends;
+          prev = span.prev && (" prev: " + span.prev.id) || '';
+          next = span.next && (" next: " + span.next.id) || '';
+          ends = span.ends && ' ends' || '';
+          return console.log("    S." + span.id + " " + (span.data.text && JSON.stringify(span.data.text) || '') + prev + next + ends);
         });
       });
     });
     return console.log('');
   };
 
-  eval(require('fs').readFileSync('./spec/log/folds.js', 'utf-8'));
+  eval(require('fs').readFileSync('./spec/log/deansi.js', 'utf-8'));
 
   env = jasmine.getEnv();
 

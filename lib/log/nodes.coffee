@@ -42,7 +42,7 @@ Log.Nodes::__defineGetter__ 'length', -> @items.length
 Log.Part = (id, string) ->
   Log.Node.apply(@, arguments)
   @string = string || ''
-  lines = @string.replace(/\r\n/gm, '\n').split(/^/gm) || []
+  lines = @string.replace(/\r+\n/gm, '\n').split(/^/gm) || []
   @slices = (lines.splice(0, Log.SLICE) while lines.length > 0)
   @
 Log.extend Log.Part,
@@ -59,7 +59,8 @@ Log.Part.prototype = Log.extend new Log.Node,
         Log.Fold.create(@, "#{@id}-#{ix}", fold[1], fold[2])
       else
         Log.Line.create(@, "#{@id}-#{ix}", line)
-    setTimeout((=> @process(slice + 1)), Log.TIMEOUT) unless slice == @slices.length - 1
+    setTimeout((=> @process(slice + 1)), Log.TIMEOUT) unless slice >= @slices.length - 1
+
 
 Log.Fold = (id, event, name) ->
   Log.Node.apply(@, arguments)
@@ -91,6 +92,7 @@ Log.Fold.prototype = Log.extend new Log.Node,
     # console.log format document.firstChild.innerHTML + '\n'
 Log.Fold::__defineGetter__ 'element', ->
   document.getElementById(@id)
+
 
 Log.Line = (id, string) ->
   Log.Node.apply(@, arguments)
@@ -153,6 +155,8 @@ Log.Span.prototype = Log.extend new Log.Node,
     if @ends && (tail = @tail).length > 0
       @split(tail)
 
+    # TODO this might hide things that would need to be un-hidden later on,
+    # e.g. when lines are split. not sure what's the best approach ...
     if @hidden
       span.hide() for span in @head
     else if @tail.some((span) -> span.hidden)
@@ -166,7 +170,7 @@ Log.Span.prototype = Log.extend new Log.Node,
     first.parent.render() if first = spans.shift()
     span.render() for span in spans
   isSibling: (other) ->
-    @element.parentNode == other.element.parentNode
+    @element?.parentNode == other.element?.parentNode
   siblings: (type) ->
     siblings = []
     span = @
