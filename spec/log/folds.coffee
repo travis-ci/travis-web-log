@@ -11,7 +11,7 @@ describe 'folds', ->
     beforeEach ->
       @html = strip '''
         <p><span id="0-0-0">foo</span></p>
-        <div id="1-0" class="fold-start fold"><span class="fold-name">install</span>
+        <div id="1-0" class="fold-start fold active"><span class="fold-name">install</span>
           <p><span id="2-0-0">bar</span></p>
           <p><span id="3-0-0">baz</span></p>
           <p><span id="4-0-0">buz</span></p>
@@ -37,7 +37,7 @@ describe 'folds', ->
     ]
     html = strip '''
       <p><span id="1-0-0">bar</span></p>
-      <div id="2-0" class="fold-start fold"><span class="fold-name">before_script.1</span>
+      <div id="2-0" class="fold-start fold active"><span class="fold-name">before_script.1</span>
       <p><span id="2-1-0">$ ./before_script</span></p></div>
       <div id="2-2" class="fold-end"></div>
     '''
@@ -45,8 +45,20 @@ describe 'folds', ->
 
   it 'inserting a terminated line after a number of unterminated parts within a fold', ->
     html = strip '''
-      <div id="0-0" class="fold-start fold"><span class="fold-name">install</span></div>
-      <p><a></a><span id="1-0-0">.</span><span id="2-0-0">end</span></p>
+      <div id="0-0" class="fold-start fold active"><span class="fold-name">install</span>
+        <p><a></a><span id="1-0-0">.</span><span id="2-0-0">end</span></p>
+      </div>
       <div id="3-0" class="fold-end"></div>
     '''
-    expect(@render [[3, 'travis_fold:end:install\r'], [0, 'travis_fold:start:install\r\n'], [1, '.'], [2, 'end\n']]).toBe html
+    rescueing @, ->
+      expect(@render [[3, 'travis_fold:end:install\r'], [0, 'travis_fold:start:install\r\n'], [1, '.'], [2, 'end\n']]).toBe html
+
+  describe 'an empty fold', ->
+    it 'does not add "active" as a class', ->
+      html = strip '''
+        <div id="0-0" class="fold-start fold"><span class="fold-name">install</span></div>
+        <div id="1-0" class="fold-end"></div>
+      '''
+      rescueing @, ->
+        console.log format @render [[1, 'travis_fold:end:install\r'], [0, 'travis_fold:start:install\r\n']]
+

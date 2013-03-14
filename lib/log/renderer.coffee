@@ -9,7 +9,10 @@ Log.Renderer = ->
 Log.extend Log.Renderer.prototype,
   insert: (data, pos) ->
     node = @render(data)
-    if after = pos?.after
+    if into = pos?.into
+      into = document.getElementById(pos?.into) if typeof into == 'String'
+      @appendTo(node, into)
+    else if after = pos?.after
       after = document.getElementById(pos) if typeof after == 'String'
       @insertAfter(node, after)
     else if before = pos?.before
@@ -99,7 +102,10 @@ Log.extend Log.Renderer.prototype,
     if other.nextSibling
       @insertBefore(node, other.nextSibling)
     else
-      other.parentNode.appendChild(node)
+      @appendTo(node, other.parentNode)
+
+  appendTo: (node, other) ->
+    other.appendChild(node)
 
   addClass: (classes, string) ->
     return if classes?.indexOf(string)

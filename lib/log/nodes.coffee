@@ -52,7 +52,7 @@ Log.extend Log.Part,
     part.process(0)
 Log.Part.prototype = Log.extend new Log.Node,
   process: (slice) ->
-    for line, ix in @slices[slice]
+    for line, ix in (@slices[slice] || [])
       return if @log.limit?.limited
       ix = slice * Log.SLICE + ix
       if fold = line.match(Log.Fold.PATTERN)
@@ -63,9 +63,11 @@ Log.Part.prototype = Log.extend new Log.Node,
 
 Log.Fold = (id, event, name) ->
   Log.Node.apply(@, arguments)
-  @fold = true
-  @id   = id
-  @data = { type: 'fold', id: id, event: event, name: name }
+  @fold  = true
+  @id    = id
+  @event = event
+  @name  = name
+  @data  = { type: 'fold', id: id, event: event, name: name }
   @
 Log.extend Log.Fold,
   PATTERN:
@@ -74,7 +76,7 @@ Log.extend Log.Fold,
     fold = new Log.Fold(id, event, name)
     parent.addChild(fold)
     fold.render()
-    parent.log.folds.add(fold.data)
+    fold.active = parent.log.folds.add(fold.data)
 Log.Fold.prototype = Log.extend new Log.Node,
   render: ->
     if @prev
@@ -101,14 +103,20 @@ Log.extend Log.Line,
     Log.Span.create(line, "#{id}-#{ix}", span) for span, ix in Log.Deansi.apply(string) if string
 Log.Line.prototype = Log.extend new Log.Node,
   render: ->
-    if @prev
-      console.log "P.1 insert #{@id} after prev #{@prev.id}" if Log.DEBUG
+    if (fold = @prev) && fold.event == 'start' && fold.active
+      console.log "P.1 insert #{@id} into fold #{fold.id}" if Log.DEBUG
+      element = @log.folds.folds[fold.name].fold
+      @log.insert(@data, into: element)
+      element.setAttribute('class', "#{classes} active") unless (classes = element.getAttribute('class')).match(/active/)
+      console.log classes
+    else if @prev
+      console.log "P.2 insert #{@id} after prev #{@prev.id}" if Log.DEBUG
       @log.insert(@data, after: @prev.element)
     else if @next
-      console.log "P.2 insert #{@id} before next #{@next.id}" if Log.DEBUG
+      console.log "P.3 insert #{@id} before next #{@next.id}" if Log.DEBUG
       @log.insert(@data, before: @next.element)
     else
-      console.log "P.3 insert #{@id}" if Log.DEBUG
+      console.log "P.4 insert #{@id}" if Log.DEBUG
       @log.insert(@data)
 Log.Line::__defineGetter__ 'data', ->
   { type: 'paragraph', nodes: @children.map (node) -> node.data }
@@ -152,7 +160,7 @@ Log.Span.prototype = Log.extend new Log.Node,
     @log.hide(@element) unless @hidden
     @hidden = true
   split: (spans) ->
-    console.log "S.3 split #{spans.map((span) -> span.id).join(', ')}"
+    console.log "S.3 split #{spans.map((span) -> span.id).join(', ')}" if Log.DEBUG
     @log.remove(span.element) for span in spans
     first.parent.render() if first = spans.shift()
     span.render() for span in spans
