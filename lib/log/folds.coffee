@@ -21,7 +21,7 @@ Log.extend Log.Folds.Fold.prototype,
   classes: ->
     classes = @fold.getAttribute('class').split(' ')
     classes.push('fold')
-    classes.push('active') if @fold.childNodes.length > 1
+    classes.push('active') if @fold.childNodes.length > 2
     classes.join(' ')
 
 Log.Folds.Fold::__defineGetter__ 'fold', ->

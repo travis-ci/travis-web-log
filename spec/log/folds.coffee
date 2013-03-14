@@ -37,7 +37,7 @@ describe 'folds', ->
     ]
     html = strip '''
       <p><span id="1-0-0">bar</span></p>
-      <div id="2-0" class="fold-start fold active"><span class="fold-name">before_script.1</span>
+      <div id="2-0" class="fold-start fold"><span class="fold-name">before_script.1</span>
       <p><span id="2-1-0">$ ./before_script</span></p></div>
       <div id="2-2" class="fold-end"></div>
     '''
@@ -45,7 +45,7 @@ describe 'folds', ->
 
   it 'inserting a terminated line after a number of unterminated parts within a fold', ->
     html = strip '''
-      <div id="0-0" class="fold-start fold active"><span class="fold-name">install</span>
+      <div id="0-0" class="fold-start fold"><span class="fold-name">install</span>
         <p><a></a><span id="1-0-0">.</span><span id="2-0-0">end</span></p>
       </div>
       <div id="3-0" class="fold-end"></div>

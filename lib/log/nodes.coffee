@@ -107,7 +107,8 @@ Log.Line.prototype = Log.extend new Log.Node,
       console.log "P.1 insert #{@id} into fold #{fold.id}" if Log.DEBUG
       element = @log.folds.folds[fold.name].fold
       @log.insert(@data, into: element)
-      element.setAttribute('class', "#{classes} active") unless (classes = element.getAttribute('class')).match(/active/)
+      if element.childNodes.length > 2 && !(classes = element.getAttribute('class')).match(/active/)
+        element.setAttribute('class', "#{classes} active")
       console.log classes
     else if @prev
       console.log "P.2 insert #{@id} after prev #{@prev.id}" if Log.DEBUG
