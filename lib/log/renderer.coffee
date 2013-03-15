@@ -46,7 +46,7 @@ Log.extend Log.Renderer.prototype,
     para = @para.cloneNode(true)
     para.setAttribute('id', data.id) if data.id
     para.setAttribute('style', 'display: none;') if data.hidden
-    for node in data.nodes
+    for node in (data.nodes || [])
       type = node.type[0].toUpperCase() + node.type.slice(1)
       node = @["render#{type}"](node)
       para.appendChild(node)

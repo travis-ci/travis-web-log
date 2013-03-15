@@ -12,6 +12,8 @@ Log.extend Log,
   DEBUG: true
   SLICE: 500
   TIMEOUT: 25
+  FOLD: /fold:(start|end):([\w_\-\.]+)/
+
   create: (options) ->
     options ||= {}
     log = new Log()

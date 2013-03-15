@@ -37,38 +37,25 @@ render = (context, parts) ->
 dump = (log) ->
   console.log ''
   log.children.each (part) ->
-    console.log "P.#{part.id}"
-    part.children.each (line) ->
-      prev = line.prev && " prev: #{line.prev.id}" || ''
-      next = line.next && " next: #{line.next.id}" || ''
-      console.log "  L.#{line.id}#{prev}#{next}"
-      line.children.each (span) ->
-        prev = span.prev && " prev: #{span.prev.id}" || ''
-        next = span.next && " next: #{span.next.id}" || ''
-        ends = span.ends && ' ends' || ''
-        console.log "    S.#{span.id} #{span.data.text && JSON.stringify(span.data.text) || ''}#{prev}#{next}#{ends}"
+    prev = part.prev && " prev: #{part.prev.id}" || ''
+    next = part.next && " next: #{part.next.id}" || ''
+    console.log "P.#{part.id}#{prev}#{next}"
+    part.children.each (span) ->
+      bits = []
+      bits.push("prev: #{span.prev.id}") if span.prev
+      bits.push("next: #{span.next.id}") if span.next
+      bits.push('ends')                  if span.ends
+      console.log "    S.#{span.id} #{span.data.text && JSON.stringify(span.data.text) || ''} #{bits.join(', ')}"
+      console.log "      line: [#{(span.line.spans.map (span) -> span.id).join(', ')}]" if span.line
   console.log ''
 
 
 # eval require('fs').readFileSync('./spec/log/deansi.js', 'utf-8')
 # eval require('fs').readFileSync('./spec/log/dots.js', 'utf-8')
-# eval require('fs').readFileSync('./spec/log/folds.js', 'utf-8')
+eval require('fs').readFileSync('./spec/log/folds.js', 'utf-8')
 # eval require('fs').readFileSync('./spec/log/limit.js', 'utf-8')
 # eval require('fs').readFileSync('./spec/log/nodes.js', 'utf-8')
-eval require('fs').readFileSync('./spec/log.js', 'utf-8')
-
-# describe 'foo', ->
-#   beforeEach ->
-#     log.removeChild(log.firstChild) while log.firstChild
-#     @log = new Log()
-#     @render = (parts) -> render(@, parts)
-#
-#   it 'foo', ->
-#     rescueing @, ->
-#       parts = eval require('fs').readFileSync('log.parts.js', 'utf-8')
-#       console.log format @render parts
-
-
+# eval require('fs').readFileSync('./spec/log.js', 'utf-8')
 
 env = jasmine.getEnv()
 env.addReporter(new ConsoleReporter(jasmine))

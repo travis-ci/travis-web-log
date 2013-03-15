@@ -6,19 +6,19 @@ describe 'simulating test dot output (5 parts, complete permutations)', ->
 
     @html =
       1: strip '''
-        <p><span id="0-0-0">foo</span></p>
-        <p><span id="1-0-0">.</span><span id="2-0-0">.</span><span id="3-0-0">.</span></p>
-        <p><span id="4-0-0">bar</span></p>
+        <p><span id="0-0">foo</span></p>
+        <p><span id="1-0">.</span><span id="2-0">.</span><span id="3-0">.</span></p>
+        <p><span id="4-0">bar</span></p>
       '''
       2: strip '''
-        <p><span id="0-0-0">foo</span></p>
-        <p><span id="1-0-0">.</span><span id="2-0-0">.</span><span id="3-0-0">.</span></p>
-        <p><span id="4-0-0">bar</span></p>
+        <p><span id="0-0">foo</span></p>
+        <p><span id="1-0">.</span><span id="2-0">.</span><span id="3-0">.</span></p>
+        <p><span id="4-0">bar</span></p>
       '''
       3: strip '''
-        <p><span id="0-0-0">foo</span></p>
-        <p><span id="1-0-0">.</span><span id="2-0-0">.</span><span id="3-0-0">.</span></p>
-        <p><span id="4-0-0">bar</span></p>
+        <p><span id="0-0">foo</span></p>
+        <p><span id="1-0">.</span><span id="2-0">.</span><span id="3-0">.</span></p>
+        <p><span id="4-0">bar</span></p>
       '''
 
   it 'ordered', ->

@@ -10,9 +10,9 @@
         return render(this, parts);
       };
       return this.html = {
-        1: strip('<p><span id="0-0-0">foo</span></p>\n<p><span id="1-0-0">.</span><span id="2-0-0">.</span><span id="3-0-0">.</span></p>\n<p><span id="4-0-0">bar</span></p>'),
-        2: strip('<p><span id="0-0-0">foo</span></p>\n<p><span id="1-0-0">.</span><span id="2-0-0">.</span><span id="3-0-0">.</span></p>\n<p><span id="4-0-0">bar</span></p>'),
-        3: strip('<p><span id="0-0-0">foo</span></p>\n<p><span id="1-0-0">.</span><span id="2-0-0">.</span><span id="3-0-0">.</span></p>\n<p><span id="4-0-0">bar</span></p>')
+        1: strip('<p><span id="0-0">foo</span></p>\n<p><span id="1-0">.</span><span id="2-0">.</span><span id="3-0">.</span></p>\n<p><span id="4-0">bar</span></p>'),
+        2: strip('<p><span id="0-0">foo</span></p>\n<p><span id="1-0">.</span><span id="2-0">.</span><span id="3-0">.</span></p>\n<p><span id="4-0">bar</span></p>'),
+        3: strip('<p><span id="0-0">foo</span></p>\n<p><span id="1-0">.</span><span id="2-0">.</span><span id="3-0">.</span></p>\n<p><span id="4-0">bar</span></p>')
       };
     });
     it('ordered', function() {

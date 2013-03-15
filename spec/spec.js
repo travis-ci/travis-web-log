@@ -71,25 +71,34 @@
   dump = function(log) {
     console.log('');
     log.children.each(function(part) {
-      console.log("P." + part.id);
-      return part.children.each(function(line) {
-        var next, prev;
-        prev = line.prev && (" prev: " + line.prev.id) || '';
-        next = line.next && (" next: " + line.next.id) || '';
-        console.log("  L." + line.id + prev + next);
-        return line.children.each(function(span) {
-          var ends;
-          prev = span.prev && (" prev: " + span.prev.id) || '';
-          next = span.next && (" next: " + span.next.id) || '';
-          ends = span.ends && ' ends' || '';
-          return console.log("    S." + span.id + " " + (span.data.text && JSON.stringify(span.data.text) || '') + prev + next + ends);
-        });
+      var next, prev;
+      prev = part.prev && (" prev: " + part.prev.id) || '';
+      next = part.next && (" next: " + part.next.id) || '';
+      console.log("P." + part.id + prev + next);
+      return part.children.each(function(span) {
+        var bits;
+        bits = [];
+        if (span.prev) {
+          bits.push("prev: " + span.prev.id);
+        }
+        if (span.next) {
+          bits.push("next: " + span.next.id);
+        }
+        if (span.ends) {
+          bits.push('ends');
+        }
+        console.log("    S." + span.id + " " + (span.data.text && JSON.stringify(span.data.text) || '') + " " + (bits.join(', ')));
+        if (span.line) {
+          return console.log("      line: [" + ((span.line.spans.map(function(span) {
+            return span.id;
+          })).join(', ')) + "]");
+        }
       });
     });
     return console.log('');
   };
 
-  eval(require('fs').readFileSync('./spec/log.js', 'utf-8'));
+  eval(require('fs').readFileSync('./spec/log/folds.js', 'utf-8'));
 
   env = jasmine.getEnv();
 
