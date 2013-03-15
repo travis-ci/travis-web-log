@@ -27,7 +27,7 @@ Log.prototype = Log.extend new Log.Node,
       console.log "part #{num} exists"
     else
       @parts[num] = true
-      Log.Part.create(@, num.toString(), string)
+      Log.Part.create(@, num, string)
   insert: (data, pos) ->
     @trigger 'insert', data, pos
     @renderer.insert(data, pos)

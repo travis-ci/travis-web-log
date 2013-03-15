@@ -73,31 +73,23 @@
     log.children.each(function(part) {
       console.log("P." + part.id);
       return part.children.each(function(line) {
-        console.log("  L." + line.id);
+        var next, prev;
+        prev = line.prev && (" prev: " + line.prev.id) || '';
+        next = line.next && (" next: " + line.next.id) || '';
+        console.log("  L." + line.id + prev + next);
         return line.children.each(function(span) {
-          return console.log("    S." + span.id + " " + (span.data.text && JSON.stringify(span.data.text) || '') + (span.ends && ' ends' || ''));
+          var ends;
+          prev = span.prev && (" prev: " + span.prev.id) || '';
+          next = span.next && (" next: " + span.next.id) || '';
+          ends = span.ends && ' ends' || '';
+          return console.log("    S." + span.id + " " + (span.data.text && JSON.stringify(span.data.text) || '') + prev + next + ends);
         });
       });
     });
     return console.log('');
   };
 
-  describe('foo', function() {
-    beforeEach(function() {
-      while (log.firstChild) {
-        log.removeChild(log.firstChild);
-      }
-      this.log = new Log();
-      return this.render = function(parts) {
-        return render(this, parts);
-      };
-    });
-    return it('foo', function() {
-      var parts;
-      parts = eval(require('fs').readFileSync('log.parts.1.js', 'utf-8'));
-      return console.log(format(this.render(parts)));
-    });
-  });
+  eval(require('fs').readFileSync('./spec/log.js', 'utf-8'));
 
   env = jasmine.getEnv();
 
