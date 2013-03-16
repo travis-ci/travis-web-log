@@ -40,21 +40,26 @@ dump = (log) ->
     prev = part.prev && " prev: #{part.prev.id}" || ''
     next = part.next && " next: #{part.next.id}" || ''
     console.log "P.#{part.id}#{prev}#{next}"
-    part.children.each (span) ->
+    part.children.each (node) ->
       bits = []
-      bits.push("prev: #{span.prev.id}") if span.prev
-      bits.push("next: #{span.next.id}") if span.next
-      bits.push('ends')                  if span.ends
-      console.log "    S.#{span.id} #{span.data.text && JSON.stringify(span.data.text) || ''} #{bits.join(', ')}"
-      console.log "      line: [#{(span.line.spans.map (span) -> span.id).join(', ')}]" if span.line
+      bits.push("prev: #{node.prev.id}") if node.prev
+      bits.push("next: #{node.next.id}") if node.next
+      if node.fold
+        bits.push("fold-#{node.event}-#{node.name}")
+        console.log "    F.#{node.id} #{bits.join(', ')}"
+      else
+        bits.push('ends') if node.ends
+        bits.push('cr')   if node.cr
+        console.log "    S.#{node.id} #{node.text && JSON.stringify(node.text) || ''} #{bits.join(', ')}"
+        console.log "      line: [#{(node.line.spans.map (node) -> node.id).join(', ')}]" if node.line
   console.log ''
 
 
 # eval require('fs').readFileSync('./spec/log/deansi.js', 'utf-8')
 # eval require('fs').readFileSync('./spec/log/dots.js', 'utf-8')
-eval require('fs').readFileSync('./spec/log/folds.js', 'utf-8')
+# eval require('fs').readFileSync('./spec/log/folds.js', 'utf-8')
 # eval require('fs').readFileSync('./spec/log/limit.js', 'utf-8')
-# eval require('fs').readFileSync('./spec/log/nodes.js', 'utf-8')
+eval require('fs').readFileSync('./spec/log/nodes.js', 'utf-8')
 # eval require('fs').readFileSync('./spec/log.js', 'utf-8')
 
 env = jasmine.getEnv()
