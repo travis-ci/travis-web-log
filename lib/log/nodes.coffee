@@ -73,18 +73,20 @@ Log.extend Log.Part,
          Log.Span.render(part, "#{part.num}-#{num += 1}", num, node.text, node.class)
     # console.log format document.firstChild.innerHTML + '\n'
     # dump log
+    # part.process(0)
 Log.Part.prototype = Log.extend new Log.Node,
   remove: ->
     # don't remove parts
-  # process: (slice) ->
-  #   for line, ix in (@slices[slice] || [])
-  #     return if @log.limit?.limited
-  #     num = slice * Log.SLICE + ix
-  #     if fold = line.match(Log.Fold.PATTERN)
-  #       Log.Fold.create(@, "#{@id}-#{ix}", num, fold[1], fold[2])
-  #     else
-  #       Log.Line.create(@, "#{@id}-#{ix}", num, line)
-  #   setTimeout((=> @process(slice + 1)), Log.TIMEOUT) unless slice >= @slices.length - 1
+  process: (slice) ->
+    for line, ix in (@slices[slice] || [])
+      # return if @log.limit?.limited
+      num = slice * Log.SLICE + ix
+      if fold = line.match(Log.FOLD)
+        Log.Fold.render(@, "#{@id}-#{num}", num, fold[1], fold[2])
+      else
+        for node, ix in Log.Deansi.apply(line)
+          Log.Span.render(@, "#{@id}-#{num += ix}", num, node.text, node.class)
+    setTimeout((=> @process(slice + 1)), Log.TIMEOUT) unless slice >= @slices.length - 1
 
 
 Log.Span = (id, num, text, classes) ->
@@ -104,7 +106,7 @@ Log.extend Log.Span,
     span.render()
 Log.Span.prototype = Log.extend new Log.Node,
   render: ->
-    if !@nl && @next?.cr && @isSequence(@next)
+    if false && !@nl && @next?.cr && @isSequence(@next)
       console.log "S.0 skip #{@id}" if Log.DEBUG
       @line = @next.line
       @remove()
@@ -112,14 +114,14 @@ Log.Span.prototype = Log.extend new Log.Node,
       console.log "S.1 insert #{@id} after prev #{@prev.id}" if Log.DEBUG
       @log.insert(@data, after: @prev.element)
       @line = @prev.line
-    else if @next && @next.line && !@nl
+    else if @next && @next.line # && !@nl
       console.log "S.2 insert #{@id} before next #{@next.id}" if Log.DEBUG
       @log.insert(@data, before: @next.element)
       @line = @next.line
     else
       @line = Log.Line.create(@log, [@])
       @line.render()
-    # console.log format document.firstChild.innerHTML + '\n'
+    console.log format document.firstChild.innerHTML + '\n'
 
     @split(tail)  if @nl && (tail = @tail).length > 0
     @line.clear() if @line.cr

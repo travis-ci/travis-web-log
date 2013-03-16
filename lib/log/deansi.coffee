@@ -5,10 +5,11 @@
 # result.replace(/\033/g, '')
 
 Log.Deansi =
+  CLEAR_ANSI: /\e\[K|\033\[K|\033\[\d+G|\u001b\(B|\u001bM/gm
+
   apply: (string) ->
     return [] unless string
-    string = string.replace(/\e\[K/gm, '').replace(/\033\[K/gm, '').replace(/\033\[\d+G/g, '')
-    string = string.replace(/\u001b\(B/gm, '')
+    string = string.replace(@CLEAR_ANSI, '')
     nodes = ansiparse(string).map (part) => @node(part)
     nodes.push(@node(text: '')) if nodes.length == 0
     nodes

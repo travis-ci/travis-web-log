@@ -154,11 +154,22 @@ describe 'deansi', ->
       <p><span id="5-0" class="clears"></span></p>
     '''
     parts = [
-      [1,"foo.1"],
-      [2,"\rfoo.2\r\n"],
-      [3,"bar.2\rbar.3\r\n"],
-      [4,"travis_fold:start:before_install.1\r"],
-      [5,"\r"],
+      [1, 'foo.1'],
+      [2, '\rfoo.2\r\n'],
+      [3, 'bar.2\rbar.3\r\n'],
+      [4, 'travis_fold:start:before_install.1\r'],
+      [5, '\r']
+    ]
+    expect(@render parts).toBe html
+
+  it 'wild thing with ansi parts preceeding a <cr> inserted late', ->
+    html = strip '''
+      <p><span id="0-0">foo</span><span id="0-1">bar</span></p>
+      <p><span id="1-0" class="clears"></span><span id="1-1">baz</span></p>
+    '''
+    parts = [
+      [1, '\rbaz\r\n'],
+      [0, '\u001b[0mfoo\u001b[0mbar\r\n\r']
     ]
     expect(@render parts).toBe html
 
