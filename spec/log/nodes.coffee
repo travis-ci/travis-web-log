@@ -10,52 +10,79 @@ describe 'Nodes', ->
     ids
 
   beforeEach ->
-    rescueing @, ->
-      @log = new Log.Part('0')
-      @lines = @log.children
-      ids = [
-        ['1-1', ['1-1-0', '1-1-2', '1-1-1']],
-        ['0-1', ['0-1-1', '0-1-0', '0-1-2']],
-        ['0-0', ['0-0-2', '0-0-0', '0-0-1']],
-        ['1-0', ['1-0-2', '1-0-0', '1-0-1']]
-      ]
-      for [id, spans] in ids
-        line = @log.addChild(new Log.Line(id))
-        line.addChild(new Log.Span(id, ix, { text: '' })) for id, ix in spans
+    log.removeChild(log.firstChild) while log.firstChild
+    @log = new Log()
+    @render = (parts) -> render(@, parts)
 
-  # it 'inserting lines', ->
-  #   expect(@lines.map((node) -> node.id)).toEqual ['0-0', '0-1', '1-0', '1-1']
+  describe 'first', ->
+    beforeEach ->
+      @render [[0, 'foo\nbar'], [1, 'baz']]
 
-  # it 'inserting spans', ->
-  #   expect(@lines.first.children.map((node) -> node.id)).toEqual ['0-0-0', '0-0-1', '0-0-2']
+    it 'part', ->
+      expect(@log.children.first.id).toBe '0'
 
-  # it 'first', ->
-  #   expect(@lines.first.id).toBe '0-0'
+    it 'span', ->
+      expect(@log.children.first.children.first.id).toBe '0-0'
 
-  # it 'last', ->
-  #   expect(@lines.last.id).toBe '1-1'
+  describe 'last', ->
+    beforeEach ->
+      @render [[0, 'foo\nbar'], [1, 'baz']]
 
-  # it 'sets next on lines', ->
-  #   ids = head(@lines.last).map (node) -> node.id
-  #   expect(ids).toEqual ['0-0', '0-1', '1-0']
+    it 'part', ->
+      expect(@log.children.last.id).toBe '1'
 
-  # it 'sets prev on lines', ->
-  #   ids = tail(@lines.first).map (node) -> node.id
-  #   expect(ids).toEqual ['0-1', '1-0', '1-1']
+    it 'span', ->
+      expect(@log.children.first.children.last.id).toBe '0-1'
 
-  # it 'sets prev (nested)', ->
-  #   ids = head(@lines.last.children.last).map (node) -> node.id
-  #   expect(ids).toEqual ['0-0-0', '0-0-1', '0-0-2', '0-1-0', '0-1-1', '0-1-2', '1-0-0', '1-0-1', '1-0-2', '1-1-0', '1-1-1']
+  describe 'prev', ->
+    beforeEach ->
+      @render [[0, 'foo\nbar'], [1, 'baz']]
 
-  # it 'sets next (nested)', ->
-  #   ids = tail(@lines.first.children.first).map (node) -> node.id
-  #   expect(ids).toEqual ['0-0-1', '0-0-2', '0-1-0', '0-1-1', '0-1-2', '1-0-0', '1-0-1', '1-0-2', '1-1-0', '1-1-1', '1-1-2']
+    it 'part', ->
+      expect(@log.children.last.prev.id).toBe '0'
 
-  # it 'sets part on lines', ->
-  #   expect(@lines.last.part.id).toBe '0'
+    it 'span', ->
+      expect(@log.children.first.children.last.prev.id).toBe '0-0'
 
-  # it 'sets part on spans', ->
-  #   expect(@lines.last.children.last.part.id).toBe '0'
+    it 'span with a removed sibling', ->
+      @log.children.first.children.last.remove()
+      expect(@log.children.last.children.first.prev.id).toBe '0-0'
+
+  describe 'next', ->
+    beforeEach ->
+      @render [[0, 'foo\nbar'], [1, 'baz']]
+
+    it 'part', ->
+      expect(@log.children.first.next.id).toBe '1'
+
+    it 'span', ->
+      expect(@log.children.first.children.first.next.id).toBe '0-1'
+
+    it 'span with a removed sibling', ->
+      @log.children.first.children.last.remove()
+      expect(@log.children.first.children.first.next.id).toBe '1-0'
+
+  describe 'isSequence', ->
+    beforeEach ->
+      @render [[0, 'foo\nbar'], [1, 'baz'], [3, 'buz']]
+
+    it 'is true on the same part (left to right)', ->
+      expect(@log.children.first.children.first.isSequence(@log.children.first.children.last)).toBe true
+
+    it 'is true on the same part (right to left)', ->
+      expect(@log.children.first.children.last.isSequence(@log.children.first.children.first)).toBe true
+
+    it 'is true on an adjacent part (left to right)', ->
+      expect(@log.children.first.children.first.isSequence(@log.children.first.next.children.last)).toBe true
+
+    it 'is true on an adjacent part (right to left)', ->
+      expect(@log.children.first.next.children.last.isSequence(@log.children.first.children.first)).toBe true
+
+    it 'is false on a non-adjacent part (left to right)', ->
+      expect(@log.children.first.children.first.isSequence(@log.children.last.children.last)).toBe false
+
+    it 'is false on a non-adjacent part (right to left)', ->
+      expect(@log.children.last.children.last.isSequence(@log.children.first.children.first)).toBe false
 
   # describe 'head', ->
   #   beforeEach ->

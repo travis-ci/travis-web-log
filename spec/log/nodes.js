@@ -18,29 +18,88 @@
       }
       return ids;
     };
-    return beforeEach(function() {
-      return rescueing(this, function() {
-        var id, ids, ix, line, spans, _i, _len, _ref, _results;
-        this.log = new Log.Part('0');
-        this.lines = this.log.children;
-        ids = [['1-1', ['1-1-0', '1-1-2', '1-1-1']], ['0-1', ['0-1-1', '0-1-0', '0-1-2']], ['0-0', ['0-0-2', '0-0-0', '0-0-1']], ['1-0', ['1-0-2', '1-0-0', '1-0-1']]];
-        _results = [];
-        for (_i = 0, _len = ids.length; _i < _len; _i++) {
-          _ref = ids[_i], id = _ref[0], spans = _ref[1];
-          line = this.log.addChild(new Log.Line(id));
-          _results.push((function() {
-            var _j, _len1, _results1;
-            _results1 = [];
-            for (ix = _j = 0, _len1 = spans.length; _j < _len1; ix = ++_j) {
-              id = spans[ix];
-              _results1.push(line.addChild(new Log.Span(id, ix, {
-                text: ''
-              })));
-            }
-            return _results1;
-          })());
-        }
-        return _results;
+    beforeEach(function() {
+      while (log.firstChild) {
+        log.removeChild(log.firstChild);
+      }
+      this.log = new Log();
+      return this.render = function(parts) {
+        return render(this, parts);
+      };
+    });
+    describe('first', function() {
+      beforeEach(function() {
+        return this.render([[0, 'foo\nbar'], [1, 'baz']]);
+      });
+      it('part', function() {
+        return expect(this.log.children.first.id).toBe('0');
+      });
+      return it('span', function() {
+        return expect(this.log.children.first.children.first.id).toBe('0-0');
+      });
+    });
+    describe('last', function() {
+      beforeEach(function() {
+        return this.render([[0, 'foo\nbar'], [1, 'baz']]);
+      });
+      it('part', function() {
+        return expect(this.log.children.last.id).toBe('1');
+      });
+      return it('span', function() {
+        return expect(this.log.children.first.children.last.id).toBe('0-1');
+      });
+    });
+    describe('prev', function() {
+      beforeEach(function() {
+        return this.render([[0, 'foo\nbar'], [1, 'baz']]);
+      });
+      it('part', function() {
+        return expect(this.log.children.last.prev.id).toBe('0');
+      });
+      it('span', function() {
+        return expect(this.log.children.first.children.last.prev.id).toBe('0-0');
+      });
+      return it('span with a removed sibling', function() {
+        this.log.children.first.children.last.remove();
+        return expect(this.log.children.last.children.first.prev.id).toBe('0-0');
+      });
+    });
+    describe('next', function() {
+      beforeEach(function() {
+        return this.render([[0, 'foo\nbar'], [1, 'baz']]);
+      });
+      it('part', function() {
+        return expect(this.log.children.first.next.id).toBe('1');
+      });
+      it('span', function() {
+        return expect(this.log.children.first.children.first.next.id).toBe('0-1');
+      });
+      return it('span with a removed sibling', function() {
+        this.log.children.first.children.last.remove();
+        return expect(this.log.children.first.children.first.next.id).toBe('1-0');
+      });
+    });
+    return describe('isSequence', function() {
+      beforeEach(function() {
+        return this.render([[0, 'foo\nbar'], [1, 'baz'], [3, 'buz']]);
+      });
+      it('is true on the same part (left to right)', function() {
+        return expect(this.log.children.first.children.first.isSequence(this.log.children.first.children.last)).toBe(true);
+      });
+      it('is true on the same part (right to left)', function() {
+        return expect(this.log.children.first.children.last.isSequence(this.log.children.first.children.first)).toBe(true);
+      });
+      it('is true on an adjacent part (left to right)', function() {
+        return expect(this.log.children.first.children.first.isSequence(this.log.children.first.next.children.last)).toBe(true);
+      });
+      it('is true on an adjacent part (right to left)', function() {
+        return expect(this.log.children.first.next.children.last.isSequence(this.log.children.first.children.first)).toBe(true);
+      });
+      it('is false on a non-adjacent part (left to right)', function() {
+        return expect(this.log.children.first.children.first.isSequence(this.log.children.last.children.last)).toBe(false);
+      });
+      return it('is false on a non-adjacent part (right to left)', function() {
+        return expect(this.log.children.last.children.last.isSequence(this.log.children.first.children.first)).toBe(false);
       });
     });
   });

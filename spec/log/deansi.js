@@ -34,6 +34,9 @@
         return render(this, parts);
       };
     });
+    format = function(html) {
+      return html.replace(/<p>/gm, '\n<p>').replace(/<\/p>/gm, '\n</p>').replace(/<span/gm, '\n  <span');
+    };
     describe('carriage returns and newlines', function() {
       it('nl', function() {
         var html;
@@ -56,9 +59,6 @@
         return expect(html).toBe('<p><span id="0-0" class="clears"></span></p>');
       });
     });
-    format = function(html) {
-      return html.replace(/<p>/gm, '\n<p>').replace(/<\/p>/gm, '\n</p>').replace(/<span/gm, '\n  <span');
-    };
     it('removes spans before a clearing span', function() {
       var html;
       html = strip('<p><span id="0-0">foo</span></p>\n<p><span id="3-0" class="clears"></span><span id="4-0">bam</span></p>');
@@ -95,7 +95,6 @@
         return expect(this.render([[4, '\r3%'], [3, '\r2%'], [2, '\r1%'], [0, 'foo'], [1, '\n']])).toBe(this.html);
       });
     });
-    describe('progress (2)', function() {});
     it('simulating git clone', function() {
       return rescueing(this, function() {
         var html, lines;
@@ -120,10 +119,16 @@
         return expect(this.render(lines)).toBe(html);
       });
     });
-    return it('random part sizes w/ dot output', function() {
+    it('random part sizes w/ dot output', function() {
       var html, parts;
       html = strip('<p>\n  <span id="1-0" class="green">.</span>\n  <span id="2-0" class="green">.</span>\n  <span id="3-0" class="green">.</span>\n  <span id="3-1" class="yellow">*</span>\n  <span id="3-2" class="yellow">*</span>\n  <span id="4-0" class="yellow">*</span>\n</p>');
       parts = [[1, "\u001b[32m.\u001b[0m"], [2, "\u001b[32m.\u001b[0m"], [3, "\u001b[32m.\u001b[0m\u001b[33m*\u001b[0m\u001b[33m*\u001b[0m"], [4, "\u001b[33m*\u001b[0m"]];
+      return expect(this.render(parts)).toBe(html);
+    });
+    return it('wild thing with a fold and <cr>s at the beginning of the line', function() {
+      var html, parts;
+      html = strip('<p><span id="2-0" class="clears"></span><span id="2-1">foo.2</span></p>\n<p><span id="3-0" class="clears"></span><span id="3-1">bar.3</span></p>\n<div id="4-0" class="fold-start"><span class="fold-name">before_install.1</span></div>\n<p><span id="5-0" class="clears"></span></p>');
+      parts = [[1, "foo.1"], [2, "\rfoo.2\r\n"], [3, "bar.2\rbar.3\r\n"], [4, "travis_fold:start:before_install.1\r"], [5, "\r"]];
       return expect(this.render(parts)).toBe(html);
     });
   });

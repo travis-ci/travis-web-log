@@ -41,6 +41,10 @@ Log.extend Log.Nodes.prototype,
   position: (item) ->
     for ix in [@items.length - 1..0] by -1
       return ix + 1 if @items[ix].key < item.key
+  indexOf: ->
+    @items.indexOf.apply(@items, arguments)
+  slice: ->
+    @items.slice.apply(@items, arguments)
   each: (func) ->
     @items.slice().forEach(func)
   map: (func) ->
@@ -100,7 +104,11 @@ Log.extend Log.Span,
     span.render()
 Log.Span.prototype = Log.extend new Log.Node,
   render: ->
-    if @prev && @prev.line && !@prev.nl
+    if !@nl && @next?.cr && @isSequence(@next)
+      console.log "S.0 skip #{@id}" if Log.DEBUG
+      @line = @next.line
+      @remove()
+    else if @prev && @prev.line && !@prev.nl
       console.log "S.1 insert #{@id} after prev #{@prev.id}" if Log.DEBUG
       @log.insert(@data, after: @prev.element)
       @line = @prev.line
@@ -114,7 +122,7 @@ Log.Span.prototype = Log.extend new Log.Node,
     # console.log format document.firstChild.innerHTML + '\n'
 
     @split(tail)  if @nl && (tail = @tail).length > 0
-    @line.clear() if @line.cr # TODO instead of this it'd be nicer to not insert in the first place
+    @line.clear() if @line.cr
 
   remove: ->
     Log.Node::remove.apply(@)
@@ -123,6 +131,8 @@ Log.Span.prototype = Log.extend new Log.Node,
     console.log "S.3 split [#{spans.map((span) -> span.id).join(', ')}]" if Log.DEBUG
     @log.remove(span.element) for span in spans
     Log.Line.create(@log, spans).render()
+  isSequence: (other) ->
+    @parent.num - other.parent.num == @log.children.indexOf(@parent) - @log.children.indexOf(other.parent)
   isSibling: (other) ->
     @element?.parentNode == other.element?.parentNode
   siblings: (type) ->
@@ -135,7 +145,6 @@ Log.Span::__defineSetter__ 'line', (line) ->
   @line.add(@)
 Log.Span::__defineGetter__ 'data',    -> { id: @id, type: 'span', text: @text, class: @class}
 Log.Span::__defineGetter__ 'line',    -> @_line
-Log.Span::__defineGetter__ 'part',    -> @parent.parent
 Log.Span::__defineGetter__ 'element', -> document.getElementById(@id)
 Log.Span::__defineGetter__ 'head',    -> @siblings('prev').reverse()
 Log.Span::__defineGetter__ 'tail',    -> @siblings('next')
@@ -214,12 +223,7 @@ Log.extend Log.Line.prototype,
     span.remove() for span in @head(cr) if cr = @crs.pop()
   head: (span) ->
     head = []
-    part = span.parent
-    nums = [part.num]
-    nums.push(part.num) while (part = part.prev) && part.num >= part.next.num - 1
-    head.push(span)     while (span = span.prev) && span.line == @ && nums.indexOf(span.parent.num) != -1
-    # console.log "nums #{nums.join(', ')}"
-    # console.log "head #{head.map((s) -> s.id).join(', ')}"
+    head.push(span = span.prev) while span.prev && span.prev.line == @ && span.isSequence(span.prev)
     head
 
 Log.Line::__defineGetter__ 'id',   -> @spans[0]?.id

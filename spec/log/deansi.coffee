@@ -21,6 +21,9 @@ describe 'deansi', ->
     @log = new Log()
     @render = (parts) -> render(@, parts)
 
+  format = (html) ->
+    html.replace(/<p>/gm, '\n<p>').replace(/<\/p>/gm, '\n</p>').replace(/<span/gm, '\n  <span')
+
   describe 'carriage returns and newlines', ->
     it 'nl', ->
       html = @render [[0, 'foo\n']]
@@ -37,9 +40,6 @@ describe 'deansi', ->
     it 'cr', ->
       html = @render [[0, 'foo\r']]
       expect(html).toBe '<p><span id="0-0" class="clears"></span></p>'
-
-  format = (html) ->
-    html.replace(/<p>/gm, '\n<p>').replace(/<\/p>/gm, '\n</p>').replace(/<span/gm, '\n  <span')
 
   it 'removes spans before a clearing span', ->
     html = strip '''
@@ -91,7 +91,6 @@ describe 'deansi', ->
     it 'unordered (3)', ->
       expect(@render [[4,'\r3%'], [3,'\r2%'], [2,'\r1%'], [0,'foo'], [1,'\n']]).toBe @html
 
-  describe 'progress (2)', ->
   it 'simulating git clone', ->
     rescueing @, ->
       html = strip '''
@@ -144,6 +143,22 @@ describe 'deansi', ->
       [2,"\u001b[32m.\u001b[0m"],
       [3,"\u001b[32m.\u001b[0m\u001b[33m*\u001b[0m\u001b[33m*\u001b[0m"],
       [4,"\u001b[33m*\u001b[0m"],
+    ]
+    expect(@render parts).toBe html
+
+  it 'wild thing with a fold and <cr>s at the beginning of the line', ->
+    html = strip '''
+      <p><span id="2-0" class="clears"></span><span id="2-1">foo.2</span></p>
+      <p><span id="3-0" class="clears"></span><span id="3-1">bar.3</span></p>
+      <div id="4-0" class="fold-start"><span class="fold-name">before_install.1</span></div>
+      <p><span id="5-0" class="clears"></span></p>
+    '''
+    parts = [
+      [1,"foo.1"],
+      [2,"\rfoo.2\r\n"],
+      [3,"bar.2\rbar.3\r\n"],
+      [4,"travis_fold:start:before_install.1\r"],
+      [5,"\r"],
     ]
     expect(@render parts).toBe html
 
