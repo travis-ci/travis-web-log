@@ -71,20 +71,14 @@ Log.Part.prototype = Log.extend new Log.Node,
   process: (slice, num) ->
     for string in (@slices[slice] || [])
       return if @log.limit?.limited
-      # if fold = string.match(Log.FOLD)
-      #   Log.Fold.render(@, "#{@id}-#{num += 1}", num, fold[1], fold[2])
-      # else
-      for node in Log.Deansi.apply(string)
-        Log.Span.render(@, "#{@id}-#{num += 1}", num, node.text, node.class)
-      line = @children.first?.line
-      line.clear() if line?.cr
+      Log.Span.render(@, "#{@id}-#{num += 1}", num, node.text, node.class) for node in Log.Deansi.apply(string)
+      @children.first.line.clear() if @children.first.line?.cr
     setTimeout((=> @process(slice + 1, num)), Log.TIMEOUT) unless slice >= @slices.length - 1
 
 
 Log.Span = (id, num, text, classes) ->
   Log.Node.apply(@, arguments)
   if fold = text.match(Log.FOLD)
-    console.log @
     @fold  = true
     @event = fold[1]
     @text  = @name = fold[2]
@@ -104,15 +98,15 @@ Log.extend Log.Span,
     span.render()
 Log.Span.prototype = Log.extend new Log.Node,
   render: ->
-    if false && !@nl && @next?.cr && @isSequence(@next)
-      console.log "S.0 skip #{@id}" if Log.DEBUG
-      @line = @next.line
-      @remove()
-    else if !@fold && @prev && @prev.line && !@prev.fold && !@prev.nl
+    # if !@fold && !@nl && @next?.cr && @isSequence(@next)
+    #   console.log "S.0 skip #{@id}" if Log.DEBUG
+    #   @line = @next.line
+    #   @remove()
+    if !@fold && @prev && !@prev.fold && !@prev.nl
       console.log "S.1 insert #{@id} after prev #{@prev.id}" if Log.DEBUG
       @log.insert(@data, after: @prev.element)
       @line = @prev.line
-    else if !@fold && @next && @next.line && !@next.fold # && !@nl
+    else if !@fold && @next && !@next.fold # && !@nl
       console.log "S.2 insert #{@id} before next #{@next.id}" if Log.DEBUG
       @log.insert(@data, before: @next.element)
       @line = @next.line
@@ -120,7 +114,7 @@ Log.Span.prototype = Log.extend new Log.Node,
       @line = Log.Line.create(@log, [@])
       @line.render()
 
-    console.log format document.firstChild.innerHTML + '\n'
+    # console.log format document.firstChild.innerHTML + '\n'
     @split(tail) if @nl && (tail = @tail).length > 0
 
   remove: ->
@@ -193,7 +187,7 @@ Log.extend Log.Line.prototype,
     else
       console.log "L.3 insert #{@spans[0].id} into #log" if Log.DEBUG
       @element = @log.insert(@data)
-    console.log format document.firstChild.innerHTML + '\n'
+    # console.log format document.firstChild.innerHTML + '\n'
   clear: ->
     # cr.clear() if cr = @crs.pop()
     cr.clear() for cr in @crs
@@ -230,6 +224,6 @@ Log.Fold.prototype = Log.extend new Log.Line,
     # console.log format document.firstChild.innerHTML + '\n'
     @active = @log.folds.add(@data)
 
-Log.Line::__defineGetter__ 'id',   -> "fold-#{@event}-#{@name}"
+Log.Fold::__defineGetter__ 'id',   -> "fold-#{@event}-#{@name}"
 Log.Fold::__defineGetter__ 'span', -> @spans[0]
 Log.Fold::__defineGetter__ 'data', -> { type: 'fold', id: @id, event: @event, name: @name }
