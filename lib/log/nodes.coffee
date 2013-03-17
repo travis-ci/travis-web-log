@@ -57,39 +57,28 @@ Log.Nodes::__defineGetter__ 'length', -> @items.length
 Log.Part = (id, num, string) ->
   Log.Node.apply(@, arguments)
   @string = string || ''
-  @lines = @string.replace(/\r+\n/gm, '\n').split(/^/gm) || []
-  # @slices = (lines.splice(0, Log.SLICE) while lines.length > 0)
+  @strings = @string.replace(/\r+\n/gm, '\n').split(/^/gm) || []
+  @slices = (@strings.splice(0, Log.SLICE) while @strings.length > 0)
   @
 Log.extend Log.Part,
   create: (log, num, string) ->
     part = new Log.Part(num.toString(), num, string)
     log.addChild(part)
-    num = -1
-    for string in part.lines
-      if match = string.match(Log.FOLD)
-        Log.Fold.render(part, "#{part.num}-#{num += 1}", num, match[1], match[2])
-      else
-        for node in Log.Deansi.apply(string)
-          Log.Span.render(part, "#{part.num}-#{num += 1}", num, node.text, node.class)
-        line = part.children.first?.line
-        line.clear() if line?.cr
-
-    # console.log format document.firstChild.innerHTML + '\n'
-    # dump log
-    # part.process(0)
+    part.process(0, -1)
 Log.Part.prototype = Log.extend new Log.Node,
   remove: ->
     # don't remove parts
-  # process: (slice) ->
-  #   for line, ix in (@slices[slice] || [])
-  #     # return if @log.limit?.limited
-  #     num = slice * Log.SLICE + ix
-  #     if fold = line.match(Log.FOLD)
-  #       Log.Fold.render(@, "#{@id}-#{num}", num, fold[1], fold[2])
-  #     else
-  #       for node, ix in Log.Deansi.apply(line)
-  #         Log.Span.render(@, "#{@id}-#{num += ix}", num, node.text, node.class)
-  #   setTimeout((=> @process(slice + 1)), Log.TIMEOUT) unless slice >= @slices.length - 1
+  process: (slice, num) ->
+    for string in (@slices[slice] || [])
+      # return if @log.limit?.limited
+      if fold = string.match(Log.FOLD)
+        Log.Fold.render(@, "#{@id}-#{num += 1}", num, fold[1], fold[2])
+      else
+        for node in Log.Deansi.apply(string)
+          Log.Span.render(@, "#{@id}-#{num += 1}", num, node.text, node.class)
+        line = @children.first?.line
+        line.clear() if line?.cr
+    setTimeout((=> @process(slice + 1, num)), Log.TIMEOUT) unless slice >= @slices.length - 1
 
 
 Log.Span = (id, num, text, classes) ->
@@ -124,7 +113,7 @@ Log.Span.prototype = Log.extend new Log.Node,
     else
       @line = Log.Line.create(@log, [@])
       @line.render()
-    console.log format document.firstChild.innerHTML + '\n'
+    # console.log format document.firstChild.innerHTML + '\n'
 
     @split(tail)  if @nl && (tail = @tail).length > 0
 

@@ -57,8 +57,8 @@ dump = (log) ->
 
 eval require('fs').readFileSync('./spec/log/deansi.js', 'utf-8')
 eval require('fs').readFileSync('./spec/log/dots.js', 'utf-8')
-# eval require('fs').readFileSync('./spec/log/folds.js', 'utf-8')
-# # eval require('fs').readFileSync('./spec/log/limit.js', 'utf-8')
+eval require('fs').readFileSync('./spec/log/folds.js', 'utf-8')
+# eval require('fs').readFileSync('./spec/log/limit.js', 'utf-8')
 eval require('fs').readFileSync('./spec/log/nodes.js', 'utf-8')
 eval require('fs').readFileSync('./spec/log.js', 'utf-8')
 
