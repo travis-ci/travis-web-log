@@ -168,11 +168,26 @@ describe 'deansi', ->
   it 'wild thing with ansi parts preceeding a <cr> inserted late', ->
     html = strip '''
       <p><span id="0-0">foo</span><span id="0-1">bar</span></p>
-      <p><span id="0-2" class="clears"></span><span id="1-0" class="clears"></span><span id="1-1">baz</span></p>
+      <p><span id="1-0" class="clears"></span><span id="1-1">baz</span></p>
     '''
     parts = [
       [1, '\rbaz\r\n'],
       [0, '\u001b[0mfoo\u001b[0mbar\r\n\r']
+    ]
+    expect(@render parts).toBe html
+
+  it 'clears a span when inserted late on a part that has a newline', ->
+    html = strip '''
+      <p>
+        <span id="1-0">foo</span>
+      </p>
+      <p>
+        <span id="2-0" class="clears"></span><span id="2-1">baz</span>
+      </p>
+    '''
+    parts = [
+      [2,"\rbaz"],
+      [1,"foo\nbar"],
     ]
     expect(@render parts).toBe html
 

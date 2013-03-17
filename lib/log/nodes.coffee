@@ -71,8 +71,13 @@ Log.Part.prototype = Log.extend new Log.Node,
   process: (slice, num) ->
     for string in (@slices[slice] || [])
       return if @log.limit?.limited
-      Log.Span.render(@, "#{@id}-#{num += 1}", num, node.text, node.class) for node in Log.Deansi.apply(string)
-      @children.first.line.clear() if @children.first.line?.cr
+      # console.log "P processing: #{JSON.stringify(string)}"
+      spans = []
+      for node in Log.Deansi.apply(string)
+        span = Log.Span.create(@, "#{@id}-#{num += 1}", num, node.text, node.class)
+        span.render()
+        spans.push(span)
+      spans[0].line.clear() if spans[0].line.cr
     setTimeout((=> @process(slice + 1, num)), Log.TIMEOUT) unless slice >= @slices.length - 1
 
 
@@ -124,7 +129,9 @@ Log.Span.prototype = Log.extend new Log.Node,
     console.log "S.3 split [#{spans.map((span) -> span.id).join(', ')}]" if Log.DEBUG
     @log.remove(span.element) for span in spans
     # console.log format document.firstChild.innerHTML + '\n'
-    Log.Line.create(@log, spans).render()
+    line = Log.Line.create(@log, spans)
+    line.render()
+    line.clear() if line.cr
   clear: ->
     if @prev && @isSibling(@prev) && @isSequence(@prev)
       @prev.clear()

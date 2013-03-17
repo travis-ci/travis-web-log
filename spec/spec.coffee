@@ -71,7 +71,7 @@ eval require('fs').readFileSync('./spec/log.js', 'utf-8')
 #   it 'foo', ->
 #     rescueing @, ->
 #       parts = eval require('fs').readFileSync('./log.parts.js', 'utf-8')
-#       console.log format (@render parts).slice(-10000)
+#       console.log format (@render parts) #.slice(-10000)
 
 
 env = jasmine.getEnv()
