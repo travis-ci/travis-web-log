@@ -153,14 +153,14 @@ describe 'deansi', ->
     html = strip '''
       <p><span id="2-0" class="clears"></span><span id="2-1">foo.2</span></p>
       <p><span id="3-0" class="clears"></span><span id="3-1">bar.3</span></p>
-      <div id="4-0" class="fold-start"><span class="fold-name">before_install.1</span></div>
+      <div id="fold-start-install" class="fold-start"><span class="fold-name">install</span></div>
       <p><span id="5-0" class="clears"></span></p>
     '''
     parts = [
       [1, 'foo.1'],
       [2, '\rfoo.2\r\n'],
       [3, 'bar.2\rbar.3\r\n'],
-      [4, 'travis_fold:start:before_install.1\r'],
+      [4, 'travis_fold:start:install\r'],
       [5, '\r']
     ]
     expect(@render parts).toBe html

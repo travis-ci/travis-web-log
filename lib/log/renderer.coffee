@@ -53,9 +53,9 @@ Log.extend Log.Renderer.prototype,
     para
 
   renderFold: (data) ->
-    return if document.getElementById(data.id)
+    # return if document.getElementById(data.id)
     fold = @fold.cloneNode(true)
-    fold.setAttribute('id', data.id)
+    fold.setAttribute('id', data.id || "fold-#{data.event}-#{data.name}")
     fold.setAttribute('class', "fold-#{data.event}")
     if data.event == 'start'
       fold.lastChild.lastChild.nodeValue = data.name

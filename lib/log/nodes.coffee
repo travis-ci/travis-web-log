@@ -71,22 +71,28 @@ Log.Part.prototype = Log.extend new Log.Node,
   process: (slice, num) ->
     for string in (@slices[slice] || [])
       return if @log.limit?.limited
-      if fold = string.match(Log.FOLD)
-        Log.Fold.render(@, "#{@id}-#{num += 1}", num, fold[1], fold[2])
-      else
-        for node in Log.Deansi.apply(string)
-          Log.Span.render(@, "#{@id}-#{num += 1}", num, node.text, node.class)
-        line = @children.first?.line
-        line.clear() if line?.cr
+      # if fold = string.match(Log.FOLD)
+      #   Log.Fold.render(@, "#{@id}-#{num += 1}", num, fold[1], fold[2])
+      # else
+      for node in Log.Deansi.apply(string)
+        Log.Span.render(@, "#{@id}-#{num += 1}", num, node.text, node.class)
+      line = @children.first?.line
+      line.clear() if line?.cr
     setTimeout((=> @process(slice + 1, num)), Log.TIMEOUT) unless slice >= @slices.length - 1
 
 
 Log.Span = (id, num, text, classes) ->
   Log.Node.apply(@, arguments)
-  @text  = text.replace(/.*\r/gm, '').replace(/\n$/, '')
-  @nl    = !!text[text.length - 1]?.match(/\n/)
-  @cr    = !!text.match(/\r/)
-  @class = @cr && ['clears'] || classes
+  if fold = text.match(Log.FOLD)
+    console.log @
+    @fold  = true
+    @event = fold[1]
+    @text  = @name = fold[2]
+  else
+    @text  = text.replace(/.*\r/gm, '').replace(/\n$/, '')
+    @nl    = !!text[text.length - 1]?.match(/\n/)
+    @cr    = !!text.match(/\r/)
+    @class = @cr && ['clears'] || classes
   @
 Log.extend Log.Span,
   create: (parent, id, num, text, classes) ->
@@ -102,11 +108,11 @@ Log.Span.prototype = Log.extend new Log.Node,
       console.log "S.0 skip #{@id}" if Log.DEBUG
       @line = @next.line
       @remove()
-    else if @prev && @prev.line && !@prev.nl
+    else if !@fold && @prev && @prev.line && !@prev.fold && !@prev.nl
       console.log "S.1 insert #{@id} after prev #{@prev.id}" if Log.DEBUG
       @log.insert(@data, after: @prev.element)
       @line = @prev.line
-    else if @next && @next.line # && !@nl
+    else if !@fold && @next && @next.line && !@next.fold # && !@nl
       console.log "S.2 insert #{@id} before next #{@next.id}" if Log.DEBUG
       @log.insert(@data, before: @next.element)
       @line = @next.line
@@ -114,7 +120,7 @@ Log.Span.prototype = Log.extend new Log.Node,
       @line = Log.Line.create(@log, [@])
       @line.render()
 
-    # console.log format document.firstChild.innerHTML + '\n'
+    console.log format document.firstChild.innerHTML + '\n'
     @split(tail) if @nl && (tail = @tail).length > 0
 
   remove: ->
@@ -148,48 +154,16 @@ Log.Span::__defineGetter__ 'head',    -> @siblings('prev').reverse()
 Log.Span::__defineGetter__ 'tail',    -> @siblings('next')
 
 
-Log.Fold = (id, num, event, name) ->
-  Log.Node.apply(@, arguments)
-  @fold  = true
-  @event = event
-  @name  = name
-  @data  = { type: 'fold', id: @id, event: event, name: name }
-  @
-Log.extend Log.Fold,
-  create: (parent, id, num, event, name) ->
-    fold = new Log.Fold(id, num, event, name)
-    parent.addChild(fold)
-    fold
-  render: (parent, id, num, event, name) ->
-    fold = @create(parent, id, num, event, name)
-    fold.render()
-    fold.active = parent.log.folds.add(fold.data)
-Log.Fold.prototype = Log.extend new Log.Node,
-  render: ->
-    # console.log "fold #{@id} prev: #{@prev?.id} next: #{@next?.id}"
-    if @prev
-      console.log "F.1 insert #{@id} after prev #{@prev.id}" if Log.DEBUG
-      element = @prev.fold && @prev.element || @prev.element.parentNode
-      @element = @log.insert(@data, after: element)
-    else if @next
-      console.log "F.2 insert #{@id} before next #{@next.id}" if Log.DEBUG
-      element = @next.fold && @next.element || @next.element.parentNode
-      @element = @log.insert(@data, before: element)
-    else
-      console.log "F.3 insert #{@id}" if Log.DEBUG
-      @element = @log.insert(@data)
-
-    @prev.split([@next].concat(@next.tail)) if @next && @prev?.isSibling(@next)
-    # console.log format document.firstChild.innerHTML + '\n'
-
-
 Log.Line = (log) ->
   @log = log
   @spans = []
   @
 Log.extend Log.Line,
   create: (log, spans) ->
-    line = new Log.Line(log)
+    if (span = spans[0]) && span.fold
+      line = new Log.Fold(log, span.event, span.name)
+    else
+      line = new Log.Line(log)
     span.line = line for span in spans
     line
 Log.extend Log.Line.prototype,
@@ -207,7 +181,7 @@ Log.extend Log.Line.prototype,
     @spans.splice(ix, 1) if (ix = @spans.indexOf(span)) > -1
   render: ->
     if (fold = @prev) && fold.event == 'start' && fold.active
-      console.log "P.1 insert #{@id} into fold #{fold.id}" if Log.DEBUG
+      console.log "L.0 insert #{@id} into fold #{fold.id}" if Log.DEBUG
       fold = @log.folds.folds[fold.name].fold
       @element = @log.insert(@data, into: fold)
     else if @prev
@@ -219,14 +193,43 @@ Log.extend Log.Line.prototype,
     else
       console.log "L.3 insert #{@spans[0].id} into #log" if Log.DEBUG
       @element = @log.insert(@data)
-    # console.log format document.firstChild.innerHTML + '\n'
+    console.log format document.firstChild.innerHTML + '\n'
   clear: ->
     # cr.clear() if cr = @crs.pop()
     cr.clear() for cr in @crs
 
-Log.Line::__defineGetter__ 'id',   -> @spans[0]?.id
-Log.Line::__defineGetter__ 'data', -> { type: 'paragraph', nodes: @spans.map (span) -> span.data }
-Log.Line::__defineGetter__ 'prev', -> span = @spans[0].prev; span?.fold && span || span?.line
-Log.Line::__defineGetter__ 'next', -> span = @spans[@spans.length - 1].next; span?.fold && span || span?.line
-Log.Line::__defineGetter__ 'crs',  -> @spans.filter (span) -> span.cr
+Log.Line::__defineGetter__ 'id',    -> @spans[0]?.id
+Log.Line::__defineGetter__ 'data',  -> { type: 'paragraph', nodes: @nodes }
+Log.Line::__defineGetter__ 'nodes', -> @spans.map (span) -> span.data
+Log.Line::__defineGetter__ 'prev',  -> @spans[0].prev?.line
+Log.Line::__defineGetter__ 'next',  -> @spans[@spans.length - 1].next?.line
+Log.Line::__defineGetter__ 'crs',   -> @spans.filter (span) -> span.cr
 
+Log.Fold = (log, event, name) ->
+  Log.Line.apply(@, arguments)
+  @fold  = true
+  @event = event
+  @name  = name
+  @
+Log.Fold.prototype = Log.extend new Log.Line,
+  render: ->
+    # console.log "fold #{@id} prev: #{@prev?.id} next: #{@next?.id}"
+    if @prev
+      console.log "F.1 insert #{@id} after prev #{@prev.id}" if Log.DEBUG
+      element = @prev.element || @prev.element.parentNode
+      @element = @log.insert(@data, after: element)
+    else if @next
+      console.log "F.2 insert #{@id} before next #{@next.id}" if Log.DEBUG
+      element = @next.element || @next.element.parentNode
+      @element = @log.insert(@data, before: element)
+    else
+      console.log "F.3 insert #{@id}" if Log.DEBUG
+      @element = @log.insert(@data)
+
+    @span.prev.split([@span.next].concat(@span.next.tail)) if @span.next && @span.prev?.isSibling(@span.next)
+    # console.log format document.firstChild.innerHTML + '\n'
+    @active = @log.folds.add(@data)
+
+Log.Line::__defineGetter__ 'id',   -> "fold-#{@event}-#{@name}"
+Log.Fold::__defineGetter__ 'span', -> @spans[0]
+Log.Fold::__defineGetter__ 'data', -> { type: 'fold', id: @id, event: @event, name: @name }

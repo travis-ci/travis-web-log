@@ -127,8 +127,8 @@
     });
     it('wild thing with a fold and <cr>s at the beginning of the line', function() {
       var html, parts;
-      html = strip('<p><span id="2-0" class="clears"></span><span id="2-1">foo.2</span></p>\n<p><span id="3-0" class="clears"></span><span id="3-1">bar.3</span></p>\n<div id="4-0" class="fold-start"><span class="fold-name">before_install.1</span></div>\n<p><span id="5-0" class="clears"></span></p>');
-      parts = [[1, 'foo.1'], [2, '\rfoo.2\r\n'], [3, 'bar.2\rbar.3\r\n'], [4, 'travis_fold:start:before_install.1\r'], [5, '\r']];
+      html = strip('<p><span id="2-0" class="clears"></span><span id="2-1">foo.2</span></p>\n<p><span id="3-0" class="clears"></span><span id="3-1">bar.3</span></p>\n<div id="fold-start-install" class="fold-start"><span class="fold-name">install</span></div>\n<p><span id="5-0" class="clears"></span></p>');
+      parts = [[1, 'foo.1'], [2, '\rfoo.2\r\n'], [3, 'bar.2\rbar.3\r\n'], [4, 'travis_fold:start:install\r'], [5, '\r']];
       return expect(this.render(parts)).toBe(html);
     });
     return it('wild thing with ansi parts preceeding a <cr> inserted late', function() {

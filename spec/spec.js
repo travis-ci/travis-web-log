@@ -41,7 +41,7 @@
   };
 
   format = function(html) {
-    return html.replace(/<p/gm, '\n<p').replace(/<div/gm, '\n<div');
+    return html.replace(/<p/gm, '\n<p').replace(/<div/gm, '\n<div').replace(/<\/div/, '\n</div');
   };
 
   rescueing = function(context, block) {

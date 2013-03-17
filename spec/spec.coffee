@@ -22,7 +22,7 @@ strip = (string) ->
 
 format = (html) ->
   # html.replace(/<div/gm, '\n<div').replace(/<p>/gm, '\n<p>').replace(/<\/p>/gm, '\n</p>').replace(/<span/gm, '\n  <span')
-  html.replace(/<p/gm, '\n<p').replace(/<div/gm, '\n<div')
+  html.replace(/<p/gm, '\n<p').replace(/<div/gm, '\n<div').replace(/<\/div/, '\n</div')
 
 rescueing = (context, block) ->
   try
