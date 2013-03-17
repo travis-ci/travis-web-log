@@ -70,23 +70,26 @@ Log.extend Log.Part,
         Log.Fold.render(part, "#{part.num}-#{num += 1}", num, match[1], match[2])
       else
         for node in Log.Deansi.apply(string)
-         Log.Span.render(part, "#{part.num}-#{num += 1}", num, node.text, node.class)
+          Log.Span.render(part, "#{part.num}-#{num += 1}", num, node.text, node.class)
+        line = part.children.first?.line
+        line.clear() if line?.cr
+
     # console.log format document.firstChild.innerHTML + '\n'
     # dump log
     # part.process(0)
 Log.Part.prototype = Log.extend new Log.Node,
   remove: ->
     # don't remove parts
-  process: (slice) ->
-    for line, ix in (@slices[slice] || [])
-      # return if @log.limit?.limited
-      num = slice * Log.SLICE + ix
-      if fold = line.match(Log.FOLD)
-        Log.Fold.render(@, "#{@id}-#{num}", num, fold[1], fold[2])
-      else
-        for node, ix in Log.Deansi.apply(line)
-          Log.Span.render(@, "#{@id}-#{num += ix}", num, node.text, node.class)
-    setTimeout((=> @process(slice + 1)), Log.TIMEOUT) unless slice >= @slices.length - 1
+  # process: (slice) ->
+  #   for line, ix in (@slices[slice] || [])
+  #     # return if @log.limit?.limited
+  #     num = slice * Log.SLICE + ix
+  #     if fold = line.match(Log.FOLD)
+  #       Log.Fold.render(@, "#{@id}-#{num}", num, fold[1], fold[2])
+  #     else
+  #       for node, ix in Log.Deansi.apply(line)
+  #         Log.Span.render(@, "#{@id}-#{num += ix}", num, node.text, node.class)
+  #   setTimeout((=> @process(slice + 1)), Log.TIMEOUT) unless slice >= @slices.length - 1
 
 
 Log.Span = (id, num, text, classes) ->
@@ -124,7 +127,6 @@ Log.Span.prototype = Log.extend new Log.Node,
     console.log format document.firstChild.innerHTML + '\n'
 
     @split(tail)  if @nl && (tail = @tail).length > 0
-    @line.clear() if @line.cr
 
   remove: ->
     Log.Node::remove.apply(@)
@@ -133,6 +135,10 @@ Log.Span.prototype = Log.extend new Log.Node,
     console.log "S.3 split [#{spans.map((span) -> span.id).join(', ')}]" if Log.DEBUG
     @log.remove(span.element) for span in spans
     Log.Line.create(@log, spans).render()
+  clear: ->
+    if @prev && @isSibling(@prev) && @isSequence(@prev)
+      @prev.clear()
+      @prev.remove()
   isSequence: (other) ->
     @parent.num - other.parent.num == @log.children.indexOf(@parent) - @log.children.indexOf(other.parent)
   isSibling: (other) ->
@@ -222,11 +228,12 @@ Log.extend Log.Line.prototype,
       @element = @log.insert(@data)
     # console.log format document.firstChild.innerHTML + '\n'
   clear: ->
-    span.remove() for span in @head(cr) if cr = @crs.pop()
-  head: (span) ->
-    head = []
-    head.push(span = span.prev) while span.prev && span.prev.line == @ && span.isSequence(span.prev)
-    head
+    # span.remove() for span in @head(cr) if cr = @crs.pop()
+    cr.clear() if cr = @crs.pop()
+  # head: (span) ->
+  #   head = []
+  #   head.push(span = span.prev) while span.prev && span.prev.line == @ && span.isSequence(span.prev)
+  #   head
 
 Log.Line::__defineGetter__ 'id',   -> @spans[0]?.id
 Log.Line::__defineGetter__ 'data', -> { type: 'paragraph', nodes: @spans.map (span) -> span.data }

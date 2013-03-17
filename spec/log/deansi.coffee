@@ -22,7 +22,10 @@ describe 'deansi', ->
     @render = (parts) -> render(@, parts)
 
   format = (html) ->
-    html.replace(/<p>/gm, '\n<p>').replace(/<\/p>/gm, '\n</p>').replace(/<span/gm, '\n  <span')
+    html.replace(/<p><span/gm, '<p>\n  <span')
+        .replace(/<div/gm, '\n<div')
+        .replace(/<p>/gm, '\n<p>')
+        .replace(/<\/p>/gm, '\n</p>')
 
   describe 'carriage returns and newlines', ->
     it 'nl', ->
@@ -165,7 +168,7 @@ describe 'deansi', ->
   it 'wild thing with ansi parts preceeding a <cr> inserted late', ->
     html = strip '''
       <p><span id="0-0">foo</span><span id="0-1">bar</span></p>
-      <p><span id="1-0" class="clears"></span><span id="1-1">baz</span></p>
+      <p><span id="0-2" class="clears"></span><span id="1-0" class="clears"></span><span id="1-1">baz</span></p>
     '''
     parts = [
       [1, '\rbaz\r\n'],

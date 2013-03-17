@@ -35,7 +35,7 @@
       };
     });
     format = function(html) {
-      return html.replace(/<p>/gm, '\n<p>').replace(/<\/p>/gm, '\n</p>').replace(/<span/gm, '\n  <span');
+      return html.replace(/<p><span/gm, '<p>\n  <span').replace(/<div/gm, '\n<div').replace(/<p>/gm, '\n<p>').replace(/<\/p>/gm, '\n</p>');
     };
     describe('carriage returns and newlines', function() {
       it('nl', function() {
@@ -133,7 +133,7 @@
     });
     return it('wild thing with ansi parts preceeding a <cr> inserted late', function() {
       var html, parts;
-      html = strip('<p><span id="0-0">foo</span><span id="0-1">bar</span></p>\n<p><span id="1-0" class="clears"></span><span id="1-1">baz</span></p>');
+      html = strip('<p><span id="0-0">foo</span><span id="0-1">bar</span></p>\n<p><span id="0-2" class="clears"></span><span id="1-0" class="clears"></span><span id="1-1">baz</span></p>');
       parts = [[1, '\rbaz\r\n'], [0, '\u001b[0mfoo\u001b[0mbar\r\n\r']];
       return expect(this.render(parts)).toBe(html);
     });
