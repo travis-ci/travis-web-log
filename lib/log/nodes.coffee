@@ -70,7 +70,7 @@ Log.Part.prototype = Log.extend new Log.Node,
     # don't remove parts
   process: (slice, num) ->
     for string in (@slices[slice] || [])
-      # return if @log.limit?.limited
+      return if @log.limit?.limited
       if fold = string.match(Log.FOLD)
         Log.Fold.render(@, "#{@id}-#{num += 1}", num, fold[1], fold[2])
       else
@@ -113,9 +113,9 @@ Log.Span.prototype = Log.extend new Log.Node,
     else
       @line = Log.Line.create(@log, [@])
       @line.render()
-    # console.log format document.firstChild.innerHTML + '\n'
 
-    @split(tail)  if @nl && (tail = @tail).length > 0
+    # console.log format document.firstChild.innerHTML + '\n'
+    @split(tail) if @nl && (tail = @tail).length > 0
 
   remove: ->
     Log.Node::remove.apply(@)
@@ -123,6 +123,7 @@ Log.Span.prototype = Log.extend new Log.Node,
   split: (spans) ->
     console.log "S.3 split [#{spans.map((span) -> span.id).join(', ')}]" if Log.DEBUG
     @log.remove(span.element) for span in spans
+    # console.log format document.firstChild.innerHTML + '\n'
     Log.Line.create(@log, spans).render()
   clear: ->
     if @prev && @isSibling(@prev) && @isSequence(@prev)
@@ -165,6 +166,7 @@ Log.extend Log.Fold,
     fold.active = parent.log.folds.add(fold.data)
 Log.Fold.prototype = Log.extend new Log.Node,
   render: ->
+    # console.log "fold #{@id} prev: #{@prev?.id} next: #{@next?.id}"
     if @prev
       console.log "F.1 insert #{@id} after prev #{@prev.id}" if Log.DEBUG
       element = @prev.fold && @prev.element || @prev.element.parentNode
@@ -176,6 +178,8 @@ Log.Fold.prototype = Log.extend new Log.Node,
     else
       console.log "F.3 insert #{@id}" if Log.DEBUG
       @element = @log.insert(@data)
+
+    @prev.split([@next].concat(@next.tail)) if @next && @prev?.isSibling(@next)
     # console.log format document.firstChild.innerHTML + '\n'
 
 
@@ -217,12 +221,8 @@ Log.extend Log.Line.prototype,
       @element = @log.insert(@data)
     # console.log format document.firstChild.innerHTML + '\n'
   clear: ->
-    # span.remove() for span in @head(cr) if cr = @crs.pop()
-    cr.clear() if cr = @crs.pop()
-  # head: (span) ->
-  #   head = []
-  #   head.push(span = span.prev) while span.prev && span.prev.line == @ && span.isSequence(span.prev)
-  #   head
+    # cr.clear() if cr = @crs.pop()
+    cr.clear() for cr in @crs
 
 Log.Line::__defineGetter__ 'id',   -> @spans[0]?.id
 Log.Line::__defineGetter__ 'data', -> { type: 'paragraph', nodes: @spans.map (span) -> span.data }

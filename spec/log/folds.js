@@ -41,12 +41,17 @@
       html = strip('<div id="0-0" class="fold-start fold"><span class="fold-name">install</span>\n  <p><a></a><span id="1-0">.</span><span id="2-0">end</span></p>\n</div>\n<div id="3-0" class="fold-end"></div>');
       return expect(this.render([[3, 'travis_fold:end:install\r'], [0, 'travis_fold:start:install\r\n'], [1, '.'], [2, 'end\n']])).toBe(html);
     });
-    return describe('an empty fold', function() {
+    describe('an empty fold', function() {
       return it('does not add "active" as a class', function() {
         var html;
         html = strip('<div id="0-0" class="fold-start fold"><span class="fold-name">install</span></div>\n<div id="1-0" class="fold-end"></div>');
         return console.log(format(this.render([[1, 'travis_fold:end:install\r'], [0, 'travis_fold:start:install\r\n']])));
       });
+    });
+    return it('inserting a fold after a span that will be split out later', function() {
+      var parts;
+      parts = [[2, '.'], [4, 'last\n'], [3, 'fold:start:after_script\rfolded\r\nfold:end:after_script\r'], [1, 'first\n']];
+      return console.log(format(this.render(parts)));
     });
   });
 

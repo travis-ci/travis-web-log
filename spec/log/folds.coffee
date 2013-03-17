@@ -60,3 +60,13 @@ describe 'folds', ->
       '''
       console.log format @render [[1, 'travis_fold:end:install\r'], [0, 'travis_fold:start:install\r\n']]
 
+  it 'inserting a fold after a span that will be split out later', ->
+    parts = [
+      [2,'.'],
+      [4,'last\n'],
+      [3,'fold:start:after_script\rfolded\r\nfold:end:after_script\r'],
+      [1,'first\n'],
+    ]
+    console.log format @render parts
+
+

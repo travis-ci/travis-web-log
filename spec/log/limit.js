@@ -71,10 +71,10 @@
         return expect(this.log.limit.limited).toBe(true);
       });
       it('does not limit before the given max_lines', function() {
-        return expect(this.html).toMatch(/<span id="2-0-0">/);
+        return expect(this.html).toMatch(/<span id="2-0">/);
       });
       return it('limits after the given max_lines', function() {
-        return expect(this.html).not.toMatch(/<span id="3-0-0">/);
+        return expect(this.html).not.toMatch(/<span id="3-0">/);
       });
     });
     describe('joined lines (1)', function() {
@@ -85,10 +85,10 @@
         return expect(this.log.limit.limited).toBe(true);
       });
       it('does not limit before the given max_lines', function() {
-        return expect(this.html).toMatch(/<span id="0-1-0">/);
+        return expect(this.html).toMatch(/<span id="0-1">/);
       });
       return it('limits after the given max_lines', function() {
-        return expect(this.html).not.toMatch(/<span id="1-0-0">/);
+        return expect(this.html).not.toMatch(/<span id="1-0">/);
       });
     });
     describe('joined lines (2)', function() {
@@ -99,10 +99,10 @@
         return expect(this.log.limit.limited).toBe(true);
       });
       it('does not limit before the given max_lines', function() {
-        return expect(this.html).toMatch(/<span id="1-0-0">/);
+        return expect(this.html).toMatch(/<span id="1-0">/);
       });
       return it('limits after the given max_lines', function() {
-        return expect(this.html).not.toMatch(/<span id="1-1-0">/);
+        return expect(this.html).not.toMatch(/<span id="1-1">/);
       });
     });
     return describe('joined lines (3)', function() {
@@ -113,10 +113,10 @@
         return expect(this.log.limit.limited).toBe(true);
       });
       it('does not limit before the given max_lines', function() {
-        return expect(this.html).toMatch(/<span id="0-1-0">/);
+        return expect(this.html).toMatch(/<span id="0-1">/);
       });
       return it('limits after the given max_lines', function() {
-        return expect(this.html).not.toMatch(/<span id="0-2-0">/);
+        return expect(this.html).not.toMatch(/<span id="0-2">/);
       });
     });
   });

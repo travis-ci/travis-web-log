@@ -32,10 +32,10 @@ describe 'Log.Limit', ->
       expect(@log.limit.limited).toBe true
 
     it 'does not limit before the given max_lines', ->
-      expect(@html).toMatch /<span id="2-0-0">/
+      expect(@html).toMatch /<span id="2-0">/
 
     it 'limits after the given max_lines', ->
-      expect(@html).not.toMatch /<span id="3-0-0">/
+      expect(@html).not.toMatch /<span id="3-0">/
 
   describe 'joined lines (1)', ->
     beforeEach ->
@@ -45,11 +45,10 @@ describe 'Log.Limit', ->
       expect(@log.limit.limited).toBe true
 
     it 'does not limit before the given max_lines', ->
-      expect(@html).toMatch /<span id="0-1-0">/
+      expect(@html).toMatch /<span id="0-1">/
 
     it 'limits after the given max_lines', ->
-      expect(@html).not.toMatch /<span id="1-0-0">/
-
+      expect(@html).not.toMatch /<span id="1-0">/
 
   describe 'joined lines (2)', ->
     beforeEach ->
@@ -59,10 +58,10 @@ describe 'Log.Limit', ->
       expect(@log.limit.limited).toBe true
 
     it 'does not limit before the given max_lines', ->
-      expect(@html).toMatch /<span id="1-0-0">/
+      expect(@html).toMatch /<span id="1-0">/
 
     it 'limits after the given max_lines', ->
-      expect(@html).not.toMatch /<span id="1-1-0">/
+      expect(@html).not.toMatch /<span id="1-1">/
 
   describe 'joined lines (3)', ->
     beforeEach ->
@@ -72,9 +71,9 @@ describe 'Log.Limit', ->
       expect(@log.limit.limited).toBe true
 
     it 'does not limit before the given max_lines', ->
-      expect(@html).toMatch /<span id="0-1-0">/
+      expect(@html).toMatch /<span id="0-1">/
 
     it 'limits after the given max_lines', ->
-      expect(@html).not.toMatch /<span id="0-2-0">/
+      expect(@html).not.toMatch /<span id="0-2">/
 
 
