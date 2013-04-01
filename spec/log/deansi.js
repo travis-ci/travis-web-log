@@ -105,6 +105,12 @@
         return expect(this.render([[4, '\r3%'], [3, '\r2%'], [2, '\r1%'], [0, 'foo'], [1, '\n']])).toBe(this.html);
       });
     });
+    it('progress (2)', function() {
+      var html, log;
+      log = 'Started\r\n\r\n[1000D[?25l[32m1/36: [= ] 50% 00:00:00[0m[1000D[?25l[32m36/36: [==] 9.0/s 100% 00:00:04[0m[1000D[?25l[32m36/36: [==] 9.0/s 100% 00:00:04[0m[?25h\r\n[0m[1000D[K\r\nFinished in 4.76991s\r\n';
+      html = strip('<p><span id="0-0">Started</span></p>\n<p><span id="0-1"></span></p>\n<p><span id="0-6" class="clears"></span><span id="0-7" class="green">36/36: [==] 9.0/s 100% 00:00:04</span><span id="0-8"></span></p>\n<p><span id="0-9" class="clears"></span><span id="0-10"></span></p>\n<p><span id="0-11">Finished in 4.76991s</span></p>');
+      return expect(this.render([[0, log]])).toBe(html);
+    });
     it('simulating git clone', function() {
       return rescueing(this, function() {
         var html, lines;
