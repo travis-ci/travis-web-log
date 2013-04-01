@@ -57,7 +57,9 @@ Log.Nodes::__defineGetter__ 'length', -> @items.length
 Log.Part = (id, num, string) ->
   Log.Node.apply(@, arguments)
   @string = string || ''
-  @strings = @string.replace(/\033\[1000D/gm, '\r').replace(/\r+\n/gm, '\n').split(/^/gm) || []
+  @string = @string.replace(/\033\[1000D/gm, '\r')
+  @string = @string.replace(/\r+\n/gm, '\n')
+  @strings = @string.split(/^/gm) || []
   @slices = (@strings.splice(0, Log.SLICE) while @strings.length > 0)
   @
 Log.extend Log.Part,

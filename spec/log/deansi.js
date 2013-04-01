@@ -59,12 +59,15 @@
         return expect(html).toBe('<p><span id="0-0" class="clears"></span></p>');
       });
     });
-    describe('clear line', function() {
-      return it('foo', function() {
-        var html;
-        html = this.render([[0, '[0m[1000D[?25l[32m  5%[0m[1000D[?25l[32m 11%']]);
-        return expect(html).toBe('<p><span id="0-2" class="clears"></span><span id="0-3"> 11%</span></p>');
-      });
+    it('clear line works', function() {
+      var html;
+      html = this.render([[0, '[0m[1000D[?25l[32m  5%[0m[1000D[?25l[32m 11%']]);
+      return expect(html).toBe('<p><span id="0-2" class="clears"></span><span id="0-3" class="green"> 11%</span></p>');
+    });
+    it('can cope with hide/show cursor', function() {
+      var html;
+      html = this.render([[0, 'foo[?25h\n[1000D[K\n']]);
+      return expect(html).toBe(strip('<p><span id="0-0">foo</span></p>\n<p><span id="0-1" class="clears"></span><span id="0-2"></span></p>'));
     });
     it('removes spans before a clearing span', function() {
       var html;

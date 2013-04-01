@@ -44,10 +44,16 @@ describe 'deansi', ->
       html = @render [[0, 'foo\r']]
       expect(html).toBe '<p><span id="0-0" class="clears"></span></p>'
 
-  describe 'clear line', ->
-    it 'foo', ->
-      html = @render [[0, '[0m[1000D[?25l[32m  5%[0m[1000D[?25l[32m 11%']]
-      expect(html).toBe '<p><span id="0-2" class="clears"></span><span id="0-3"> 11%</span></p>'
+  it 'clear line works', ->
+    html = @render [[0, '[0m[1000D[?25l[32m  5%[0m[1000D[?25l[32m 11%']]
+    expect(html).toBe '<p><span id="0-2" class="clears"></span><span id="0-3" class="green"> 11%</span></p>'
+
+  it 'can cope with hide/show cursor', ->
+    html = @render [[0, 'foo[?25h\n[1000D[K\n']]
+    expect(html).toBe strip '''
+      <p><span id="0-0">foo</span></p>
+      <p><span id="0-1" class="clears"></span><span id="0-2"></span></p>
+    '''
 
   it 'removes spans before a clearing span', ->
     html = strip '''

@@ -118,6 +118,18 @@
 
   eval(require('fs').readFileSync('./spec/log.js', 'utf-8'));
 
+  describe('Log', function() {
+    return beforeEach(function() {
+      while (log.firstChild) {
+        log.removeChild(log.firstChild);
+      }
+      this.log = new Log();
+      return this.render = function(parts) {
+        return render(this, parts);
+      };
+    });
+  });
+
   env = jasmine.getEnv();
 
   env.addReporter(new ConsoleReporter(jasmine));

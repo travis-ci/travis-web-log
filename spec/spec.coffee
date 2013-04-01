@@ -62,16 +62,21 @@ eval require('fs').readFileSync('./spec/log/limit.js', 'utf-8')
 eval require('fs').readFileSync('./spec/log/nodes.js', 'utf-8')
 eval require('fs').readFileSync('./spec/log.js', 'utf-8')
 
-# describe 'Log', ->
-#   beforeEach ->
-#     log.removeChild(log.firstChild) while log.firstChild
-#     @log = new Log()
-#     @render = (parts) -> render(@, parts)
-#
-#   it 'foo', ->
-#     rescueing @, ->
-#       parts = eval require('fs').readFileSync('./log.parts.js', 'utf-8')
-#       console.log format (@render parts) #.slice(-10000)
+describe 'Log', ->
+  beforeEach ->
+    log.removeChild(log.firstChild) while log.firstChild
+    @log = new Log()
+    @render = (parts) -> render(@, parts)
+
+  # it 'parts', ->
+  #   rescueing @, ->
+  #     parts = eval require('fs').readFileSync('./log.parts.js', 'utf-8')
+  #     console.log format (@render parts) #.slice(-10000)
+
+  # it 'text', ->
+  #   rescueing @, ->
+  #     text = require('fs').readFileSync('./log.reduced.txt', 'utf-8')
+  #     console.log format (@render [[0, text]]) #.slice(-10000)
 
 
 env = jasmine.getEnv()
