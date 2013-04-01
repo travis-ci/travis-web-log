@@ -5,7 +5,7 @@
 # result.replace(/\033/g, '')
 
 Log.Deansi =
-  CLEAR_ANSI: /\e\[K|\033\[K|\033\[\d+G|\u001b\(B|\u001bM|\033\[\?25(l|h)/gm
+  CLEAR_ANSI: /(\e|\033)\[K|(\e|\033)\[K|(\e|\033)\[\d+G|(\e|\033)\(B|(\e|\033)M|(\e|\033)\[\?25(l|h)/gm
 
   apply: (string) ->
     return [] unless string
