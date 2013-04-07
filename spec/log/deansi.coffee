@@ -155,6 +155,18 @@ describe 'deansi', ->
   it 'random part sizes w/ dot output', ->
     html = strip '''
       <p>
+        <span id="1-0" class="green bold">.</span>
+      </p>
+    '''
+
+    parts = [
+      [1, "\u001b[32m\u001b[0;1m.\u001b[0;0m\u001b[0m"],
+    ]
+    expect(@render parts).toBe html
+
+  it 'properly sets multipla classes', ->
+    html = strip '''
+      <p>
         <span id="1-0" class="green">.</span>
         <span id="2-0" class="green">.</span>
         <span id="3-0" class="green">.</span>

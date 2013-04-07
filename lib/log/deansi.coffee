@@ -16,7 +16,7 @@ Log.Deansi =
 
   node: (part) ->
     node = { type: 'span', text: part.text }
-    node.class = classes if classes = @classes(part)
+    node.class = classes.join(' ') if classes = @classes(part)
     # node.hidden = true   if @hidden(part)
     node
 

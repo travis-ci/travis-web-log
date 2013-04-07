@@ -137,6 +137,12 @@
     });
     it('random part sizes w/ dot output', function() {
       var html, parts;
+      html = strip('<p>\n  <span id="1-0" class="green bold">.</span>\n</p>');
+      parts = [[1, "\u001b[32m\u001b[0;1m.\u001b[0;0m\u001b[0m"]];
+      return expect(this.render(parts)).toBe(html);
+    });
+    it('properly sets multipla classes', function() {
+      var html, parts;
       html = strip('<p>\n  <span id="1-0" class="green">.</span>\n  <span id="2-0" class="green">.</span>\n  <span id="3-0" class="green">.</span>\n  <span id="3-1" class="yellow">*</span>\n  <span id="3-2" class="yellow">*</span>\n  <span id="4-0" class="yellow">*</span>\n</p>');
       parts = [[1, "\u001b[32m.\u001b[0m"], [2, "\u001b[32m.\u001b[0m"], [3, "\u001b[32m.\u001b[0m\u001b[33m*\u001b[0m\u001b[33m*\u001b[0m"], [4, "\u001b[33m*\u001b[0m"]];
       return expect(this.render(parts)).toBe(html);
