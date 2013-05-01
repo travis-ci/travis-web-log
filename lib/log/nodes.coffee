@@ -79,7 +79,7 @@ Log.Part.prototype = Log.extend new Log.Node,
         span = Log.Span.create(@, "#{@id}-#{num += 1}", num, node.text, node.class)
         span.render()
         spans.push(span)
-      spans[0].line.clear() if spans[0].line.cr
+      spans[0].line.clear() if spans[0] && spans[0].line.cr
     setTimeout((=> @process(slice + 1, num)), Log.TIMEOUT) unless slice >= @slices.length - 1
 
 
