@@ -13,9 +13,15 @@ Log.extend Log.Node.prototype,
   remove: () ->
     @log.remove(@element)
     @parent.children.remove(@)
-Log.Node::__defineGetter__ 'log',        -> @_log ||= @parent?.log || @parent
-Log.Node::__defineGetter__ 'firstChild', -> @children.first
-Log.Node::__defineGetter__ 'lastChild',  -> @children.last
+Object.defineProperty Log.Node::, 'log', {
+  get: () -> @_log ||= @parent?.log || @parent
+}
+Object.defineProperty Log.Node::, 'firstChild', {
+  get: () -> @children.first
+}
+Object.defineProperty Log.Node::, 'lastChild', {
+  get: () -> @children.last
+}
 
 
 Log.Nodes = (parent) ->
@@ -49,9 +55,15 @@ Log.extend Log.Nodes.prototype,
     @items.slice().forEach(func)
   map: (func) ->
     @items.map(func)
-Log.Nodes::__defineGetter__ 'first',  -> @items[0]
-Log.Nodes::__defineGetter__ 'last',   -> @items[@length - 1]
-Log.Nodes::__defineGetter__ 'length', -> @items.length
+Object.defineProperty Log.Nodes::, 'first', {
+  get: () -> @items[0]
+}
+Object.defineProperty Log.Nodes::, 'last', {
+  get: () -> @items[@length - 1]
+}
+Object.defineProperty Log.Nodes::, 'length', {
+  get: () -> @items.length
+}
 
 
 Log.Part = (id, num, string) ->
@@ -150,11 +162,21 @@ Log.Span::__defineSetter__ 'line', (line) ->
   @line.remove(@) if @line
   @_line = line
   @line.add(@)
-Log.Span::__defineGetter__ 'data',    -> { id: @id, type: 'span', text: @text, class: @class}
-Log.Span::__defineGetter__ 'line',    -> @_line
-Log.Span::__defineGetter__ 'element', -> document.getElementById(@id)
-Log.Span::__defineGetter__ 'head',    -> @siblings('prev').reverse()
-Log.Span::__defineGetter__ 'tail',    -> @siblings('next')
+Object.defineProperty Log.Span::, 'data', {
+  get: () -> { id: @id, type: 'span', text: @text, class: @class}
+}
+Object.defineProperty Log.Span::, 'line', {
+  get: () -> @_line
+}
+Object.defineProperty Log.Span::, 'element', {
+  get: () -> document.getElementById(@id)
+}
+Object.defineProperty Log.Span::, 'head', {
+  get: () -> @siblings('prev').reverse()
+}
+Object.defineProperty Log.Span::, 'tail', {
+  get: () -> @siblings('next')
+}
 
 
 Log.Line = (log) ->
@@ -201,12 +223,24 @@ Log.extend Log.Line.prototype,
     # cr.clear() if cr = @crs.pop()
     cr.clear() for cr in @crs
 
-Log.Line::__defineGetter__ 'id',    -> @spans[0]?.id
-Log.Line::__defineGetter__ 'data',  -> { type: 'paragraph', nodes: @nodes }
-Log.Line::__defineGetter__ 'nodes', -> @spans.map (span) -> span.data
-Log.Line::__defineGetter__ 'prev',  -> @spans[0].prev?.line
-Log.Line::__defineGetter__ 'next',  -> @spans[@spans.length - 1].next?.line
-Log.Line::__defineGetter__ 'crs',   -> @spans.filter (span) -> span.cr
+Object.defineProperty Log.Line::, 'id', {
+  get: () -> @spans[0]?.id
+}
+Object.defineProperty Log.Line::, 'data', {
+  get: () -> { type: 'paragraph', nodes: @nodes }
+}
+Object.defineProperty Log.Line::, 'nodes', {
+  get: () -> @spans.map (span) -> span.data
+}
+Object.defineProperty Log.Line::, 'prev', {
+  get: () -> @spans[0].prev?.line
+}
+Object.defineProperty Log.Line::, 'next', {
+  get: () -> @spans[@spans.length - 1].next?.line
+}
+Object.defineProperty Log.Line::, 'crs', {
+  get: () -> @spans.filter (span) -> span.cr
+}
 
 Log.Fold = (log, event, name) ->
   Log.Line.apply(@, arguments)
@@ -233,6 +267,12 @@ Log.Fold.prototype = Log.extend new Log.Line,
     # console.log format document.firstChild.innerHTML + '\n'
     @active = @log.folds.add(@data)
 
-Log.Fold::__defineGetter__ 'id',   -> "fold-#{@event}-#{@name}"
-Log.Fold::__defineGetter__ 'span', -> @spans[0]
-Log.Fold::__defineGetter__ 'data', -> { type: 'fold', id: @id, event: @event, name: @name }
+Object.defineProperty Log.Fold::, 'id', {
+  get: () -> "fold-#{@event}-#{@name}"
+}
+Object.defineProperty Log.Fold::, 'span', {
+  get: () -> @spans[0]
+}
+Object.defineProperty Log.Fold::, 'data', {
+  get: () -> { type: 'fold', id: @id, event: @event, name: @name }
+}

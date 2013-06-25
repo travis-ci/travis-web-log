@@ -24,11 +24,14 @@ Log.extend Log.Folds.Fold.prototype,
     classes.push('active') if @fold.childNodes.length > 2
     classes.join(' ')
 
-Log.Folds.Fold::__defineGetter__ 'fold', ->
-  @_fold ||= document.getElementById(@start)
-Log.Folds.Fold::__defineGetter__ 'nodes', ->
-  node = @fold
-  nodes = []
-  nodes.push(node) while (node = node.nextSibling) && node.id != @end
-  nodes
+Object.defineProperty Log.Folds.Fold::, 'fold', {
+  get: () -> @_fold ||= document.getElementById(@start)
+}
+Object.defineProperty Log.Folds.Fold::, 'nodes', {
+  get: () ->
+    node = @fold
+    nodes = []
+    nodes.push(node) while (node = node.nextSibling) && node.id != @end
+    nodes
+}
 
