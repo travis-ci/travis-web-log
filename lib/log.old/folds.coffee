@@ -23,10 +23,13 @@ $.extend Log.Folds.Fold.prototype,
     # add a class that adds the fold expand/collapse icon only if we have children
     @fold.setAttribute('class', @fold.getAttribute('class') + ' fold')
     @active = true
-Log.Folds.Fold::__defineGetter__ 'fold', ->
-  @_fold ||= document.getElementById(@start)
-Log.Folds.Fold::__defineGetter__ 'nodes', ->
-  node = @fold
-  nodes = []
-  nodes.push(node) while (node = node.nextSibling) && node.id != @end
-  nodes
+Object.defineProperty Log.Folds.Fold::, 'fold', {
+  get: () -> @_fold ||= document.getElementById(@start)
+}
+Object.defineProperty Log.Folds.Fold::, 'nodes', {
+  get: () ->
+    node = @fold
+    nodes = []
+    nodes.push(node) while (node = node.nextSibling) && node.id != @end
+    nodes
+}

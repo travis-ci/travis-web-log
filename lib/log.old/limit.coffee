@@ -7,7 +7,7 @@ Log.Limit.prototype = $.extend new Log.Listener,
   insert: (log, line, pos) ->
     @count += 1 if line.type == 'paragraph' && !line.hidden
 
-Log.Limit::__defineGetter__ 'limited', ->
-  @count >= @max_lines
-
+Object.defineProperty Log.Limit::, 'limited', {
+  get: () -> @count >= @max_lines
+}
 
