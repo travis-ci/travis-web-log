@@ -158,15 +158,15 @@ Log.Span.prototype = Log.extend new Log.Node,
     siblings = []
     siblings.push(span) while (span = (span || @)[type]) && @isSibling(span)
     siblings
-Log.Span::__defineSetter__ 'line', (line) ->
-  @line.remove(@) if @line
-  @_line = line
-  @line.add(@)
 Object.defineProperty Log.Span::, 'data', {
   get: () -> { id: @id, type: 'span', text: @text, class: @class}
 }
 Object.defineProperty Log.Span::, 'line', {
   get: () -> @_line
+  set: (line) ->
+    @line.remove(@) if @line
+    @_line = line
+    @line.add(@)
 }
 Object.defineProperty Log.Span::, 'element', {
   get: () -> document.getElementById(@id)
