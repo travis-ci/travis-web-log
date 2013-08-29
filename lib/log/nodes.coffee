@@ -94,6 +94,10 @@ Log.Part.prototype = Log.extend new Log.Node,
       spans[0].line.clear() if spans[0] && spans[0].line.cr
     setTimeout((=> @process(slice + 1, num)), Log.TIMEOUT) unless slice >= @slices.length - 1
 
+asteriskRRegexp = new RegExp(".*\r", 'gm')
+newLineAtTheEndRegexp = new RegExp("\n$")
+newLineRegexp = new RegExp("\n")
+rRegexp = new RegExp("\r")
 
 Log.Span = (id, num, text, classes) ->
   Log.Node.apply(@, arguments)
@@ -102,9 +106,11 @@ Log.Span = (id, num, text, classes) ->
     @event = fold[1]
     @text  = @name = fold[2]
   else
-    @text  = text.replace(/.*\r/gm, '').replace(/\n$/, '')
-    @nl    = !!text[text.length - 1]?.match(/\n/)
-    @cr    = !!text.match(/\r/)
+    @text  = text
+    @text  = @text.replace(asteriskRRegexp, '') if @text.indexOf("\r") != -1
+    @text  = @text.replace(newLineAtTheEndRegexp, '')
+    @nl    = !!text[text.length - 1]?.match(newLineRegexp)
+    @cr    = !!text.match(rRegexp)
     @class = @cr && ['clears'] || classes
   @
 Log.extend Log.Span,
