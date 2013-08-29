@@ -101,7 +101,7 @@ rRegexp = new RegExp("\r")
 removeCarriageReturns = (string) ->
   index = string.lastIndexOf("\r")
   return string if index == -1
-  string.substring(index)
+  string.substr(index + 1)
 
 Log.Span = (id, num, text, classes) ->
   Log.Node.apply(@, arguments)
