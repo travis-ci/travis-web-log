@@ -94,10 +94,14 @@ Log.Part.prototype = Log.extend new Log.Node,
       spans[0].line.clear() if spans[0] && spans[0].line.cr
     setTimeout((=> @process(slice + 1, num)), Log.TIMEOUT) unless slice >= @slices.length - 1
 
-asteriskRRegexp = new RegExp(".*\r", 'gm')
 newLineAtTheEndRegexp = new RegExp("\n$")
 newLineRegexp = new RegExp("\n")
 rRegexp = new RegExp("\r")
+
+removeCarriageReturns = (string) ->
+  index = string.lastIndexOf("\r")
+  return string if index == -1
+  string.substring(index)
 
 Log.Span = (id, num, text, classes) ->
   Log.Node.apply(@, arguments)
@@ -107,13 +111,14 @@ Log.Span = (id, num, text, classes) ->
     @text  = @name = fold[2]
   else
     @text  = text
-    @text  = @text.replace(asteriskRRegexp, '') if @text.indexOf("\r") != -1
+    @text  = removeCarriageReturns(@text)
     @text  = @text.replace(newLineAtTheEndRegexp, '')
     @nl    = !!text[text.length - 1]?.match(newLineRegexp)
     @cr    = !!text.match(rRegexp)
     @class = @cr && ['clears'] || classes
   @
 Log.extend Log.Span,
+
   create: (parent, id, num, text, classes) ->
     span = new Log.Span(id, num, text, classes)
     parent.addChild(span)
