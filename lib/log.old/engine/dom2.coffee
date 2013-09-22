@@ -37,14 +37,18 @@ $.extend Log.Dom.prototype,
 #     @engine.parts.splice(@num, 1)
 #   # trigger: ->
 #   #   @engine.trigger.apply(@engine, arguments)
-# Log.Dom.Part::__defineGetter__ 'prev', ->
-#   num  = @num
-#   prev = @engine.parts[num -= 1] until prev || num < 0
-#   prev
-# Log.Dom.Part::__defineGetter__ 'next', ->
-#   num  = @num
-#   next = @engine.parts[num += 1] until next || num >= @engine.parts.length
-#   next
+# Object.defineProperty Log.Dom.Part::, 'prev', {
+#   get: () ->
+#     num  = @num
+#     prev = @engine.parts[num -= 1] until prev || num < 0
+#     prev
+# }
+# Object.defineProperty Log.Dom.Part::, 'next', {
+#   get: () ->
+#     num  = @num
+#     next = @engine.parts[num += 1] until next || num >= @engine.parts.length
+#     next
+# }
 
 
 Log.Dom.Nodes = (parent) ->
@@ -61,9 +65,15 @@ $.extend Log.Dom.Nodes.prototype,
     @content.splice(@content.indexOf(node), 1)
     # @parent.remove() if @content.length == 0
 
-Log.Dom.Nodes::__defineGetter__ 'length', -> @content.length
-Log.Dom.Nodes::__defineGetter__ 'first',  -> @content[0]
-Log.Dom.Nodes::__defineGetter__ 'last',   -> @content[@content.length - 1]
+Object.defineProperty Log.Dom.Nodes::, 'length', {
+  get: () -> @content.length
+}
+Object.defineProperty Log.Dom.Nodes::, 'first', {
+  get: () -> @content[0]
+}
+Object.defineProperty Log.Dom.Nodes::, 'last', {
+  get: () -> @content[@content.length - 1]
+}
 
 Log.Dom.Node = ->
 $.extend Log.Dom.Node,
@@ -79,16 +89,20 @@ $.extend Log.Dom.Node,
   #   node.remove() for node in nodes
   #   node.parent.nodes.insert(node) for node in nodes
   #   console.log document.firstChild.innerHTML.replace(/<\/p>/gm, '</p>\n') + '\n'
-Log.Dom.Node::__defineGetter__ 'prev', ->
-  num = @num
-  # console.log @parent
-  # console.log [@id, @num, (@parent.nodes.content.map (n) -> n.id), @parent.prev?.id, @parent.prev?.nodes.last]
-  prev = @parent.nodes.at(num -= 1) until prev || num < 0
-  prev || @parent.prev?.nodes.last
-Log.Dom.Node::__defineGetter__ 'next', ->
-  num = @num
-  next = @parent.nodes.at(num += 1) until next || num >= @parent.nodes.length
-  next || @parent.next?.nodes.first
+Object.defineProperty Log.Dom.Node::, 'prev', {
+  get: () ->
+    num = @num
+    # console.log @parent
+    # console.log [@id, @num, (@parent.nodes.content.map (n) -> n.id), @parent.prev?.id, @parent.prev?.nodes.last]
+    prev = @parent.nodes.at(num -= 1) until prev || num < 0
+    prev || @parent.prev?.nodes.last
+}
+Object.defineProperty Log.Dom.Node::, 'next', {
+  get: () ->
+    num = @num
+    next = @parent.nodes.at(num += 1) until next || num >= @parent.nodes.length
+    next || @parent.next?.nodes.first
+}
 
 
 # Log.Dom.Fold = (parent, num, event, name) ->
@@ -180,19 +194,27 @@ Log.Dom.Paragraph.prototype = $.extend new Log.Dom.Node,
   # trigger: ->
   #   @parent.trigger.apply(@parent, arguments)
 
-Log.Dom.Paragraph::__defineGetter__ 'id', ->
-  "#{@parent.num}-#{@num}"
-# Log.Dom.Paragraph::__defineSetter__ 'element', (element) ->
-#   child = element.firstChild
-#   (span.element = child = child.nextSibling) for span in @spans.content
-# Log.Dom.Paragraph::__defineGetter__ 'element', ->
-#   @spans.first.element.parentNode
-# Log.Dom.Paragraph::__defineGetter__ 'tail', ->
-#   parent = @element.parentNode
-#   next = @
-#   tail = []
-#   tail.push(next) while (next = next.next) && !next.fold && next.element?.parentNode == parent
-#   tail
+Object.defineProperty Log.Dom.Paragraph::, 'id', {
+  get: () ->
+    "#{@parent.num}-#{@num}"
+}
+# Object.defineProperty Log.Dom.Paragraph::, 'element', {
+#   set: (element) ->
+#     child = element.firstChild
+#     (span.element = child = child.nextSibling) for span in @spans.content
+# }
+# Object.defineProperty Log.Dom.Paragraph::, 'element', {
+#   get: () ->
+#     @spans.first.element.parentNode
+# }
+# Object.defineProperty Log.Dom.Paragraph::, 'tail', {
+#   get: () ->
+#     parent = @element.parentNode
+#     next = @
+#     tail = []
+#     tail.push(next) while (next = next.next) && !next.fold && next.element?.parentNode == parent
+#     tail
+# }
 
 
 Log.Dom.Spans = (parent, ids, string) ->
@@ -224,8 +246,8 @@ $.extend Log.Dom.Spans.prototype,
   remove: (span) ->
     @content.splice(@content.indexof(span), 1)
 
-Log.Dom.Spans::__defineGetter__ 'first', -> @content[0]
-Log.Dom.Spans::__defineGetter__ 'last',  -> @content[@content.length - 1]
+Object.defineProperty Log.Dom.Spans::, 'first', { get: () -> @content[0] }
+Object.defineProperty Log.Dom.Spans::, 'last',  { get: () -> @content[@content.length - 1] }
 
 
 Log.Dom.Span = (parent, ids, data) ->
@@ -264,22 +286,32 @@ $.extend Log.Dom.Span.prototype,
   #   siblings
   # trigger: ->
   #   @parent.trigger.apply(@parent, arguments)
-# Log.Dom.Span::__defineGetter__ 'head', ->
-#   @siblings('prev')
-# Log.Dom.Span::__defineGetter__ 'tail', ->
-#   @siblings('next')
+# Object.defineProperty Log.Dom.Span::, 'head', {
+#   get: () ->
+#     @siblings('prev')
+# }
+# Object.defineProperty Log.Dom.Span::, 'tail', {
+#   get: () ->
+#     @siblings('next')
+# }
 
-Log.Dom.Span::__defineGetter__ 'prev', ->
-  console.log @num
-  span = @parent.spans.at(@num - 1)
-  span || @parent.prev?.spans?.last
+Object.defineProperty Log.Dom.Span::, 'prev', {
+  get: () ->
+    console.log @num
+    span = @parent.spans.at(@num - 1)
+    span || @parent.prev?.spans?.last
+}
 
-# Log.Dom.Span::__defineGetter__ 'prev', ->
-#   span = @parent.spans.at(@parent.spans.indexOf(@) - 1)
-#   span || @parent.prev?.spans?.last
-# Log.Dom.Span::__defineGetter__ 'next', ->
-#   span = @parent.spans.at(@parent.spans.indexOf(@) + 1)
-#   span || @parent.next?.spans?.first
+# Object.defineProperty Log.Dom.Span::, 'prev', {
+#   get: () ->
+#     span = @parent.spans.at(@parent.spans.indexOf(@) - 1)
+#     span || @parent.prev?.spans?.last
+# }
+# Object.defineProperty Log.Dom.Span::, 'next', {
+#   get: () ->
+#     span = @parent.spans.at(@parent.spans.indexOf(@) + 1)
+#     span || @parent.next?.spans?.first
+# }
 
 
 
