@@ -15,7 +15,9 @@ Log.extend Log.Folds.Fold.prototype,
     @activate() if @start && @end && !@active
   activate: ->
     console.log "F - activate #{@start}" if Log.DEBUG
-    @fold.appendChild(node) for node in @nodes
+    fragment = document.createDocumentFragment();
+    fragment.appendChild(node) for node in @nodes
+    @fold.appendChild(fragment.cloneNode(true));
     @fold.setAttribute('class', @classes())
     @active = true
   classes: ->
