@@ -1,3 +1,8 @@
+At first, you need to install all the required dependencies:
+```
+bundle install
+```
+
 build:
 
 ```
