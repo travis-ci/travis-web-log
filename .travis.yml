@@ -1,7 +1,5 @@
 language: node_js
 
-before_install: ruby -S gem install bundler
-
 before_script:
   - bundle install
   - bundle exec rakep
