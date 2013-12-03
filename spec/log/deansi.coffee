@@ -136,7 +136,7 @@ describe 'deansi', ->
       '''
 
       lines = progress 5, (ix, count, curr, total) ->
-        end = if count == 100 then ", done.\e[K\n" else "   \e[K\r"
+        end = if count == 100 then ", done.[K\n" else "   [K\r"
         [ix + 2, "remote: Compressing objects #{count}% (#{curr}/#{total})#{end}"]
 
       lines = lines.concat progress 5, (ix, count, curr, total) ->
@@ -147,7 +147,7 @@ describe 'deansi', ->
         end = if count == 100 then ", done.\n" else "   \r"
         [ix + 12, "Resolving deltas: #{count}% (#{curr}/#{total})#{end}"]
 
-      lines = [[0, "Cloning into 'jsdom'...\n"], [1, "remote: Counting objects: 13358, done.\e[K\n"]].concat(lines)
+      lines = [[0, "Cloning into 'jsdom'...\n"], [1, "remote: Counting objects: 13358, done.[K\n"]].concat(lines)
       lines = lines.concat([[17, 'Something else.']])
 
       expect(@render lines).toBe html
@@ -226,3 +226,13 @@ describe 'deansi', ->
     ]
     expect(@render parts).toBe html
 
+  it 'renders unescaped "eM" correctly', ->
+    html = strip '''
+      <p>
+        <span id="0-0">coreMath</span>
+      </p>
+    '''
+    parts = [
+      [0, "coreMath"]
+    ]
+    expect(@render parts).toBe html

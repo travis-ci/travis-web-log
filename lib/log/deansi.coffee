@@ -5,7 +5,21 @@
 # result.replace(/\033/g, '')
 
 Log.Deansi =
-  CLEAR_ANSI: /(\e|\033)\[K|(\e|\033)\[K|(\e|\033)\[\d+G|(\e|\033)\(B|(\e|\033)M|(\e|\033)\[\?25(l|h)/gm
+  CLEAR_ANSI: ///
+(?:\033) # leader
+(?:
+    \[0?c                 # query device code
+  | \[[0356]n             # device-related
+  | \[7[lh]               # disable/enable line wrapping
+  | \[\?25[lh]            # not sure what this is, but we've seen it happen
+  | \(B                   # set default font to 'B'
+  | H                     # set tab at current position
+  | \[(?:\d+(;\d+){,2})?G # tab control
+  | \[(?:[12])?[JK]       # erase line, screen, etc.
+  | [DM]                  # scroll up/down
+)
+///gm # See http://ispltd.org/mini_howto:ansi_terminal_codes
+
 
   apply: (string) ->
     return [] unless string

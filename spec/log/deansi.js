@@ -117,7 +117,7 @@
         html = strip('<p><span id="0-0">Cloning into \'jsdom\'...</span></p>\n<p><span id="1-0">remote: Counting objects: 13358, done.</span></p>\n<p>\n  <span id="5-0" class="clears"></span>\n  <span id="6-0">remote: Compressing objects 100% (5/5), done.</span></p>\n<p>\n  <span id="10-0" class="clears"></span>\n  <span id="11-0">Receiving objects 100% (5/5), done.</span></p>\n<p>\n  <span id="15-0" class="clears"></span>\n  <span id="16-0">Resolving deltas: 100% (5/5), done.</span>\n</p>\n<p><span id="17-0">Something else.</span></p>');
         lines = progress(5, function(ix, count, curr, total) {
           var end;
-          end = count === 100 ? ", done.\e[K\n" : "   \e[K\r";
+          end = count === 100 ? ", done.[K\n" : "   [K\r";
           return [ix + 2, "remote: Compressing objects " + count + "% (" + curr + "/" + total + ")" + end];
         });
         lines = lines.concat(progress(5, function(ix, count, curr, total) {
@@ -130,7 +130,7 @@
           end = count === 100 ? ", done.\n" : "   \r";
           return [ix + 12, "Resolving deltas: " + count + "% (" + curr + "/" + total + ")" + end];
         }));
-        lines = [[0, "Cloning into 'jsdom'...\n"], [1, "remote: Counting objects: 13358, done.\e[K\n"]].concat(lines);
+        lines = [[0, "Cloning into 'jsdom'...\n"], [1, "remote: Counting objects: 13358, done.[K\n"]].concat(lines);
         lines = lines.concat([[17, 'Something else.']]);
         return expect(this.render(lines)).toBe(html);
       });
@@ -159,10 +159,16 @@
       parts = [[1, '\rbaz\r\n'], [0, '\u001b[0mfoo\u001b[0mbar\r\n\r']];
       return expect(this.render(parts)).toBe(html);
     });
-    return it('clears a span when inserted late on a part that has a newline', function() {
+    it('clears a span when inserted late on a part that has a newline', function() {
       var html, parts;
       html = strip('<p>\n  <span id="1-0">foo</span>\n</p>\n<p>\n  <span id="2-0" class="clears"></span><span id="2-1">baz</span>\n</p>');
       parts = [[2, "\rbaz"], [1, "foo\nbar"]];
+      return expect(this.render(parts)).toBe(html);
+    });
+    return it('renders unescaped "eM" correctly', function() {
+      var html, parts;
+      html = strip('<p>\n  <span id="0-0">coreMath</span>\n</p>');
+      parts = [[0, "coreMath"]];
       return expect(this.render(parts)).toBe(html);
     });
   });
