@@ -18,8 +18,10 @@ rerun "ruby -rubygems config.ru" -p 'config.ru'
 run specs:
 
 ```
-rerun "clear; node spec.js" -p spec.js
+rerun "clear; node spec/spec.js" -p spec.js
 ```
+
+in the project root directory.
 
 capture the log when you see a bug before the log gets aggregated (3 min after build:finished):
 
