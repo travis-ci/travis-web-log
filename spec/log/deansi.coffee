@@ -45,11 +45,11 @@ describe 'deansi', ->
       expect(html).toBe '<p><span id="0-0" class="clears"></span></p>'
 
   it 'clear line works', ->
-    html = @render [[0, '[0m[1000D[?25l[32m  5%[0m[1000D[?25l[32m 11%']]
+    html = @render [[0, '\x1b[0m\x1b[1000D\x1b[?25l\x1b[32m  5%\x1b[0m\x1b[1000D\x1b[?25l\x1b[32m 11%']]
     expect(html).toBe '<p><span id="0-2" class="clears"></span><span id="0-3" class="green"> 11%</span></p>'
 
   it 'can cope with hide/show cursor', ->
-    html = @render [[0, 'foo[?25h\n[1000D[K\n']]
+    html = @render [[0, 'foo\x1b[?25h\n\x1b[1000D\x1b[K\n']]
     expect(html).toBe strip '''
       <p><span id="0-0">foo</span></p>
       <p><span id="0-1" class="clears"></span><span id="0-2"></span></p>
@@ -107,7 +107,7 @@ describe 'deansi', ->
 
 
   it 'progress (2)', ->
-      log = 'Started\r\n\r\n[1000D[?25l[32m1/36: [= ] 50% 00:00:00[0m[1000D[?25l[32m36/36: [==] 9.0/s 100% 00:00:04[0m[1000D[?25l[32m36/36: [==] 9.0/s 100% 00:00:04[0m[?25h\r\n[0m[1000D[K\r\nFinished in 4.76991s\r\n'
+      log = 'Started\r\n\r\n\x1b[1000D\x1b[?25l\x1b[32m1/36: [= ] 50% 00:00:00\x1b[0m\x1b[1000D\x1b[?25l\x1b[32m36/36: [==] 9.0/s 100% 00:00:04\x1b[0m\x1b[1000D\x1b[?25l\x1b[32m36/36: [==] 9.0/s 100% 00:00:04\x1b[0m\x1b[?25h\r\n\x1b[0m\x1b[1000D\x1b[K\r\nFinished in 4.76991s\r\n'
       html = strip '''
         <p><span id="0-0">Started</span></p>
         <p><span id="0-1"></span></p>
@@ -136,7 +136,7 @@ describe 'deansi', ->
       '''
 
       lines = progress 5, (ix, count, curr, total) ->
-        end = if count == 100 then ", done.\e[K\n" else "   \e[K\r"
+        end = if count == 100 then ", done.\x1b[K\n" else "   \x1b[K\r"
         [ix + 2, "remote: Compressing objects #{count}% (#{curr}/#{total})#{end}"]
 
       lines = lines.concat progress 5, (ix, count, curr, total) ->
@@ -147,7 +147,7 @@ describe 'deansi', ->
         end = if count == 100 then ", done.\n" else "   \r"
         [ix + 12, "Resolving deltas: #{count}% (#{curr}/#{total})#{end}"]
 
-      lines = [[0, "Cloning into 'jsdom'...\n"], [1, "remote: Counting objects: 13358, done.\e[K\n"]].concat(lines)
+      lines = [[0, "Cloning into 'jsdom'...\n"], [1, "remote: Counting objects: 13358, done.\x1b[K\n"]].concat(lines)
       lines = lines.concat([[17, 'Something else.']])
 
       expect(@render lines).toBe html
@@ -226,3 +226,13 @@ describe 'deansi', ->
     ]
     expect(@render parts).toBe html
 
+  it 'renders unescaped "eM" correctly', ->
+    html = strip '''
+      <p>
+        <span id="0-0">coreMath</span>
+      </p>
+    '''
+    parts = [
+      [0, "coreMath"]
+    ]
+    expect(@render parts).toBe html

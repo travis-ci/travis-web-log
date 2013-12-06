@@ -61,12 +61,12 @@
     });
     it('clear line works', function() {
       var html;
-      html = this.render([[0, '[0m[1000D[?25l[32m  5%[0m[1000D[?25l[32m 11%']]);
+      html = this.render([[0, '\x1b[0m\x1b[1000D\x1b[?25l\x1b[32m  5%\x1b[0m\x1b[1000D\x1b[?25l\x1b[32m 11%']]);
       return expect(html).toBe('<p><span id="0-2" class="clears"></span><span id="0-3" class="green"> 11%</span></p>');
     });
     it('can cope with hide/show cursor', function() {
       var html;
-      html = this.render([[0, 'foo[?25h\n[1000D[K\n']]);
+      html = this.render([[0, 'foo\x1b[?25h\n\x1b[1000D\x1b[K\n']]);
       return expect(html).toBe(strip('<p><span id="0-0">foo</span></p>\n<p><span id="0-1" class="clears"></span><span id="0-2"></span></p>'));
     });
     it('removes spans before a clearing span', function() {
@@ -107,7 +107,7 @@
     });
     it('progress (2)', function() {
       var html, log;
-      log = 'Started\r\n\r\n[1000D[?25l[32m1/36: [= ] 50% 00:00:00[0m[1000D[?25l[32m36/36: [==] 9.0/s 100% 00:00:04[0m[1000D[?25l[32m36/36: [==] 9.0/s 100% 00:00:04[0m[?25h\r\n[0m[1000D[K\r\nFinished in 4.76991s\r\n';
+      log = 'Started\r\n\r\n\x1b[1000D\x1b[?25l\x1b[32m1/36: [= ] 50% 00:00:00\x1b[0m\x1b[1000D\x1b[?25l\x1b[32m36/36: [==] 9.0/s 100% 00:00:04\x1b[0m\x1b[1000D\x1b[?25l\x1b[32m36/36: [==] 9.0/s 100% 00:00:04\x1b[0m\x1b[?25h\r\n\x1b[0m\x1b[1000D\x1b[K\r\nFinished in 4.76991s\r\n';
       html = strip('<p><span id="0-0">Started</span></p>\n<p><span id="0-1"></span></p>\n<p><span id="0-6" class="clears"></span><span id="0-7" class="green">36/36: [==] 9.0/s 100% 00:00:04</span><span id="0-8"></span></p>\n<p><span id="0-9" class="clears"></span><span id="0-10"></span></p>\n<p><span id="0-11">Finished in 4.76991s</span></p>');
       return expect(this.render([[0, log]])).toBe(html);
     });
@@ -117,7 +117,7 @@
         html = strip('<p><span id="0-0">Cloning into \'jsdom\'...</span></p>\n<p><span id="1-0">remote: Counting objects: 13358, done.</span></p>\n<p>\n  <span id="5-0" class="clears"></span>\n  <span id="6-0">remote: Compressing objects 100% (5/5), done.</span></p>\n<p>\n  <span id="10-0" class="clears"></span>\n  <span id="11-0">Receiving objects 100% (5/5), done.</span></p>\n<p>\n  <span id="15-0" class="clears"></span>\n  <span id="16-0">Resolving deltas: 100% (5/5), done.</span>\n</p>\n<p><span id="17-0">Something else.</span></p>');
         lines = progress(5, function(ix, count, curr, total) {
           var end;
-          end = count === 100 ? ", done.\e[K\n" : "   \e[K\r";
+          end = count === 100 ? ", done.\x1b[K\n" : "   \x1b[K\r";
           return [ix + 2, "remote: Compressing objects " + count + "% (" + curr + "/" + total + ")" + end];
         });
         lines = lines.concat(progress(5, function(ix, count, curr, total) {
@@ -130,7 +130,7 @@
           end = count === 100 ? ", done.\n" : "   \r";
           return [ix + 12, "Resolving deltas: " + count + "% (" + curr + "/" + total + ")" + end];
         }));
-        lines = [[0, "Cloning into 'jsdom'...\n"], [1, "remote: Counting objects: 13358, done.\e[K\n"]].concat(lines);
+        lines = [[0, "Cloning into 'jsdom'...\n"], [1, "remote: Counting objects: 13358, done.\x1b[K\n"]].concat(lines);
         lines = lines.concat([[17, 'Something else.']]);
         return expect(this.render(lines)).toBe(html);
       });
@@ -159,10 +159,16 @@
       parts = [[1, '\rbaz\r\n'], [0, '\u001b[0mfoo\u001b[0mbar\r\n\r']];
       return expect(this.render(parts)).toBe(html);
     });
-    return it('clears a span when inserted late on a part that has a newline', function() {
+    it('clears a span when inserted late on a part that has a newline', function() {
       var html, parts;
       html = strip('<p>\n  <span id="1-0">foo</span>\n</p>\n<p>\n  <span id="2-0" class="clears"></span><span id="2-1">baz</span>\n</p>');
       parts = [[2, "\rbaz"], [1, "foo\nbar"]];
+      return expect(this.render(parts)).toBe(html);
+    });
+    return it('renders unescaped "eM" correctly', function() {
+      var html, parts;
+      html = strip('<p>\n  <span id="0-0">coreMath</span>\n</p>');
+      parts = [[0, "coreMath"]];
       return expect(this.render(parts)).toBe(html);
     });
   });
