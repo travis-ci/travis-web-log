@@ -15,7 +15,12 @@ Log.extend Log.Folds.Fold.prototype,
     @activate() if @start && @end && !@active
   activate: ->
     console.log "F - activate #{@start}" if Log.DEBUG
+    toRemove = @fold.parentNode
+    parentNode = toRemove.parentNode
+    nextSibling = toRemove.nextSibling
+    parentNode.removeChild(toRemove)
     @fold.appendChild(node) for node in @nodes
+    parentNode.insertBefore(toRemove, nextSibling)
     @fold.setAttribute('class', @classes())
     @active = true
   classes: ->
