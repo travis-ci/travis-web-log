@@ -88,7 +88,7 @@ Log.extend Log.Renderer.prototype,
 
   createSpan: ->
     span = document.createElement('span')
-    span.appendChild(document.createTextNode(''))
+    span.appendChild(document.createTextNode(' '))
     span
 
   insertBefore: (node, other) ->
