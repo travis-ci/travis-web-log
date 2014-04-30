@@ -45,6 +45,7 @@ Log.Deansi =
     colors.push("bg-#{part.background}") if part.background
     colors.push('bold')                  if part.bold
     colors.push('italic')                if part.italic
+    colors.push('underline')             if part.underline
     colors
 
   hidden: (part) ->
