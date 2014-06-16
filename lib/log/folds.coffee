@@ -1,19 +1,21 @@
-Log.Folds = ->
+Log.Folds = (log) ->
+  @log = log
   @folds = {}
   @
 Log.extend Log.Folds.prototype,
   add: (data) ->
     fold = @folds[data.name] ||= new Log.Folds.Fold
-    fold.receive(data)
+    fold.receive(data, autoCloseFold: @log.autoCloseFold)
     fold.active
 
 Log.Folds.Fold = ->
   @
 Log.extend Log.Folds.Fold.prototype,
-  receive: (data) ->
+  receive: (data, options) ->
     @[data.event] = data.id
-    @activate() if @start && @end && !@active
-  activate: ->
+    @activate(options) if @start && @end && !@active
+  activate: (options) ->
+    options ||= {}
     console.log "F - activate #{@start}" if Log.DEBUG
     toRemove = @fold.parentNode
     parentNode = toRemove.parentNode
@@ -23,11 +25,12 @@ Log.extend Log.Folds.Fold.prototype,
     fragment.appendChild(node) for node in @nodes
     @fold.appendChild(fragment)
     parentNode.insertBefore(toRemove, nextSibling)
-    @fold.setAttribute('class', @classes())
+    @fold.setAttribute('class', @classes(options['autoCloseFold']))
     @active = true
-  classes: ->
+  classes: (autoCloseFold) ->
     classes = @fold.getAttribute('class').split(' ')
     classes.push('fold')
+    classes.push('open') unless autoCloseFold
     classes.push('active') if @fold.childNodes.length > 2
     classes.join(' ')
 

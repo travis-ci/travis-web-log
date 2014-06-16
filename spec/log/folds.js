@@ -13,6 +13,15 @@
         return render(this, parts);
       };
     });
+    describe('disabling autoCloseFold', function() {
+      beforeEach(function() {
+        return this.html = strip('<p><span id="0-0">foo</span></p>\n<div id="fold-start-install" class="fold-start fold open active"><span class="fold-name">install</span>\n  <p><span id="2-0">bar</span></p>\n  <p><span id="3-0">baz</span></p>\n  <p><span id="4-0">buz</span></p>\n</div>\n<div id="fold-end-install" class="fold-end"></div>\n<p><span id="6-0">bum</span></p>');
+      });
+      return it('adds open class to a fold', function() {
+        this.log.autoCloseFold = false;
+        return expect(this.render([[0, 'foo\n'], [1, FOLD_START], [2, 'bar\n'], [3, 'baz\n'], [4, 'buz\n'], [5, FOLD_END], [6, 'bum\n']])).toBe(this.html);
+      });
+    });
     describe('renders a bunch of lines', function() {
       beforeEach(function() {
         return this.html = strip('<p><span id="0-0">foo</span></p>\n<div id="fold-start-install" class="fold-start fold active"><span class="fold-name">install</span>\n  <p><span id="2-0">bar</span></p>\n  <p><span id="3-0">baz</span></p>\n  <p><span id="4-0">buz</span></p>\n</div>\n<div id="fold-end-install" class="fold-end"></div>\n<p><span id="6-0">bum</span></p>');

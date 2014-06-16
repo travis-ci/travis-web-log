@@ -1,9 +1,10 @@
 @Log = ->
+  @autoCloseFold = true
   @listeners = []
   @renderer = new Log.Renderer
   @children = new Log.Nodes(@)
   @parts = {}
-  @folds = new Log.Folds
+  @folds = new Log.Folds(@)
   @
 Log.extend = (one, other) ->
   one[name] = other[name] for name of other

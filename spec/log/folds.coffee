@@ -7,6 +7,23 @@ describe 'folds', ->
     @log = new Log()
     @render = (parts) -> render(@, parts)
 
+  describe 'disabling autoCloseFold', ->
+    beforeEach ->
+      @html = strip '''
+        <p><span id="0-0">foo</span></p>
+        <div id="fold-start-install" class="fold-start fold open active"><span class="fold-name">install</span>
+          <p><span id="2-0">bar</span></p>
+          <p><span id="3-0">baz</span></p>
+          <p><span id="4-0">buz</span></p>
+        </div>
+        <div id="fold-end-install" class="fold-end"></div>
+        <p><span id="6-0">bum</span></p>
+      '''
+
+    it 'adds open class to a fold', ->
+      @log.autoCloseFold = false
+      expect(@render [[0, 'foo\n'], [1, FOLD_START], [2, 'bar\n'], [3, 'baz\n'], [4, 'buz\n'], [5, FOLD_END], [6, 'bum\n']]).toBe @html
+
   describe 'renders a bunch of lines', ->
     beforeEach ->
       @html = strip '''
