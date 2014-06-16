@@ -21,7 +21,7 @@ Log.extend Log.Folds.Fold.prototype,
     parentNode.removeChild(toRemove)
     fragment = document.createDocumentFragment();
     fragment.appendChild(node) for node in @nodes
-    @fold.appendChild(fragment.cloneNode(true));
+    @fold.appendChild(fragment)
     parentNode.insertBefore(toRemove, nextSibling)
     @fold.setAttribute('class', @classes())
     @active = true
