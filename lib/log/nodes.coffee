@@ -118,7 +118,6 @@ Log.Span = (id, num, text, classes) ->
     @class = @cr && ['clears'] || classes
   @
 Log.extend Log.Span,
-
   create: (parent, id, num, text, classes) ->
     span = new Log.Span(id, num, text, classes)
     parent.addChild(span)

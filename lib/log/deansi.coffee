@@ -17,6 +17,7 @@ Log.Deansi =
   | \[(?:\d+(;\d+){,2})?G # tab control
   | \[(?:[12])?[JK]       # erase line, screen, etc.
   | [DM]                  # scroll up/down
+  | \[0K                  # clear line, handled by \r in our case
 )
 ///gm # See http://ispltd.org/mini_howto:ansi_terminal_codes
 
@@ -25,7 +26,6 @@ Log.Deansi =
     return [] unless string
     string = string.replace(@CLEAR_ANSI, '')
     nodes = ansiparse(string).map (part) => @node(part)
-    nodes.push(@node(text: '')) if nodes.length == 0
     nodes
 
   node: (part) ->
