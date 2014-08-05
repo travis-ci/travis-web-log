@@ -136,8 +136,10 @@ Log.Span.prototype = Log.extend new Log.Node,
     #   console.log "S.0 skip #{@id}" if Log.DEBUG
     #   @line = @next.line
     #   @remove()
-    if @time && @event == 'end'
-      console.log "S.0 skip insertion of #{@id} because it is a time end tag" if Log.DEBUG
+    if @time && @event == 'end' && @prev
+      console.log "S.0 insert #{@id} after prev #{@prev.id}" if Log.DEBUG
+      @log.insert(@data, after: @prev.element)
+      @line = @prev.line
     else if !@fold && @prev && !@prev.fold && !@prev.nl
       console.log "S.1 insert #{@id} after prev #{@prev.id}" if Log.DEBUG
       @log.insert(@data, after: @prev.element)
@@ -177,14 +179,14 @@ Log.Span.prototype = Log.extend new Log.Node,
     siblings.push(span) while (span = (span || @)[type]) && @isSibling(span)
     siblings
 Object.defineProperty Log.Span::, 'data', {
-  get: () -> { id: @id, type: 'span', text: @text, class: @class }
+  get: () -> { id: @id, type: 'span', text: @text, class: @class, time: @time }
 }
 Object.defineProperty Log.Span::, 'line', {
   get: () -> @_line
   set: (line) ->
     @line.remove(@) if @line
     @_line = line
-    @line.add(@)
+    @line.add(@) if @line
 }
 Object.defineProperty Log.Span::, 'element', {
   get: () -> document.getElementById(@id)
@@ -205,6 +207,8 @@ Log.extend Log.Line,
   create: (log, spans) ->
     if (span = spans[0]) && span.fold
       line = new Log.Fold(log, span.event, span.name)
+    # else if (span = spans[0]) && span.time
+    #   line = new Log.Time(log, span.event, span.name)
     else
       line = new Log.Line(log)
     span.line = line for span in spans
@@ -224,9 +228,13 @@ Log.extend Log.Line.prototype,
     @spans.splice(ix, 1) if (ix = @spans.indexOf(span)) > -1
   render: ->
     if (fold = @prev) && fold.event == 'start' && fold.active
-      console.log "L.0 insert #{@id} into fold #{fold.id}" if Log.DEBUG
-      fold = @log.folds.folds[fold.name].fold
-      @element = @log.insert(@data, into: fold)
+      if @next && !@next.fold
+        console.log "L.0 insert #{@id} before next #{@next.id}" if Log.DEBUG
+        @element = @log.insert(@data, before: @next.element)
+      else
+        console.log "L.0 insert #{@id} into fold #{fold.id}" if Log.DEBUG
+        fold = @log.folds.folds[fold.name].fold
+        @element = @log.insert(@data, into: fold)
     else if @prev
       console.log "L.1 insert #{@spans[0].id} after prev #{@prev.id}" if Log.DEBUG
       @element = @log.insert(@data, after: @prev.element)
@@ -236,7 +244,7 @@ Log.extend Log.Line.prototype,
     else
       console.log "L.3 insert #{@spans[0].id} into #log" if Log.DEBUG
       @element = @log.insert(@data)
-    # console.log format document.firstChild.innerHTML + '\n'
+    console.log format document.firstChild.innerHTML + '\n'
   clear: ->
     # cr.clear() if cr = @crs.pop()
     cr.clear() for cr in @crs
@@ -282,7 +290,7 @@ Log.Fold.prototype = Log.extend new Log.Line,
       @element = @log.insert(@data)
 
     @span.prev.split([@span.next].concat(@span.next.tail)) if @span.next && @span.prev?.isSibling(@span.next)
-    # console.log format document.firstChild.innerHTML + '\n'
+    console.log format document.firstChild.innerHTML + '\n'
     @active = @log.folds.add(@data)
 
 Object.defineProperty Log.Fold::, 'id', {
@@ -294,3 +302,17 @@ Object.defineProperty Log.Fold::, 'span', {
 Object.defineProperty Log.Fold::, 'data', {
   get: () -> { type: 'fold', id: @id, event: @event, name: @name }
 }
+
+# Log.Time = (log, event, name) ->
+#   Log.Line.apply(@, arguments)
+#   @time  = true
+#   @event = event
+#   @name  = name
+#   @type  = if event == 'start' then 'p' else 'span'
+#   @
+# Log.Time.prototype = Log.extend new Log.Line
+# #   render: ->
+#
+# Object.defineProperty Log.Time::, 'data', {
+#   get: () -> { type: @type, id: @id, event: @event, name: @name }
+# }

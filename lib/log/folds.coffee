@@ -16,7 +16,7 @@ Log.extend Log.Folds.Fold.prototype,
     @activate(options) if @start && @end && !@active
   activate: (options) ->
     options ||= {}
-    console.log "F - activate #{@start}" if Log.DEBUG
+    console.log "F.n - activate #{@start}" if Log.DEBUG
     toRemove = @fold.parentNode
     parentNode = toRemove.parentNode
     nextSibling = toRemove.nextSibling

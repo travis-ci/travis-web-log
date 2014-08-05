@@ -40,6 +40,7 @@ Log.extend Log.Renderer.prototype,
         node = @render(node)
         frag.appendChild(node) if node
       frag
+    # else if data.type == 'paragraph' && data.nodes[0]?.time
     else
       data.type ||= 'paragraph'
       type = data.type[0].toUpperCase() + data.type.slice(1)
