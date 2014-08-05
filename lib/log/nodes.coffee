@@ -109,6 +109,11 @@ Log.Span = (id, num, text, classes) ->
     @fold  = true
     @event = fold[1]
     @text  = @name = fold[2]
+  else if time = text.match(Log.TIME)
+    @time  = true
+    @event = time[1]
+    @name  = time[2]
+    @stats = time[3]
   else
     @text  = text
     @text  = removeCarriageReturns(@text)
@@ -131,7 +136,10 @@ Log.Span.prototype = Log.extend new Log.Node,
     #   console.log "S.0 skip #{@id}" if Log.DEBUG
     #   @line = @next.line
     #   @remove()
-    if !@fold && @prev && !@prev.fold && !@prev.nl
+    if @time
+      @line = new Log.Time(@log, @event, @name, @stats)
+      @line.render()
+    else if !@fold && @prev && !@prev.fold && !@prev.nl
       console.log "S.1 insert #{@id} after prev #{@prev.id}" if Log.DEBUG
       @log.insert(@data, after: @prev.element)
       @line = @prev.line
@@ -169,7 +177,7 @@ Log.Span.prototype = Log.extend new Log.Node,
     siblings.push(span) while (span = (span || @)[type]) && @isSibling(span)
     siblings
 Object.defineProperty Log.Span::, 'data', {
-  get: () -> { id: @id, type: 'span', text: @text, class: @class}
+  get: () -> { id: @id, type: 'span', text: @text, class: @class }
 }
 Object.defineProperty Log.Span::, 'line', {
   get: () -> @_line
@@ -261,9 +269,9 @@ Log.Fold = (log, event, name) ->
 Log.Fold.prototype = Log.extend new Log.Line,
   render: ->
     # console.log "fold #{@id} prev: #{@prev?.id} next: #{@next?.id}"
-    if @prev
+    if @prev && @prev.element
       console.log "F.1 insert #{@id} after prev #{@prev.id}" if Log.DEBUG
-      element = @prev.element || @prev.element.parentNode
+      element = @prev.element
       @element = @log.insert(@data, after: element)
     else if @next
       console.log "F.2 insert #{@id} before next #{@next.id}" if Log.DEBUG
@@ -285,4 +293,19 @@ Object.defineProperty Log.Fold::, 'span', {
 }
 Object.defineProperty Log.Fold::, 'data', {
   get: () -> { type: 'fold', id: @id, event: @event, name: @name }
+}
+
+Log.Time = (log, event, name, stats) ->
+  Log.Line.apply(@, arguments)
+  @time  = true
+  @event = event
+  @name  = name
+  @stats = stats
+  @
+Log.Time.prototype = Log.extend new Log.Line,
+  render: ->
+    Log.Line.prototype.render.apply(@) if @event == 'start'
+    @log.times.add(@)
+Object.defineProperty Log.Time::, 'data', {
+  get: () -> { type: 'paragraph', nodes: @nodes, duration: @log.times.duration(@name) }
 }

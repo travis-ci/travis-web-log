@@ -5,6 +5,7 @@
   @children = new Log.Nodes(@)
   @parts = {}
   @folds = new Log.Folds(@)
+  @times = new Log.Times(@)
   @
 Log.extend = (one, other) ->
   one[name] = other[name] for name of other
@@ -14,6 +15,7 @@ Log.extend Log,
   SLICE: 500
   TIMEOUT: 25
   FOLD: /fold:(start|end):([\w_\-\.]+)/
+  TIME: /time:(start|end):([\w_\-\.]+):?([\w_\-\.\=\,]*)/
 
   create: (options) ->
     options ||= {}
@@ -50,6 +52,7 @@ Log.extend Log.Listener.prototype,
     @[event].apply(@, [log].concat(Array::slice.call(arguments, 2))) if @[event]
 
 require 'log/folds'
+require 'log/times'
 require 'log/deansi'
 require 'log/limit'
 require 'log/renderer'

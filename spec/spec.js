@@ -118,6 +118,8 @@
 
   eval(require('fs').readFileSync('./spec/log.js', 'utf-8'));
 
+  eval(require('fs').readFileSync('./spec/log/time.js', 'utf-8'));
+
   describe('Log', function() {
     return beforeEach(function() {
       while (log.firstChild) {
