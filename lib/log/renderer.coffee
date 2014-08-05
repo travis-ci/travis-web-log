@@ -11,7 +11,10 @@ Log.extend Log.Renderer.prototype,
     node = @render(data)
     if into = pos?.into
       into = document.getElementById(pos?.into) if typeof into == 'String'
-      @appendTo(node, into)
+      if pos?.prepend
+        @prependTo(node, into)
+      else
+        @appendTo(node, into)
     else if after = pos?.after
       after = document.getElementById(pos) if typeof after == 'String'
       @insertAfter(node, after)
@@ -103,6 +106,12 @@ Log.extend Log.Renderer.prototype,
       @insertBefore(node, other.nextSibling)
     else
       @appendTo(node, other.parentNode)
+
+  prependTo: (node, other) ->
+    if other.firstChild
+      other.insertBefore(node, other.firstChild)
+    else
+      appendTo(node, other)
 
   appendTo: (node, other) ->
     other.appendChild(node)

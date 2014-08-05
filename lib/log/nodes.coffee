@@ -143,7 +143,7 @@ Log.Span.prototype = Log.extend new Log.Node,
       console.log "S.1 insert #{@id} after prev #{@prev.id}" if Log.DEBUG
       @log.insert(@data, after: @prev.element)
       @line = @prev.line
-    else if !@fold && @next && !@next.fold # && !@nl
+    else if !@fold && @next && !@next.fold && !@next.time # && !@nl
       console.log "S.2 insert #{@id} before next #{@next.id}" if Log.DEBUG
       @log.insert(@data, before: @next.element)
       @line = @next.line
@@ -223,7 +223,10 @@ Log.extend Log.Line.prototype,
   remove: (span) ->
     @spans.splice(ix, 1) if (ix = @spans.indexOf(span)) > -1
   render: ->
-    if (fold = @prev) && fold.event == 'start' && fold.active
+    if @time && @next && !@next.time
+      console.log "L.0 insert #{@spans[0].id} into next #{@next.id}" if Log.DEBUG
+      @element = @log.insert(@spans[0].data, into: @next.element, prepend: true)
+    else if (fold = @prev) && fold.event == 'start' && fold.active
       console.log "L.0 insert #{@id} into fold #{fold.id}" if Log.DEBUG
       fold = @log.folds.folds[fold.name].fold
       @element = @log.insert(@data, into: fold)
