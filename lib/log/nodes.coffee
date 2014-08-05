@@ -91,7 +91,7 @@ Log.Part.prototype = Log.extend new Log.Node,
         span = Log.Span.create(@, "#{@id}-#{num += 1}", num, node.text, node.class)
         span.render()
         spans.push(span)
-      spans[0].line.clear() if spans[0] && spans[0].line.cr
+      spans[0].line.clear() if spans[0]?.line?.cr
     setTimeout((=> @process(slice + 1, num)), Log.TIMEOUT) unless slice >= @slices.length - 1
 
 newLineAtTheEndRegexp = new RegExp("\n$")
@@ -136,9 +136,8 @@ Log.Span.prototype = Log.extend new Log.Node,
     #   console.log "S.0 skip #{@id}" if Log.DEBUG
     #   @line = @next.line
     #   @remove()
-    if @time && !@next
-      @line = new Log.Time(@log, @event, @name, @stats)
-      @line.render()
+    if @time && @event == 'end'
+      console.log "S.0 skip insertion of #{@id} because it is a time end tag" if Log.DEBUG
     else if !@fold && @prev && !@prev.fold && !@prev.nl
       console.log "S.1 insert #{@id} after prev #{@prev.id}" if Log.DEBUG
       @log.insert(@data, after: @prev.element)
@@ -150,7 +149,6 @@ Log.Span.prototype = Log.extend new Log.Node,
     else
       @line = Log.Line.create(@log, [@])
       @line.render()
-      # @log.times.add(@line) if @time
 
     # console.log format document.firstChild.innerHTML + '\n'
     @split(tail) if @nl && (tail = @tail).length > 0
@@ -225,11 +223,6 @@ Log.extend Log.Line.prototype,
   remove: (span) ->
     @spans.splice(ix, 1) if (ix = @spans.indexOf(span)) > -1
   render: ->
-    # if @time && @next && !@next.time
-    #   console.log "L.0 insert #{@spans[0].id} into next #{@next.id}" if Log.DEBUG
-    #   # @log.insert(@spans[0].data, into: @next.element, prepend: true)
-    #   # @join(@next)
-    #   @element = @log.insert(@data)
     if (fold = @prev) && fold.event == 'start' && fold.active
       console.log "L.0 insert #{@id} into fold #{fold.id}" if Log.DEBUG
       fold = @log.folds.folds[fold.name].fold
@@ -243,11 +236,7 @@ Log.extend Log.Line.prototype,
     else
       console.log "L.3 insert #{@spans[0].id} into #log" if Log.DEBUG
       @element = @log.insert(@data)
-    console.log format document.firstChild.innerHTML + '\n'
-  # join: (other) ->
-  #   console.log "S.3 merge #{other.id} into #{@id}" if Log.DEBUG
-  #   console.log(@id)
-  #   console.log(other.id)
+    # console.log format document.firstChild.innerHTML + '\n'
   clear: ->
     # cr.clear() if cr = @crs.pop()
     cr.clear() for cr in @crs
@@ -304,19 +293,4 @@ Object.defineProperty Log.Fold::, 'span', {
 }
 Object.defineProperty Log.Fold::, 'data', {
   get: () -> { type: 'fold', id: @id, event: @event, name: @name }
-}
-
-Log.Time = (log, event, name, stats) ->
-  Log.Line.apply(@, arguments)
-  @time  = true
-  @event = event
-  @name  = name
-  @stats = stats
-  @
-Log.Time.prototype = Log.extend new Log.Line,
-  render: ->
-    Log.Line.prototype.render.apply(@) if @event == 'start'
-    # @log.times.add(@)
-Object.defineProperty Log.Time::, 'data', {
-  get: () -> { type: 'paragraph', nodes: @nodes, duration: @log.times.duration(@name) }
 }
