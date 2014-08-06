@@ -55,12 +55,12 @@ dump = (log) ->
   console.log ''
 
 
-# eval require('fs').readFileSync('./spec/log/deansi.js', 'utf-8')
-# eval require('fs').readFileSync('./spec/log/dots.js', 'utf-8')
-# eval require('fs').readFileSync('./spec/log/folds.js', 'utf-8')
-# eval require('fs').readFileSync('./spec/log/limit.js', 'utf-8')
-# eval require('fs').readFileSync('./spec/log/nodes.js', 'utf-8')
-# eval require('fs').readFileSync('./spec/log.js', 'utf-8')
+eval require('fs').readFileSync('./spec/log/deansi.js', 'utf-8')
+eval require('fs').readFileSync('./spec/log/dots.js', 'utf-8')
+eval require('fs').readFileSync('./spec/log/folds.js', 'utf-8')
+eval require('fs').readFileSync('./spec/log/limit.js', 'utf-8')
+eval require('fs').readFileSync('./spec/log/nodes.js', 'utf-8')
+eval require('fs').readFileSync('./spec/log.js', 'utf-8')
 eval require('fs').readFileSync('./spec/log/time.js', 'utf-8')
 
 describe 'Log', ->
@@ -76,7 +76,7 @@ describe 'Log', ->
 
   # it 'text', ->
   #   rescueing @, ->
-  #     text = require('fs').readFileSync('./log.reduced.txt', 'utf-8')
+  #     text = require('fs').readFileSync('./log.txt', 'utf-8')
   #     console.log format (@render [[0, text]]) #.slice(-10000)
 
 
