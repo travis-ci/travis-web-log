@@ -24,11 +24,13 @@ Log.extend Log.Times.Time.prototype,
   update: (element) ->
     element.setAttribute('class', 'duration')
     element.setAttribute('title', "This command finished after #{@duration} seconds.")
-    element.appendChild document.createTextNode(@duration)
+    console.log(element.nodeName)
+    element.lastChild.nodeValue = "#{@duration}s"
+    # element.appendChild document.createTextNode(@duration)
 
 Object.defineProperty Log.Times.Time::, 'duration', {
   get: ->
-    duration = @stats.duration / 1000 / 1000 # nanoseconds
+    duration = @stats.duration / 1000 / 1000 / 1000 # nanoseconds
     duration.toFixed(2)
 }
 Object.defineProperty Log.Times.Time::, 'stats', {

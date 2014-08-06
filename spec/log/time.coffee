@@ -7,7 +7,7 @@ describe 'timing', ->
   it 'timing a command (1)', ->
     html = strip '''
       <p>
-        <span id="0-0" class="duration" title="This command finished after 114.31 seconds.">114.31</span>
+        <span id="0-0" class="duration" title="This command finished after 0.11 seconds.">0.11s</span>
         <span id="0-1">timed</span>
         <span id="0-2"></span>
       </p>
@@ -20,7 +20,7 @@ describe 'timing', ->
   it 'timing a command (2)', ->
     html = strip '''
       <p>
-        <span id="0-0" class="duration" title="This command finished after 114.31 seconds.">114.31</span>
+        <span id="0-0" class="duration" title="This command finished after 0.11 seconds.">0.11s</span>
         <span id="0-1">timed</span>
         <span id="1-0"></span>
       </p>
@@ -34,7 +34,7 @@ describe 'timing', ->
   it 'timing a command (3)', ->
     html = strip '''
       <p>
-        <span id="0-0" class="duration" title="This command finished after 114.31 seconds.">114.31</span>
+        <span id="0-0" class="duration" title="This command finished after 0.11 seconds.">0.11s</span>
         <span id="1-0">timed</span>
         <span id="2-0"></span>
       </p>
@@ -49,7 +49,7 @@ describe 'timing', ->
   it 'timing a command (4)', ->
     html = strip '''
       <p>
-        <span id="0-0" class="duration" title="This command finished after 114.31 seconds.">114.31</span>
+        <span id="0-0" class="duration" title="This command finished after 0.11 seconds.">0.11s</span>
         <span id="0-1">timed</span>
       </p>
       <p><span id="1-0"></span></p>
@@ -63,7 +63,7 @@ describe 'timing', ->
   it 'timing a command (5)', ->
     html = strip '''
       <p>
-        <span id="0-0" class="duration" title="This command finished after 114.31 seconds.">114.31</span>
+        <span id="0-0" class="duration" title="This command finished after 0.11 seconds.">0.11s</span>
         <span id="1-0">timed</span>
       </p>
       <p><span id="2-0"></span></p>
@@ -78,7 +78,7 @@ describe 'timing', ->
   it 'timing a long running command (1)', ->
     html = strip '''
       <p>
-        <span id="0-0" class="duration" title="This command finished after 114.31 seconds.">114.31</span>
+        <span id="0-0" class="duration" title="This command finished after 0.11 seconds.">0.11s</span>
         <span id="1-0">one</span>
       </p>
       <p>
@@ -101,7 +101,7 @@ describe 'timing', ->
   it 'timing a long running command (2)', ->
     html = strip '''
       <p>
-        <span id="0-0" class="duration" title="This command finished after 114.31 seconds.">114.31</span>
+        <span id="0-0" class="duration" title="This command finished after 0.11 seconds.">0.11s</span>
         <span id="1-0">one</span>
       </p>
       <p>
@@ -126,7 +126,7 @@ describe 'timing', ->
   it 'timing a long running command (2)', ->
     html = strip '''
       <p>
-        <span id="0-0" class="duration" title="This command finished after 114.31 seconds.">114.31</span>
+        <span id="0-0" class="duration" title="This command finished after 0.11 seconds.">0.11s</span>
         <span id="1-0">one</span>
       </p>
       <p>
@@ -151,7 +151,7 @@ describe 'timing', ->
   it 'timing a long running command (3)', ->
     html = strip '''
       <p>
-        <span id="0-0" class="duration" title="This command finished after 114.31 seconds.">114.31</span>
+        <span id="0-0" class="duration" title="This command finished after 0.11 seconds.">0.11s</span>
         <span id="1-0">one</span>
       </p>
       <p>
@@ -178,7 +178,7 @@ describe 'timing', ->
       <div id="fold-start-after_script" class="fold-start fold">
         <span class="fold-name">after_script</span>
         <p>
-          <span id="0-1" class="duration" title="This command finished after 114.31 seconds.">114.31</span>
+          <span id="0-1" class="duration" title="This command finished after 0.11 seconds.">0.11s</span>
           <span id="0-2">timed</span>
           <span id="0-3"></span>
         </p>
@@ -196,7 +196,7 @@ describe 'timing', ->
       <div id="fold-start-git.1" class="fold-start fold">
         <span class="fold-name">git.1</span>
         <p>
-          <span id="0-1" class="duration" title="This command finished after 417.24 seconds.">417.24</span>
+          <span id="0-1" class="duration" title="This command finished after 0.42 seconds.">0.42s</span>
           <span id="0-2">e[0K$ git clone</span>
           <span id="0-3"></span>
         </p>
@@ -214,7 +214,7 @@ describe 'timing', ->
       <div id="fold-start-after_script" class="fold-start fold">
         <span class="fold-name">after_script</span>
         <p>
-          <span id="1-0" class="duration" title="This command finished after 114.31 seconds.">114.31</span>
+          <span id="1-0" class="duration" title="This command finished after 0.11 seconds.">0.11s</span>
           <span id="2-0">timed</span>
           <span id="3-0"></span>
         </p>
@@ -235,7 +235,7 @@ describe 'timing', ->
       <div id="fold-start-after_script" class="fold-start fold active">
         <span class="fold-name">after_script</span>
         <p>
-          <span id="1-0" class="duration" title="This command finished after 114.31 seconds.">114.31</span>
+          <span id="1-0" class="duration" title="This command finished after 0.11 seconds.">0.11s</span>
           <span id="2-0">timed</span>
         </p>
         <p><span id="3-0"></span></p>
@@ -256,7 +256,7 @@ describe 'timing', ->
       <div id="fold-start-after_script" class="fold-start fold">
         <span class="fold-name">after_script</span>
         <p>
-          <span id="1-0" class="duration" title="This command finished after 114.31 seconds.">114.31</span>
+          <span id="1-0" class="duration" title="This command finished after 0.11 seconds.">0.11s</span>
           <span id="2-0">timed</span>
         </p>
         <p><span id="3-0"></span></p>
@@ -273,4 +273,27 @@ describe 'timing', ->
     # rescueing @, ->
     #   console.log @render(parts)
     expect(@render parts).toBe html
+
+  it 'timing a command (bug 1)', ->
+    html = strip '''
+      <p>
+        <span id="0-0" class="duration" title="This command finished after 0.23 seconds.">0.23s</span>
+        <span id="0-1">$ rvm use default</span>
+      </p>
+      <p>
+        <span id="1-0" class="green">Using /home/travis/.rvm/gems/ruby-1.9.3-p547</span>
+        <span id="1-1"></span>
+        <span id="2-0"></span>
+      </p>
+      <p>
+        <span id="2-1">$ export BUNDLE_GEMFILE=$PWD/Gemfile</span>
+      </p>
+    '''
+    parts = [
+      [0, 'travis_time:start:19130\r\x1b[0K$ rvm use default\r\r\n'],
+      [1, '\x1b[32mUsing /home/travis/.rvm/gems/ruby-1.9.3-p547\x1b[0m\r\r\n'],
+      [2, 'travis_time:end:19130:start=1407271442547198934,finish=1407271442778174764,duration=230975830\r\x1b[0K$ export BUNDLE_GEMFILE=$PWD/Gemfile\r\r\n']
+    ]
+    expect(@render parts).toBe html
+
 

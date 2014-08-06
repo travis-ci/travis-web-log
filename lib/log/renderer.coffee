@@ -71,7 +71,7 @@ Log.extend Log.Renderer.prototype,
     span = @span.cloneNode(true)
     span.setAttribute('id', data.id) if data.id
     span.setAttribute('class', data.class) if data.class
-    span.lastChild.nodeValue = data.text
+    span.lastChild.nodeValue = data.text || ''
     span
 
   renderText: (data) ->
