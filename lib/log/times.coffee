@@ -24,7 +24,7 @@ Log.extend Log.Times.Time.prototype,
   update: (element) ->
     element.setAttribute('class', 'duration')
     element.setAttribute('title', "This command finished after #{@duration} seconds.")
-    console.log(element.nodeName)
+    # console.log(element.nodeName)
     element.lastChild.nodeValue = "#{@duration}s"
     # element.appendChild document.createTextNode(@duration)
 
