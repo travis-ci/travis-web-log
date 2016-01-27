@@ -99,8 +99,8 @@ Log.extend Log.Renderer.prototype,
     if other
       other.parentNode.insertBefore(node, other)
     else
-      if log = document.getElementById('log')
-        log.insertBefore(node, log.firstChild)
+      log = document.getElementById('log')
+      log.insertBefore(node, log.firstChild)
 
   insertAfter: (node, other) ->
     if other.nextSibling
